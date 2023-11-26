@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["metrics", "fullTextSearch"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+  id           String       @id @default(uuid())
+  name         String       @unique
+  price        Float
+  sale         Boolean      @default(false)
+  availibility Availibility
+  reviews      Review[]
+  tags         Tag[]
+  description  Description?
+}
+
+model User {
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  id             String    @id @default(uuid())
+  email          String
+  refreshToken   String?
+  accessToken    String?
+  organizationId String?
+  password       String?
+  token          String?
+  provider       String?
+  username       String?
+  confirmedAt    DateTime?
+  profile        Profile?
+}
+
+model Profile {
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  id          String    @id @default(uuid())
+  firstName   String
+  lastName    String?
+  address     String?
+  phone       String?
+  image       String?
+  color       String?
+  url         String?
+  description String?
+  birthday    DateTime?
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ContactUs {
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  id          String    @id @default(uuid())
+  fullName    String
+  email       String
+  phone       String?
+  subject     String?
+  description String?
+}
+
+model Description {
+  deletedAt DateTime?
+  id        String    @id @default(uuid())
+  content   String
+  product   Product   @relation(fields: [productId], references: [id])
+  productId String    @unique
+}
+
+model Review {
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  rating    Int
+  product   Product   @relation(fields: [productId], references: [id])
+  productId String
+}
+
+model Tag {
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  id        String    @id @default(uuid())
+  content   String
+  products  Product[]
+}
+
+enum Availibility {
+  IN_STORE
+  ONLINE
+}
