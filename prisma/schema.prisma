@@ -27,11 +27,11 @@ model Product {
 }
 
 model User {
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
-  id             String    @id @default(uuid())
-  email          String
+  id             String        @id @default(uuid())
+  email          String        @unique
   refreshToken   String?
   accessToken    String?
   organizationId String?
@@ -41,6 +41,7 @@ model User {
   username       String?
   confirmedAt    DateTime?
   profile        Profile?
+  organization   Organization?
 }
 
 model Profile {
@@ -59,6 +60,16 @@ model Profile {
   birthday    DateTime?
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  id        String    @id @default(uuid())
+  name      String?
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ContactUs {

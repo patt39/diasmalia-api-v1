@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CreateContactUsOptions,
   GetContactUsSelections,
@@ -12,6 +12,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { ContactUs, Prisma } from '@prisma/client';
+import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class ContactUsService {
@@ -75,11 +76,14 @@ export class ContactUsService {
   async createOne(options: CreateContactUsOptions): Promise<ContactUs> {
     const { fullName, email, subject, description } = options;
 
-    const contactUs = await this.client.contactUs.create({
+    const contactUs = this.client.contactUs.create({
       data: { fullName, email, subject, description },
     });
 
-    return contactUs;
+    const [error, result] = await useCatch(contactUs);
+    if (error) throw new NotFoundException(error);
+
+    return result;
   }
 
   /** Update one ContactUs to the database. */
@@ -90,13 +94,16 @@ export class ContactUsService {
     const { contactUsId } = selections;
     const { fullName, email, subject, description, deletedAt } = options;
 
-    const contactUs = await this.client.contactUs.update({
+    const contactUs = this.client.contactUs.update({
       where: {
         id: contactUsId,
       },
       data: { fullName, email, subject, description, deletedAt },
     });
 
-    return contactUs;
+    const [error, result] = await useCatch(contactUs);
+    if (error) throw new NotFoundException(error);
+
+    return result;
   }
 }

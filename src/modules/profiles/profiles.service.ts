@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CreateProfilesOptions,
   GetProfilesSelections,
@@ -12,6 +12,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { Profile, Prisma } from '@prisma/client';
+import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class ProfilesService {
@@ -27,9 +28,9 @@ export class ProfilesService {
       Object.assign(prismaWhereProfile, {
         OR: [
           {
-            fullName: { contains: search, mode: 'insensitive' },
-            description: { contains: search, mode: 'insensitive' },
-            email: { contains: search, mode: 'insensitive' },
+            firstName: { contains: search, mode: 'insensitive' },
+            lastName: { contains: search, mode: 'insensitive' },
+            address: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -47,7 +48,7 @@ export class ProfilesService {
       cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
     };
 
-    const Profiles = await this.client.profile.findMany(arg);
+    const profiles = await this.client.profile.findMany(arg);
     const rowCount = await this.client.profile.count({
       where: { ...prismaWhereProfile, deletedAt: null },
     });
@@ -55,7 +56,7 @@ export class ProfilesService {
     return withPagination({
       pagination,
       rowCount,
-      value: Profiles,
+      value: profiles,
     });
   }
 
@@ -86,7 +87,7 @@ export class ProfilesService {
       userId,
     } = options;
 
-    const profile = await this.client.profile.create({
+    const profile = this.client.profile.create({
       data: {
         firstName,
         lastName,
@@ -101,7 +102,10 @@ export class ProfilesService {
       },
     });
 
-    return profile;
+    const [error, result] = await useCatch(profile);
+    if (error) throw new NotFoundException(error);
+
+    return result;
   }
 
   /** Update one Profiles to the database. */
@@ -123,7 +127,7 @@ export class ProfilesService {
       deletedAt,
     } = options;
 
-    const profile = await this.client.profile.update({
+    const profile = this.client.profile.update({
       where: {
         id: profileId,
       },
@@ -141,6 +145,9 @@ export class ProfilesService {
       },
     });
 
-    return profile;
+    const [error, result] = await useCatch(profile);
+    if (error) throw new NotFoundException(error);
+
+    return result;
   }
 }
