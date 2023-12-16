@@ -5,6 +5,9 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { UsersModule } from './modules/users/users.module';
+import { ContributorsModule } from './modules/contributors/contributors.module';
+import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
 
 @Module({
   imports: [
@@ -13,7 +16,10 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
     ReviewsModule,
     ContactUsModule,
     ProfilesModule,
+    UsersModule,
+    ContributorsModule,
     OrganizationsModule,
+    AuthProvidersModule,
   ],
 })
 export class AppModule {}

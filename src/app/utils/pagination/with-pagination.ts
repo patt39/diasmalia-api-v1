@@ -13,7 +13,7 @@ export type PaginationType = {
   limit?: number;
   offset?: number;
   cursor?: string;
-  orderBy?: string;
+  orderBy?: any;
   isPaginate?: string;
   sort: SortType;
 };

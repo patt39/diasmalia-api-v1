@@ -10,7 +10,7 @@ import { reply } from '../../app/utils/reply';
 
 import { OrganizationsService } from './organizations.service';
 
-@Controller('Organizations')
+@Controller('organizations')
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
