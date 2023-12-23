@@ -8,6 +8,7 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { UsersModule } from './modules/users/users.module';
 import { ContributorsModule } from './modules/contributors/contributors.module';
 import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthProvidersModule } from './modules/auth-providers/auth-providers.mod
     ContactUsModule,
     ProfilesModule,
     UsersModule,
+    TasksModule,
     ContributorsModule,
     OrganizationsModule,
     AuthProvidersModule,

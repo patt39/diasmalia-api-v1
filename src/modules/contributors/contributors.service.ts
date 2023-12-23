@@ -16,7 +16,6 @@ import { Contributor, Prisma } from '@prisma/client';
 @Injectable()
 export class ContributorsService {
   constructor(private readonly client: DatabaseService) {}
-
   async findAll(
     selections: GetContributorsSelections,
   ): Promise<WithPaginationResponse | null> {
