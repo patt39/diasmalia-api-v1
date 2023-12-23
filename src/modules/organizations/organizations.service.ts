@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CreateOrganizationsOptions,
   GetOneOrganizationsSelections,
@@ -7,7 +7,6 @@ import {
 } from './organizations.type';
 import { DatabaseService } from '../../app/database/database.service';
 import { Organization, Prisma } from '@prisma/client';
-import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class OrganizationsService {
@@ -26,7 +25,7 @@ export class OrganizationsService {
       Object.assign(prismaWhereOrganization, { userId });
     }
 
-    const organization = await this.client.organization.findFirstOrThrow({
+    const organization = await this.client.organization.findFirst({
       where: { ...prismaWhereOrganization, deletedAt: null },
     });
 
@@ -44,10 +43,7 @@ export class OrganizationsService {
       },
     });
 
-    const [error, result] = await useCatch(organization);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return organization;
   }
 
   /** Update one Organizations to the database. */
@@ -68,9 +64,6 @@ export class OrganizationsService {
       },
     });
 
-    const [error, result] = await useCatch(organization);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return organization;
   }
 }

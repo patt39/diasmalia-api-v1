@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CreateContributorsOptions,
   GetContributorsSelections,
@@ -12,7 +12,6 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { Contributor, Prisma } from '@prisma/client';
-import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class ContributorsService {
@@ -69,7 +68,7 @@ export class ContributorsService {
   async createOne(options: CreateContributorsOptions): Promise<Contributor> {
     const { userId, role, organizationId, userCreatedId } = options;
 
-    const Contributor = this.client.contributor.create({
+    const contributor = this.client.contributor.create({
       data: {
         userId,
         role,
@@ -78,10 +77,7 @@ export class ContributorsService {
       },
     });
 
-    const [error, result] = await useCatch(Contributor);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return contributor;
   }
 
   /** Update one Contributors to the database. */
@@ -92,14 +88,11 @@ export class ContributorsService {
     const { contributorId } = selections;
     const { role, deletedAt } = options;
 
-    const Contributor = this.client.contributor.update({
+    const contributor = this.client.contributor.update({
       where: { id: contributorId },
       data: { role, deletedAt },
     });
 
-    const [error, result] = await useCatch(Contributor);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return contributor;
   }
 }

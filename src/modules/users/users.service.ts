@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CreateUsersOptions,
   GetOneUsersSelections,
@@ -7,7 +7,6 @@ import {
 } from './users.type';
 import { DatabaseService } from '../../app/database/database.service';
 import { User, Prisma } from '@prisma/client';
-import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class UsersService {
@@ -69,10 +68,7 @@ export class UsersService {
       },
     });
 
-    const [error, result] = await useCatch(user);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return user;
   }
 
   /** Update one Users to the database. */
@@ -112,9 +108,6 @@ export class UsersService {
       },
     });
 
-    const [error, result] = await useCatch(user);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return user;
   }
 }

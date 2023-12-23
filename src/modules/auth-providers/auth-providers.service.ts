@@ -26,7 +26,7 @@ export class AuthProvidersService {
       Object.assign(prismaWhereAuthProvider, { providerId });
     }
 
-    const authProvider = await this.client.authProvider.findFirstOrThrow({
+    const authProvider = await this.client.authProvider.findFirst({
       where: { ...prismaWhereAuthProvider, deletedAt: null },
     });
 

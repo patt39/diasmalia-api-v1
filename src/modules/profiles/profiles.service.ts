@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CreateProfilesOptions,
   GetProfilesSelections,
@@ -12,7 +12,6 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { Profile, Prisma } from '@prisma/client';
-import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class ProfilesService {
@@ -63,13 +62,13 @@ export class ProfilesService {
   /** Find one Profiles to the database. */
   async findOneBy(selections: GetOneProfilesSelections) {
     const { profileId } = selections;
-    const contact = await this.client.profile.findUnique({
+    const profile = await this.client.profile.findUnique({
       where: {
         id: profileId,
       },
     });
 
-    return contact;
+    return profile;
   }
 
   /** Create one Profiles to the database. */
@@ -102,10 +101,7 @@ export class ProfilesService {
       },
     });
 
-    const [error, result] = await useCatch(profile);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return profile;
   }
 
   /** Update one Profiles to the database. */
@@ -145,9 +141,6 @@ export class ProfilesService {
       },
     });
 
-    const [error, result] = await useCatch(profile);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return profile;
   }
 }

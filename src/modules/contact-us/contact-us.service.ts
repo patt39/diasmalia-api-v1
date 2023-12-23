@@ -36,19 +36,13 @@ export class ContactUsService {
       });
     }
 
-    const paginationValue = {
+    const contactUs = await this.client.contactUs.findMany({
       take: pagination.take,
       orderBy: pagination.orderBy,
-    };
-
-    const arg: any = {
-      ...paginationValue,
       where: { ...prismaWhereContactUs, deletedAt: null },
       skip: pagination?.cursor ? 1 : pagination.skip,
       cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
-    };
-
-    const contactUs = await this.client.contactUs.findMany(arg);
+    });
     const rowCount = await this.client.contactUs.count({
       where: { ...prismaWhereContactUs, deletedAt: null },
     });
