@@ -5,6 +5,7 @@ import {
   GetOneTasksSelections,
   UpdateTasksOptions,
   UpdateTasksSelections,
+  TaskSelect,
 } from './tasks.type';
 import { DatabaseService } from '../../app/database/database.service';
 import {
@@ -21,7 +22,7 @@ export class TasksService {
     selections: GetTasksSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTask = {} as Prisma.TaskWhereInput;
-    const { search, pagination } = selections;
+    const { search, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhereTask, {
@@ -34,12 +35,16 @@ export class TasksService {
       });
     }
 
-    const Tasks = await this.client.task.findMany({
-      take: pagination.take,
-      orderBy: pagination.orderBy,
+    if (organizationId) {
+      Object.assign(prismaWhereTask, { organizationId });
+    }
+
+    const tasks = await this.client.task.findMany({
       where: { ...prismaWhereTask, deletedAt: null },
-      skip: pagination?.cursor ? 1 : pagination.skip,
-      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
+      take: pagination.take,
+      skip: pagination.skip,
+      select: TaskSelect,
+      orderBy: pagination.orderBy,
     });
 
     const rowCount = await this.client.task.count({
@@ -49,7 +54,7 @@ export class TasksService {
     return withPagination({
       pagination,
       rowCount,
-      value: Tasks,
+      value: tasks,
     });
   }
 
@@ -57,6 +62,7 @@ export class TasksService {
   async findOneBy(selections: GetOneTasksSelections) {
     const { taskId } = selections;
     const contact = await this.client.task.findUnique({
+      select: TaskSelect,
       where: {
         id: taskId,
       },

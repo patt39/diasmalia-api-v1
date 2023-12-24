@@ -9,6 +9,8 @@ import { UsersModule } from './modules/users/users.module';
 import { ContributorsModule } from './modules/contributors/contributors.module';
 import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { MedicationsModule } from './modules/medications/medications.module';
+import { LocationsModule } from './modules/locations/locations.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { TasksModule } from './modules/tasks/tasks.module';
     ProfilesModule,
     UsersModule,
     TasksModule,
+    LocationsModule,
+    MedicationsModule,
     ContributorsModule,
     OrganizationsModule,
     AuthProvidersModule,

@@ -94,6 +94,8 @@ model Organization {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   contributors Contributor[]
   tasks        Task[]
+  diagnosis    Diagnosis[]
+  medications  Medication[]
 }
 
 model ContactUs {
@@ -159,6 +161,48 @@ model Task {
   dueDate        DateTime
   userId         String
   user           User         @relation(fields: [userId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+}
+
+model AnimalStatus {
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  id        String    @id @default(uuid())
+  title     String
+  color     String
+}
+
+model Location {
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  id           String    @id @default(uuid())
+  squareMeter Int
+  manger      Int
+  through     Int
+  number       Int
+}
+
+model Diagnosis {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+}
+
+model Medication {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String

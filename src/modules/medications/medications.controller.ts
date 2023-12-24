@@ -14,9 +14,9 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { TasksService } from './tasks.service';
+import { MedicationsService } from './medications.service';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateTasksDto } from './tasks.dto';
+import { CreateOrUpdateMedicationsDto } from './medications.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -24,11 +24,11 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { JwtAuthGuard } from '../users/middleware';
 
-@Controller('tasks')
-export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+@Controller('medications')
+export class MedicationsController {
+  constructor(private readonly medicationsService: MedicationsService) {}
 
-  /** Get all Tasks */
+  /** Get all Medications */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -43,86 +43,85 @@ export class TasksController {
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
-    const tasks = await this.tasksService.findAll({
+    const medications = await this.medicationsService.findAll({
       search,
       pagination,
       organizationId: user?.organizationId,
     });
 
-    return reply({ res, results: tasks });
+    return reply({ res, results: medications });
   }
 
-  /** Post one Tasks */
+  /** Post one Medications */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateTasksDto,
+    @Body() body: CreateOrUpdateMedicationsDto,
   ) {
     const { user } = req;
-    const { title, description, dueDate, userId } = body;
+    const { name } = body;
 
-    const task = await this.tasksService.createOne({
-      title,
-      description,
-      dueDate,
-      userId,
+    const medication = await this.medicationsService.createOne({
+      name,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: task });
+    return reply({ res, results: medication });
   }
 
-  /** Post one Tasks */
-  @Put(`/:taskId`)
+  /** Post one Medications */
+  @Put(`/:medicationId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateTasksDto,
-    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Body() body: CreateOrUpdateMedicationsDto,
+    @Param('medicationId', ParseUUIDPipe) medicationId: string,
   ) {
     const { user } = req;
-    const { title, description, dueDate, userId } = body;
+    const { name } = body;
 
-    const task = await this.tasksService.updateOne(
-      { taskId },
+    const medication = await this.medicationsService.updateOne(
+      { medicationId },
       {
-        title,
-        description,
-        dueDate,
-        userId,
+        name,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
     );
 
-    return reply({ res, results: task });
+    return reply({ res, results: medication });
   }
 
-  /** Get one Tasks */
+  /** Get one Medications */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
-    @Query('taskId', ParseUUIDPipe) taskId: string,
+    @Query('medicationId', ParseUUIDPipe) medicationId: string,
   ) {
-    const task = await this.tasksService.findOneBy({ taskId });
+    const medication = await this.medicationsService.findOneBy({
+      medicationId,
+    });
 
-    return reply({ res, results: task });
+    return reply({ res, results: medication });
   }
 
-  /** Delete one Tasks */
-  @Delete(`/delete/:taskId`)
+  /** Delete one Medications */
+  @Delete(`/delete/:medicationId`)
   @UseGuards(JwtAuthGuard)
-  async deleteOne(@Res() res, @Param('taskId', ParseUUIDPipe) taskId: string) {
-    const task = await this.tasksService.updateOne(
-      { taskId },
+  async deleteOne(
+    @Res() res,
+    @Param('medicationId', ParseUUIDPipe) medicationId: string,
+  ) {
+    const medication = await this.medicationsService.updateOne(
+      { medicationId },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: task });
+    return reply({ res, results: medication });
   }
 }
