@@ -1,4 +1,4 @@
-import { Gender, ProductionPhase } from '@prisma/client';
+import { Gender, ProductionPhase, AnimalType } from '@prisma/client';
 import {
   IsString,
   IsNotEmpty,
@@ -37,6 +37,11 @@ export class CreateOrUpdateAnimalsDto {
   @IsString()
   @IsIn([Gender])
   gender: Gender;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsIn([AnimalType])
+  type: AnimalType;
 
   @IsNotEmpty()
   @IsString()

@@ -245,6 +245,7 @@ model Animal {
   birthday        DateTime?
   weight          String
   gender          Gender
+  type            AnimalType
   productionPhase ProductionPhase
   electronicCode  String?
   animalStatusId  String?
@@ -263,6 +264,12 @@ model Animal {
 enum Gender {
   MALE
   FEMALE
+}
+
+enum AnimalType {
+  BOVINE
+  GOAT
+  RABBIT
 }
 
 enum ProductionPhase {
@@ -300,7 +307,7 @@ model Breeding {
   updatedAt        DateTime         @updatedAt
   deletedAt        DateTime?
   id               String           @id @default(uuid())
-  date            DateTime?
+  date             DateTime?
   note             String?
   method           MethodBreeding
   animalId         String
