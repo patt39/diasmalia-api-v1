@@ -26,6 +26,11 @@ model Product {
   description  Description?
 }
 
+enum Availibility {
+  IN_STORE
+  ONLINE
+}
+
 model User {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -84,21 +89,23 @@ model Profile {
 }
 
 model Organization {
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?
-  id           String        @id @default(uuid())
-  name         String?
-  description  String?
-  userId       String        @unique
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contributors Contributor[]
-  tasks        Task[]
-  diagnosis    Diagnosis[]
-  medications  Medication[]
-  animals      Animal[]
-  breeds       Breed[]
-  treatments   Treatment[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+  id               String           @id @default(uuid())
+  name             String?
+  description      String?
+  userId           String           @unique
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributors     Contributor[]
+  tasks            Task[]
+  diagnosis        Diagnosis[]
+  medications      Medication[]
+  animals          Animal[]
+  breeds           Breed[]
+  treatments       Treatment[]
+  breedings        Breeding[]
+  checkPregnancies CheckPregnancy[]
 }
 
 model ContactUs {
@@ -250,6 +257,7 @@ model Animal {
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   treatments      Treatment[]
+  breedings       Breeding[]
 }
 
 enum Gender {
@@ -287,7 +295,53 @@ model Treatment {
   userCreatedId  String
 }
 
-enum Availibility {
-  IN_STORE
-  ONLINE
+model Breeding {
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+  id               String           @id @default(uuid())
+  date            DateTime?
+  note             String?
+  method           MethodBreeding
+  animalId         String
+  animal           Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId    String
+  checkPregnancies CheckPregnancy[]
+}
+
+enum MethodBreeding {
+  NATURAL
+  INVITRO_FERTILISATION
+}
+
+model CheckPregnancy {
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  id             String               @id @default(uuid())
+  date           DateTime?
+  note           String?
+  farrowingDate  DateTime?
+  method         MethodCheckPregnancy
+  result         ResultCheckPregnancy
+  breedingId     String
+  breeding       Breeding             @relation(fields: [breedingId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+}
+
+enum MethodCheckPregnancy {
+  BLOOD_TEST
+  RECTAL_PALPATION
+  OBSERVATION
+  ULTRASOUND
+}
+
+enum ResultCheckPregnancy {
+  EXPOSED
+  OPEN
+  PREGNANT
 }

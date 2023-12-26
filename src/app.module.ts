@@ -14,6 +14,8 @@ import { LocationsModule } from './modules/locations/locations.module';
 import { AnimalsModule } from './modules/animals/animals.module';
 import { BreedsModule } from './modules/breeds/breeds.module';
 import { TreatmentsModule } from './modules/treatments/treatments.module';
+import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregnancies.module';
+import { BreedingsModule } from './modules/breedings/breedings.module';
 
 @Module({
   imports: [
@@ -26,12 +28,14 @@ import { TreatmentsModule } from './modules/treatments/treatments.module';
     TasksModule,
     BreedsModule,
     AnimalsModule,
+    BreedingsModule,
     TreatmentsModule,
     LocationsModule,
     MedicationsModule,
     ContributorsModule,
     OrganizationsModule,
     AuthProvidersModule,
+    CheckPregnanciesModule,
   ],
 })
 export class AppModule {}
