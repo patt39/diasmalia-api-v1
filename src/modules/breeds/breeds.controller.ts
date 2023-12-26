@@ -24,7 +24,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { JwtAuthGuard } from '../users/middleware';
 
-@Controller('Breeds')
+@Controller('breeds')
 export class BreedsController {
   constructor(private readonly breedsService: BreedsService) {}
 

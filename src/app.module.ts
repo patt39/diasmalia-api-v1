@@ -13,6 +13,7 @@ import { MedicationsModule } from './modules/medications/medications.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { AnimalsModule } from './modules/animals/animals.module';
 import { BreedsModule } from './modules/breeds/breeds.module';
+import { TreatmentsModule } from './modules/treatments/treatments.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { BreedsModule } from './modules/breeds/breeds.module';
     TasksModule,
     BreedsModule,
     AnimalsModule,
+    TreatmentsModule,
     LocationsModule,
     MedicationsModule,
     ContributorsModule,

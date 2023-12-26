@@ -96,9 +96,9 @@ model Organization {
   tasks        Task[]
   diagnosis    Diagnosis[]
   medications  Medication[]
-  // treatments    Treatment[]
   animals      Animal[]
   breeds       Breed[]
+  treatments   Treatment[]
 }
 
 model ContactUs {
@@ -200,6 +200,7 @@ model Diagnosis {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+  treatments     Treatment[]
 }
 
 model Medication {
@@ -211,6 +212,7 @@ model Medication {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+  treatments     Treatment[]
 }
 
 model Breed {
@@ -238,15 +240,16 @@ model Animal {
   gender          Gender
   productionPhase ProductionPhase
   electronicCode  String?
-  animalStatusId  String
-  animalStatus    AnimalStatus    @relation(fields: [animalStatusId], references: [id], onDelete: Cascade)
-  locationId      String
-  location        Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  breedId         String
-  breed           Breed           @relation(fields: [breedId], references: [id], onDelete: Cascade)
+  animalStatusId  String?
+  animalStatus    AnimalStatus?   @relation(fields: [animalStatusId], references: [id], onDelete: Cascade)
+  locationId      String?
+  location        Location?       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  breedId         String?
+  breed           Breed?          @relation(fields: [breedId], references: [id], onDelete: Cascade)
   organizationId  String
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
+  treatments      Treatment[]
 }
 
 enum Gender {
@@ -264,16 +267,25 @@ enum ProductionPhase {
   WEANING
 }
 
-// model Treatment {
-//   createdAt      DateTime     @default(now())
-//   updatedAt      DateTime     @updatedAt
-//   deletedAt      DateTime?
-//   id             String       @id @default(uuid())
-//   name           String
-//   organizationId String
-//   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-//   userCreatedId  String
-// }
+model Treatment {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  numberOfDose   Int?
+  treatmentName  String?
+  treatmentDate  DateTime?
+  medicationId   String?
+  note           String?
+  medications    Medication?  @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  diagnosisId    String?
+  diagnosis      Diagnosis?   @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+  animalId       String?
+  animal         Animal?      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+}
 
 enum Availibility {
   IN_STORE

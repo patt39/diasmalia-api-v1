@@ -60,14 +60,14 @@ export class MedicationsService {
   /** Find one Medications to the database. */
   async findOneBy(selections: GetOneMedicationsSelections) {
     const { medicationId } = selections;
-    const contact = await this.client.medication.findUnique({
+    const medication = await this.client.medication.findUnique({
       select: MedicationSelect,
       where: {
         id: medicationId,
       },
     });
 
-    return contact;
+    return medication;
   }
 
   /** Create one Medications to the database. */
