@@ -11,6 +11,8 @@ import { AuthProvidersModule } from './modules/auth-providers/auth-providers.mod
 import { TasksModule } from './modules/tasks/tasks.module';
 import { MedicationsModule } from './modules/medications/medications.module';
 import { LocationsModule } from './modules/locations/locations.module';
+import { AnimalsModule } from './modules/animals/animals.module';
+import { BreedsModule } from './modules/breeds/breeds.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { LocationsModule } from './modules/locations/locations.module';
     ProfilesModule,
     UsersModule,
     TasksModule,
+    BreedsModule,
+    AnimalsModule,
     LocationsModule,
     MedicationsModule,
     ContributorsModule,

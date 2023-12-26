@@ -96,6 +96,9 @@ model Organization {
   tasks        Task[]
   diagnosis    Diagnosis[]
   medications  Medication[]
+  // treatments    Treatment[]
+  animals      Animal[]
+  breeds       Breed[]
 }
 
 model ContactUs {
@@ -173,17 +176,19 @@ model AnimalStatus {
   id        String    @id @default(uuid())
   title     String
   color     String
+  animals   Animal[]
 }
 
 model Location {
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
-  id           String    @id @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  id          String    @id @default(uuid())
   squareMeter Int
   manger      Int
   through     Int
-  number       Int
+  number      Int
+  animals     Animal[]
 }
 
 model Diagnosis {
@@ -207,6 +212,68 @@ model Medication {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
 }
+
+model Breed {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animals        Animal[]
+}
+
+model Animal {
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+  id              String          @id @default(uuid())
+  code            String?
+  codeFather      String?
+  codeMother      String?
+  birthday        DateTime?
+  weight          String
+  gender          Gender
+  productionPhase ProductionPhase
+  electronicCode  String?
+  animalStatusId  String
+  animalStatus    AnimalStatus    @relation(fields: [animalStatusId], references: [id], onDelete: Cascade)
+  locationId      String
+  location        Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  breedId         String
+  breed           Breed           @relation(fields: [breedId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId   String
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ProductionPhase {
+  GROWTH
+  FATTENING
+  GESTATION
+  LACTATION
+  REPRODUCTION
+  ISOLATION
+  WEANING
+}
+
+// model Treatment {
+//   createdAt      DateTime     @default(now())
+//   updatedAt      DateTime     @updatedAt
+//   deletedAt      DateTime?
+//   id             String       @id @default(uuid())
+//   name           String
+//   organizationId String
+//   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+//   userCreatedId  String
+// }
 
 enum Availibility {
   IN_STORE

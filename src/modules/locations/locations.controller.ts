@@ -101,11 +101,11 @@ export class LocationsController {
     @Res() res,
     @Query('locationId', ParseUUIDPipe) locationId: string,
   ) {
-    const medication = await this.locationsService.findOneBy({
+    const breed = await this.locationsService.findOneBy({
       locationId,
     });
 
-    return reply({ res, results: medication });
+    return reply({ res, results: breed });
   }
 
   /** Delete one Locations */
