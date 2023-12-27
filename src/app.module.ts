@@ -16,6 +16,7 @@ import { BreedsModule } from './modules/breeds/breeds.module';
 import { TreatmentsModule } from './modules/treatments/treatments.module';
 import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregnancies.module';
 import { BreedingsModule } from './modules/breedings/breedings.module';
+import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { BreedingsModule } from './modules/breedings/breedings.module';
     BreedingsModule,
     TreatmentsModule,
     LocationsModule,
+    FarrowingsModule,
     MedicationsModule,
     ContributorsModule,
     OrganizationsModule,
