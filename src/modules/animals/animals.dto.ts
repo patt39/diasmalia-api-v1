@@ -4,8 +4,8 @@ import {
   IsNotEmpty,
   MaxLength,
   IsOptional,
-  IsIn,
   IsUUID,
+  IsEnum,
 } from 'class-validator';
 
 export class CreateOrUpdateAnimalsDto {
@@ -35,18 +35,18 @@ export class CreateOrUpdateAnimalsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsIn([Gender])
+  @IsEnum(Gender)
   gender: Gender;
 
   @IsNotEmpty()
   @IsString()
-  @IsIn([AnimalType])
+  @IsEnum(AnimalType)
   type: AnimalType;
 
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
-  @IsIn([ProductionPhase])
+  @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 
   @IsOptional()
