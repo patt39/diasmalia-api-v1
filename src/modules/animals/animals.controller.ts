@@ -75,7 +75,6 @@ export class AnimalsController {
       locationId,
       breedId,
     } = body;
-
     const animal = await this.animalsService.createOne({
       code,
       codeFather,
