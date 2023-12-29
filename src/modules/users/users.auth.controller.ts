@@ -32,7 +32,6 @@ export class UsersAuthController {
 
   /** Post one Users */
   @Post(`/register`)
-  // @UseGuards(JwtAuthGuard)
   async createOne(@Res() res, @Body() body: RegisterUserDto) {
     const { email, password, firstName, lastName, nameOrganization } = body;
 

@@ -4,7 +4,7 @@ import {
   IsNotEmpty,
   MaxLength,
   IsOptional,
-  IsIn,
+  IsEnum,
   IsUUID,
 } from 'class-validator';
 
@@ -20,7 +20,7 @@ export class CreateOrUpdateBreedingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsIn([MethodBreeding])
+  @IsEnum(MethodBreeding)
   method: MethodBreeding;
 
   @IsNotEmpty()
