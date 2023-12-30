@@ -65,7 +65,7 @@ export class CheckPregnanciesController {
     const { user } = req;
     const { date, note, farrowingDate, method, result, breedingId } = body;
 
-    const breeding = await this.checkPregnanciesService.createOne({
+    const checkPregnancy = await this.checkPregnanciesService.createOne({
       date,
       note,
       farrowingDate,
@@ -76,10 +76,10 @@ export class CheckPregnanciesController {
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: breeding });
+    return reply({ res, results: checkPregnancy });
   }
 
-  /** Post one CheckPregnancies */
+  /** Update one CheckPregnancies */
   @Put(`/:checkPregnancyId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -91,7 +91,7 @@ export class CheckPregnanciesController {
     const { user } = req;
     const { date, note, farrowingDate, method, result, breedingId } = body;
 
-    const breeding = await this.checkPregnanciesService.updateOne(
+    const checkPregnancy = await this.checkPregnanciesService.updateOne(
       { checkPregnancyId },
       {
         date,
@@ -105,7 +105,7 @@ export class CheckPregnanciesController {
       },
     );
 
-    return reply({ res, results: breeding });
+    return reply({ res, results: checkPregnancy });
   }
 
   /** Get one CheckPregnancies */
