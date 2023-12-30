@@ -28,7 +28,7 @@ import { JwtAuthGuard } from '../users/middleware';
 export class FarrowingsController {
   constructor(private readonly farrowingsService: FarrowingsService) {}
 
-  /** Get all Animals */
+  /** Get all farrowings */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -52,7 +52,7 @@ export class FarrowingsController {
     return reply({ res, results: farrowings });
   }
 
-  /** Post one Animals */
+  /** Post one Farrowing */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -75,7 +75,7 @@ export class FarrowingsController {
     return reply({ res, results: farrowing });
   }
 
-  /** Post one Animals */
+  /** Post one Farrowing */
   @Put(`/:farrowingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -116,7 +116,7 @@ export class FarrowingsController {
     return reply({ res, results: farrowing });
   }
 
-  /** Delete one Animals */
+  /** Delete one Farrowing */
   @Delete(`/delete/:farrowingId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
