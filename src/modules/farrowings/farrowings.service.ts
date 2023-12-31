@@ -57,7 +57,7 @@ export class FarrowingsService {
     });
   }
 
-  /** Find one Animals to the database. */
+  /** Find one farrowing in database. */
   async findOneBy(selections: GetOneFarrowingsSelections) {
     const { farrowingId } = selections;
     const farrowing = await this.client.farrowing.findUnique({
@@ -70,11 +70,12 @@ export class FarrowingsService {
     return farrowing;
   }
 
-  /** Create one Animals to the database. */
+  /** Create one farrowing in database. */
   async createOne(options: CreateFarrowingsOptions): Promise<Farrowing> {
     const {
       note,
       litter,
+      date,
       organizationId,
       userCreatedId,
       checkPregnancyId,
@@ -85,6 +86,7 @@ export class FarrowingsService {
       data: {
         note,
         litter,
+        date,
         organizationId,
         userCreatedId,
         checkPregnancyId,
@@ -95,7 +97,7 @@ export class FarrowingsService {
     return farrowing;
   }
 
-  /** Update one Animals to the database. */
+  /** Update one farrowing in database. */
   async updateOne(
     selections: UpdateFarrowingsSelections,
     options: UpdateFarrowingsOptions,
@@ -104,6 +106,7 @@ export class FarrowingsService {
     const {
       note,
       litter,
+      date,
       organizationId,
       userCreatedId,
       checkPregnancyId,
@@ -118,6 +121,7 @@ export class FarrowingsService {
       data: {
         note,
         litter,
+        date,
         organizationId,
         userCreatedId,
         checkPregnancyId,

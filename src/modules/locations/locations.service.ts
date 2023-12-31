@@ -28,8 +28,7 @@ export class LocationsService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            name: { contains: search, mode: 'insensitive' },
-            description: { contains: search, mode: 'insensitive' },
+            number: { contains: search, mode: 'insensitive' },
           },
         ],
       });
