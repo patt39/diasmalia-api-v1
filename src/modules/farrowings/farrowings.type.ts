@@ -24,6 +24,7 @@ export const FarrowingSelect = {
   id: true,
   litter: true,
   note: true,
+  date: true,
   organizationId: true,
   userCreatedId: true,
   animalId: true,

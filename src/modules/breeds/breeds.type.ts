@@ -22,5 +22,4 @@ export const BreedsSelect = {
   createdAt: true,
   id: true,
   name: true,
-  organizationId: true,
 };

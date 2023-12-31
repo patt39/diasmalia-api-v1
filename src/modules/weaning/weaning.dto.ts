@@ -6,7 +6,7 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateFarrowingsDto {
+export class CreateOrUpdateWeaningsDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
@@ -20,11 +20,6 @@ export class CreateOrUpdateFarrowingsDto {
   @IsNotEmpty()
   @IsString()
   date: Date;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  checkPregnancyId: string;
 
   @IsNotEmpty()
   @IsString()

@@ -4,7 +4,7 @@ import {
   IsNotEmpty,
   MaxLength,
   IsOptional,
-  IsIn,
+  IsEnum,
   IsUUID,
 } from 'class-validator';
 
@@ -23,14 +23,14 @@ export class CreateOrUpdateCheckPregnanciesDto {
   @MaxLength(100)
   farrowingDate: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsIn([MethodCheckPregnancy])
+  @IsEnum([MethodCheckPregnancy])
   method: MethodCheckPregnancy;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsIn([ResultCheckPregnancy])
+  @IsEnum([ResultCheckPregnancy])
   result: ResultCheckPregnancy;
 
   @IsNotEmpty()

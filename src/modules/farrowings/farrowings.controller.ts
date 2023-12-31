@@ -61,11 +61,12 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, checkPregnancyId, animalId } = body;
+    const { litter, note, date, checkPregnancyId, animalId } = body;
 
     const farrowing = await this.farrowingsService.createOne({
       litter,
       note,
+      date,
       checkPregnancyId,
       animalId,
       organizationId: user?.organizationId,
@@ -85,13 +86,14 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, checkPregnancyId, animalId } = body;
+    const { litter, note, date, checkPregnancyId, animalId } = body;
 
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId },
       {
         litter,
         note,
+        date,
         checkPregnancyId,
         animalId,
         organizationId: user.organizationId,

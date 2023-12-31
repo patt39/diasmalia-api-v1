@@ -59,9 +59,12 @@ export class BreedsController {
     @Body() body: CreateOrUpdateBreedsDto,
   ) {
     const { name } = body;
+    const { user } = req;
 
     const breed = await this.breedsService.createOne({
       name,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     return reply({ res, results: breed });
@@ -77,11 +80,14 @@ export class BreedsController {
     @Param('breedId', ParseUUIDPipe) breedId: string,
   ) {
     const { name } = body;
+    const { user } = req;
 
     const breed = await this.breedsService.updateOne(
       { breedId },
       {
         name,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
       },
     );
 

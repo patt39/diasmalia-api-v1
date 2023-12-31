@@ -21,6 +21,8 @@ export type UpdateLocationsOptions = Partial<Location>;
 export const LocationsSelect = {
   createdAt: true,
   id: true,
-  name: true,
-  organizationId: true,
+  number: true,
+  squareMeter: true,
+  through: true,
+  manger: true,
 };

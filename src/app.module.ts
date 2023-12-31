@@ -18,6 +18,8 @@ import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregna
 import { BreedingsModule } from './modules/breedings/breedings.module';
 import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 import { AnimalStatusesModule } from './modules/animal-statuses/animal-statuses.module';
+import { DiagnosisModule } from './modules/diagnosis/diagnosis.module';
+import { WeaningsModule } from './modules/weaning/weaning.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { AnimalStatusesModule } from './modules/animal-statuses/animal-statuses.
     TasksModule,
     BreedsModule,
     AnimalsModule,
+    WeaningsModule,
+    DiagnosisModule,
     BreedingsModule,
     TreatmentsModule,
     LocationsModule,

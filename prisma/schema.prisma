@@ -107,6 +107,7 @@ model Organization {
   breedings        Breeding[]
   checkPregnancies CheckPregnancy[]
   farrowings       Farrowing[]
+  weanings         Weaning[]
 }
 
 model ContactUs {
@@ -261,6 +262,8 @@ model Animal {
   treatments      Treatment[]
   breedings       Breeding[]
   farrowings      Farrowing[]
+  weanings         Weaning[]
+
 }
 
 enum Gender {
@@ -272,6 +275,8 @@ enum AnimalType {
   BOVINE
   GOAT
   RABBIT
+  POULTRY
+  PISCICULTURE
 }
 
 enum ProductionPhase {
@@ -340,23 +345,7 @@ model CheckPregnancy {
   organizationId String
   organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  farrowings      Farrowing[]
-}
-
-model Farrowing {
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  deletedAt        DateTime?
-  id               String         @id @default(uuid())
-  note             String?
-  litter           Int?
-  organizationId   String
-  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId    String
-  animalId         String
-  animal           Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  checkPregnancyId String
-  checkPregnancy   CheckPregnancy @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
+  farrowings     Farrowing[]
 }
 
 enum MethodCheckPregnancy {
@@ -370,4 +359,36 @@ enum ResultCheckPregnancy {
   EXPOSED
   OPEN
   PREGNANT
+}
+
+model Farrowing {
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+  id               String         @id @default(uuid())
+  note             String?
+  litter           Int?
+  date             DateTime?
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId    String
+  animalId         String
+  animal           Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  checkPregnancyId String
+  checkPregnancy   CheckPregnancy @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
+}
+
+model Weaning {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  note           String?
+  litter         Int?
+  date           DateTime?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String
+  animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
