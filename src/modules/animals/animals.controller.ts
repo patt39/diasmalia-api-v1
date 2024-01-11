@@ -13,7 +13,6 @@ import {
   Put,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
-
 import { AnimalsService } from './animals.service';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { CreateOrUpdateAnimalsDto } from './animals.dto';
@@ -95,7 +94,7 @@ export class AnimalsController {
     return reply({ res, results: animal });
   }
 
-  /** Post one Animals */
+  /** Update one Animals */
   @Put(`/:animalId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(

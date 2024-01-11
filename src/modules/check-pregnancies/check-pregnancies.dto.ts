@@ -23,14 +23,14 @@ export class CreateOrUpdateCheckPregnanciesDto {
   @MaxLength(100)
   farrowingDate: Date;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum([MethodCheckPregnancy])
+  @IsEnum(MethodCheckPregnancy)
   method: MethodCheckPregnancy;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum([ResultCheckPregnancy])
+  @IsEnum(ResultCheckPregnancy)
   result: ResultCheckPregnancy;
 
   @IsNotEmpty()
