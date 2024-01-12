@@ -108,6 +108,10 @@ model Organization {
   checkPregnancies CheckPregnancy[]
   farrowings       Farrowing[]
   weanings         Weaning[]
+  gestations       Gestation[]
+  deaths           Death[] 
+  milkings         Milking[]
+  feedings         Feeding[]
 }
 
 model ContactUs {
@@ -235,7 +239,6 @@ model Breed {
   userCreatedId  String
   animals        Animal[]
 }
-
 model Animal {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -262,8 +265,11 @@ model Animal {
   treatments      Treatment[]
   breedings       Breeding[]
   farrowings      Farrowing[]
-  weanings         Weaning[]
-
+  weanings        Weaning[]
+  gestations      Gestation[]
+  death           Death[]
+  milkings        Milking[]
+  feedings        Feeding[]
 }
 
 enum Gender {
@@ -299,6 +305,7 @@ model Treatment {
   treatmentDate  DateTime?
   medicationId   String?
   note           String?
+  method         MethodTreatment
   medications    Medication?  @relation(fields: [medicationId], references: [id], onDelete: Cascade)
   diagnosisId    String?
   diagnosis      Diagnosis?   @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
@@ -309,6 +316,13 @@ model Treatment {
   userCreatedId  String
 }
 
+enum MethodTreatment {
+  INJECTION
+  ORAL
+  NASAL
+  FEEDANDWATER
+  EYE
+}
 model Breeding {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -346,6 +360,7 @@ model CheckPregnancy {
   organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
   farrowings     Farrowing[]
+  gestations     Gestation[]
 }
 
 enum MethodCheckPregnancy {
@@ -391,4 +406,87 @@ model Weaning {
   userCreatedId  String
   animalId       String
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+
+model Gestation {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String
+  animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  checkPregnancyId    String
+  checkPregnancy CheckPregnancy @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
+  note           String?
+}
+model Death {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  cause          String
+  method         MethodDisposal
+  note           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String
+  animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+
+enum MethodDisposal {
+  INCINERATION
+  BURRING
+  EATING
+  SOLD
+  OTHER
+}
+model Milking {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  quantity       Int?
+  method         MethodMilking
+  note           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String
+  animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+enum MethodMilking {
+  HAND
+  MACHINE
+}
+model Feeding {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  quantity       Int?
+  type           FeedType
+  note           String?
+  productionPhase ProductionPhase
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String
+  animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+enum FeedType {
+  FORAGE
+  CONCENTRATES
+  PROTEINSUPPLIMENTS
+  MINERALSUPPLIMENTS
+  GREENFORAGECROPS
+  FIBERSUPPLIMENTS
+  BYPRODUCTS
+  SILAGE
 }

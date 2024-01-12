@@ -20,6 +20,10 @@ import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 import { AnimalStatusesModule } from './modules/animal-statuses/animal-statuses.module';
 import { DiagnosisModule } from './modules/diagnosis/diagnosis.module';
 import { WeaningsModule } from './modules/weaning/weaning.module';
+import { FeedingsModule } from './modules/Feeding/feedings.module';
+import { DeathsModule } from './modules/death/deaths.module';
+import { MilkingsModule } from './modules/milking /milkings.module';
+import { GestationsModule } from './modules/gestation/gestations.module';
 
 @Module({
   imports: [
@@ -33,6 +37,10 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     BreedsModule,
     AnimalsModule,
     WeaningsModule,
+    FeedingsModule,
+    DeathsModule,
+    GestationsModule,
+    MilkingsModule,
     DiagnosisModule,
     BreedingsModule,
     TreatmentsModule,

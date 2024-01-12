@@ -1,3 +1,5 @@
+import { MethodTreatment } from '@prisma/client';
+
 import {
   IsString,
   IsNotEmpty,
@@ -5,6 +7,7 @@ import {
   IsUUID,
   IsInt,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
 
 export class CreateOrUpdateTreatmentsDto {
@@ -41,4 +44,10 @@ export class CreateOrUpdateTreatmentsDto {
   @IsOptional()
   @IsString()
   note: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(MethodTreatment)
+  method: MethodTreatment;
 }
