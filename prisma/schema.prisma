@@ -112,6 +112,9 @@ model Organization {
   deaths           Death[] 
   milkings         Milking[]
   feedings         Feeding[]
+  sellings         Selling[]
+  financialDetails FinancialDetail[]
+  financialMgts    FinancialMgt[]
 }
 
 model ContactUs {
@@ -270,6 +273,7 @@ model Animal {
   death           Death[]
   milkings        Milking[]
   feedings        Feeding[]
+  selling         Selling[]
 }
 
 enum Gender {
@@ -305,7 +309,7 @@ model Treatment {
   treatmentDate  DateTime?
   medicationId   String?
   note           String?
-  method         MethodTreatment
+  method         MethodTreatment?
   medications    Medication?  @relation(fields: [medicationId], references: [id], onDelete: Cascade)
   diagnosisId    String?
   diagnosis      Diagnosis?   @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
@@ -330,7 +334,7 @@ model Breeding {
   id               String           @id @default(uuid())
   date             DateTime?
   note             String?
-  method           MethodBreeding
+  method           MethodBreeding?
   animalId         String
   animal           Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
   organizationId   String
@@ -352,8 +356,8 @@ model CheckPregnancy {
   date           DateTime?
   note           String?
   farrowingDate  DateTime?
-  method         MethodCheckPregnancy
-  result         ResultCheckPregnancy
+  method         MethodCheckPregnancy?
+  result         ResultCheckPregnancy?
   breedingId     String
   breeding       Breeding             @relation(fields: [breedingId], references: [id], onDelete: Cascade)
   organizationId String
@@ -429,7 +433,7 @@ model Death {
   id             String       @id @default(uuid())
   date           DateTime?
   cause          String
-  method         MethodDisposal
+  method         MethodDisposal?
   note           String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -452,7 +456,7 @@ model Milking {
   id             String       @id @default(uuid())
   date           DateTime?
   quantity       Int?
-  method         MethodMilking
+  method         MethodMilking?
   note           String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -471,9 +475,9 @@ model Feeding {
   id             String       @id @default(uuid())
   date           DateTime?
   quantity       Int?
-  type           FeedType
+  type           FeedType?
   note           String?
-  productionPhase ProductionPhase
+  productionPhase ProductionPhase?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -489,4 +493,63 @@ enum FeedType {
   FIBERSUPPLIMENTS
   BYPRODUCTS
   SILAGE
+}
+
+model Selling {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  price          Int?
+  method         sellingMethod?
+  note           String?
+  soldTo         String?
+  phone          String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String
+  animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+
+enum sellingMethod {
+  SOCIALMEDIA
+  MARKET
+  INFARM
+  AUCTION
+  CONTRACT
+  OTHER
+}
+model FinancialDetail {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  financialMgts   FinancialMgt[]
+}
+
+model FinancialMgt {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  note           String?
+  amount         Int?
+  type           financialType?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  financialDetailId String
+  financialDetail   FinancialDetail @relation(fields: [financialDetailId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+}
+
+enum financialType {
+  INCOME
+  EXPENSE
 }

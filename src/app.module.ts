@@ -20,10 +20,13 @@ import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 import { AnimalStatusesModule } from './modules/animal-statuses/animal-statuses.module';
 import { DiagnosisModule } from './modules/diagnosis/diagnosis.module';
 import { WeaningsModule } from './modules/weaning/weaning.module';
-import { FeedingsModule } from './modules/Feeding/feedings.module';
+import { FeedingsModule } from './modules/feeding/feedings.module';
 import { DeathsModule } from './modules/death/deaths.module';
 import { MilkingsModule } from './modules/milking /milkings.module';
 import { GestationsModule } from './modules/gestation/gestations.module';
+import { FinancialMgtModule } from './modules/financialMgt/financialMgt.module';
+import { FinancialDetailModule } from './modules/financialDetails/financialDetails.module';
+import { SellingsModule } from './modules/selling/sellings.module';
 
 @Module({
   imports: [
@@ -45,12 +48,15 @@ import { GestationsModule } from './modules/gestation/gestations.module';
     BreedingsModule,
     TreatmentsModule,
     LocationsModule,
+    SellingsModule,
     FarrowingsModule,
+    FinancialMgtModule,
     MedicationsModule,
     ContributorsModule,
     OrganizationsModule,
     AnimalStatusesModule,
     AuthProvidersModule,
+    FinancialDetailModule,
     CheckPregnanciesModule,
   ],
 })

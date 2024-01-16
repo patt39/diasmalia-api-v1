@@ -12,7 +12,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Medication, Prisma } from '@prisma/client';
+import { Diagnosis, Prisma } from '@prisma/client';
 
 @Injectable()
 export class DiagnosisService {
@@ -38,7 +38,7 @@ export class DiagnosisService {
       Object.assign(prismaWhere, { organizationId });
     }
 
-    const Diagnosis = await this.client.diagnosis.findMany({
+    const diagnosis = await this.client.diagnosis.findMany({
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
@@ -53,28 +53,28 @@ export class DiagnosisService {
     return withPagination({
       pagination,
       rowCount,
-      value: Diagnosis,
+      value: diagnosis,
     });
   }
 
   /** Find one Diagnosis to the database. */
   async findOneBy(selections: GetOneDiagnosisSelections) {
     const { diagnosisId } = selections;
-    const contact = await this.client.medication.findUnique({
+    const diagnosis = await this.client.diagnosis.findUnique({
       select: DiagnosisSelect,
       where: {
         id: diagnosisId,
       },
     });
 
-    return contact;
+    return diagnosis;
   }
 
   /** Create one Diagnosis to the database. */
-  async createOne(options: CreateDiagnosisOptions): Promise<Medication> {
+  async createOne(options: CreateDiagnosisOptions): Promise<Diagnosis> {
     const { name, organizationId, userCreatedId } = options;
 
-    const Medication = this.client.medication.create({
+    const diagnosis = this.client.diagnosis.create({
       data: {
         name,
         organizationId,
@@ -82,18 +82,18 @@ export class DiagnosisService {
       },
     });
 
-    return Medication;
+    return diagnosis;
   }
 
   /** Update one Diagnosis to the database. */
   async updateOne(
     selections: UpdateDiagnosisSelections,
     options: UpdateDiagnosisOptions,
-  ): Promise<Medication> {
+  ): Promise<Diagnosis> {
     const { diagnosisId } = selections;
     const { name, deletedAt } = options;
 
-    const Medication = this.client.medication.update({
+    const diagnosis = this.client.diagnosis.update({
       where: {
         id: diagnosisId,
       },
@@ -103,6 +103,6 @@ export class DiagnosisService {
       },
     });
 
-    return Medication;
+    return diagnosis;
   }
 }
