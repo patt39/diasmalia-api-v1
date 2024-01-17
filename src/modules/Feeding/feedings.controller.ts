@@ -89,7 +89,7 @@ export class FeedingsController {
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: feeding });
+    return reply({ res, results: [HttpStatus.CREATED, feeding] });
   }
 
   /** Update one Death */

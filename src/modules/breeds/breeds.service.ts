@@ -53,7 +53,7 @@ export class BreedsService {
     });
   }
 
-  /** Find one Breeds to the database. */
+  /** Find one Breeds in database. */
   async findOneBy(selections: GetOneBreedsSelections) {
     const { breedId } = selections;
     const contact = await this.client.breed.findUnique({

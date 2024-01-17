@@ -27,6 +27,7 @@ export const AnimalSelect = {
   codeMother: true,
   birthday: true,
   weight: true,
+  type: true,
   gender: true,
   productionPhase: true,
   electronicCode: true,

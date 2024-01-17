@@ -9,7 +9,7 @@ import {
   IsDate,
 } from 'class-validator';
 
-export class CreateOrUpdateFinancialDetailDto {
+export class CreateOrUpdateFinancialMgtDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)

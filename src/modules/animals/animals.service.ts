@@ -29,6 +29,7 @@ export class AnimalsService {
         OR: [
           {
             code: { contains: search, mode: 'insensitive' },
+            electronicCode: { contains: search, mode: 'insensitive' },
             codeFather: { contains: search, mode: 'insensitive' },
             codeMother: { contains: search, mode: 'insensitive' },
           },
@@ -59,7 +60,7 @@ export class AnimalsService {
     });
   }
 
-  /** Find one Animals to the database. */
+  /** Find one Animal in database. */
   async findOneBy(selections: GetOneAnimalsSelections) {
     const { animalId } = selections;
     const animal = await this.client.animal.findUnique({
@@ -72,7 +73,7 @@ export class AnimalsService {
     return animal;
   }
 
-  /** Create one Animals to the database. */
+  /** Create one Animal in database. */
   async createOne(options: CreateAnimalsOptions): Promise<Animal> {
     const {
       code,
@@ -113,7 +114,7 @@ export class AnimalsService {
     return animal;
   }
 
-  /** Update one Animals to the database. */
+  /** Update one Animal in database. */
   async updateOne(
     selections: UpdateAnimalsSelections,
     options: UpdateAnimalsOptions,
@@ -130,6 +131,7 @@ export class AnimalsService {
       electronicCode,
       animalStatusId,
       locationId,
+      type,
       breedId,
       deletedAt,
     } = options;
@@ -149,6 +151,7 @@ export class AnimalsService {
         electronicCode,
         animalStatusId,
         locationId,
+        type,
         breedId,
         deletedAt,
       },

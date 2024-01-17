@@ -16,7 +16,7 @@ import { reply } from '../../app/utils/reply';
 
 import { FinancialMgtService } from './financialMgt.service';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateFinancialDetailDto } from './financialMgt.dto';
+import { CreateOrUpdateFinancialMgtDto } from './financialMgt.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -24,11 +24,11 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { JwtAuthGuard } from '../users/middleware';
 
-@Controller('financialDetail')
+@Controller('financialMgt')
 export class FinancialMgtController {
   constructor(private readonly financialMgtService: FinancialMgtService) {}
 
-  /** Get all Diagnosis */
+  /** Get all financialMgt */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -52,13 +52,13 @@ export class FinancialMgtController {
     return reply({ res, results: financialDetail });
   }
 
-  /** Post one FinancialDetail */
+  /** Post one FinancialMgt */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateFinancialDetailDto,
+    @Body() body: CreateOrUpdateFinancialMgtDto,
   ) {
     const { user } = req;
     const { date, note, amount, type, financialDetailId } = body;
@@ -76,13 +76,13 @@ export class FinancialMgtController {
     return reply({ res, results: financialMgt });
   }
 
-  /** Post one financialDetail */
-  @Put(`/:financialDetailId`)
+  /** Post one financialMgt */
+  @Put(`/:financialMgtId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateFinancialDetailDto,
+    @Body() body: CreateOrUpdateFinancialMgtDto,
     @Param('financialDetailId', ParseUUIDPipe) financialMgtId: string,
   ) {
     const { user } = req;
@@ -109,7 +109,7 @@ export class FinancialMgtController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
-    @Query('financialDetailId', ParseUUIDPipe) financialMgtId: string,
+    @Query('financialMgtId', ParseUUIDPipe) financialMgtId: string,
   ) {
     const financialMgt = await this.financialMgtService.findOneBy({
       financialMgtId,
@@ -119,11 +119,11 @@ export class FinancialMgtController {
   }
 
   /** Delete one financialMgt */
-  @Delete(`/delete/:financialDetailId`)
+  @Delete(`/delete/:financialMgtId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
-    @Param('financialDetailId', ParseUUIDPipe) financialMgtId: string,
+    @Param('financialMgtId', ParseUUIDPipe) financialMgtId: string,
   ) {
     const financialMgt = await this.financialMgtService.updateOne(
       { financialMgtId },

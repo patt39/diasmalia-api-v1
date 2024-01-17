@@ -27,7 +27,7 @@ import { JwtAuthGuard } from '../users/middleware';
 export class GestationsController {
   constructor(private readonly gestationsService: GestationsService) {}
 
-  /** Get all Animals */
+  /** Get all Gestations */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(

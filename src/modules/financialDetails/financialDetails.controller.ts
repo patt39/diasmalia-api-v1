@@ -24,7 +24,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { JwtAuthGuard } from '../users/middleware';
 
-@Controller('financialDetail')
+@Controller('financialDetails')
 export class FinancialDetailController {
   constructor(
     private readonly financialDetailService: FinancialDetailService,

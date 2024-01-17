@@ -51,7 +51,7 @@ export class WeaningsController {
     return reply({ res, results: weanings });
   }
 
-  /** Post one Animal status */
+  /** Post one Weaning */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -73,7 +73,7 @@ export class WeaningsController {
     return reply({ res, results: weaning });
   }
 
-  /** Update one animal status */
+  /** Update one Weaning */
   @Put(`/:weaningId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -97,7 +97,7 @@ export class WeaningsController {
     return reply({ res, results: weaning });
   }
 
-  /** Get one animal status */
+  /** Get one Weaning */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
@@ -111,7 +111,7 @@ export class WeaningsController {
     return reply({ res, results: weaning });
   }
 
-  /** Delete animal status*/
+  /** Delete Weaning */
   @Delete(`/delete/:weaningId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(

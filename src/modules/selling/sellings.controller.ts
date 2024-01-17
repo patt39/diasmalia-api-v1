@@ -27,7 +27,7 @@ import { JwtAuthGuard } from '../users/middleware';
 export class SellingsController {
   constructor(private readonly sellingsService: SellingsService) {}
 
-  /** Get all Animals */
+  /** Get all Selling */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -51,7 +51,7 @@ export class SellingsController {
     return reply({ res, results: sellings });
   }
 
-  /** Post one Gestation */
+  /** Post one Selling */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -74,7 +74,7 @@ export class SellingsController {
     return reply({ res, results: selling });
   }
 
-  /** Update one Gestation */
+  /** Update one Selling */
   @Put(`/:sellingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -102,7 +102,7 @@ export class SellingsController {
     return reply({ res, results: selling });
   }
 
-  /** Get one Gestation */
+  /** Get one Selling */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
@@ -116,7 +116,7 @@ export class SellingsController {
     return reply({ res, results: selling });
   }
 
-  /** Delete one Gestation */
+  /** Delete one Selling */
   @Delete(`/delete/:sellingId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
