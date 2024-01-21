@@ -99,10 +99,13 @@ export class BreedsController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('breedId', ParseUUIDPipe) breedId: string,
   ) {
+    const { user } = req;
     const breed = await this.breedsService.findOneBy({
       breedId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: breed });

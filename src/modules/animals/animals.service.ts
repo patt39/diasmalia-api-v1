@@ -62,12 +62,19 @@ export class AnimalsService {
 
   /** Find one Animal in database. */
   async findOneBy(selections: GetOneAnimalsSelections) {
-    const { animalId } = selections;
-    const animal = await this.client.animal.findUnique({
-      select: AnimalSelect,
-      where: {
-        id: animalId,
-      },
+    const prismaWhere = {} as Prisma.AnimalWhereInput;
+    const { animalId, organizationId } = selections;
+
+    if (animalId) {
+      Object.assign(prismaWhere, { id: animalId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const animal = await this.client.animal.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
     });
 
     return animal;

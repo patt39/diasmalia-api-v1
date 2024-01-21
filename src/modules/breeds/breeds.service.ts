@@ -55,15 +55,23 @@ export class BreedsService {
 
   /** Find one Breeds in database. */
   async findOneBy(selections: GetOneBreedsSelections) {
-    const { breedId } = selections;
-    const contact = await this.client.breed.findUnique({
-      select: BreedsSelect,
-      where: {
-        id: breedId,
-      },
+    const prismaWhere = {} as Prisma.BreedWhereInput;
+
+    const { breedId, organizationId } = selections;
+
+    if (breedId) {
+      Object.assign(prismaWhere, { id: breedId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const breed = await this.client.breed.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
     });
 
-    return contact;
+    return breed;
   }
 
   /** Create one Breeds to the database. */

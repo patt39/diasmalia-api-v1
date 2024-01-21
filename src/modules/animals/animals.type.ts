@@ -8,7 +8,8 @@ export type GetAnimalsSelections = {
 };
 
 export type GetOneAnimalsSelections = {
-  animalId: Animal['id'];
+  animalId?: Animal['id'];
+  organizationId?: Animal['organizationId'];
 };
 
 export type UpdateAnimalsSelections = {

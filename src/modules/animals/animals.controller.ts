@@ -58,7 +58,7 @@ export class AnimalsController {
       organizationId: user?.organizationId,
     });
 
-    return reply({ res, results: [HttpStatus.ACCEPTED, animals] });
+    return reply({ res, results: animals });
   }
 
   /** Post one Animal */
@@ -91,17 +91,19 @@ export class AnimalsController {
 
     if (!findOneLocation)
       throw new HttpException(
-        `Location number:${findOneLocation.number} doesn't exists please change`,
+        `Location ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const breed = await this.breedsService.findOneBy({
+    const findOneBreed = await this.breedsService.findOneBy({
       breedId,
+      organizationId: user.organizationId,
     });
-
-    const findoneStatus = await this.animalStatusesService.findOneBy({
-      animalStatusId,
-    });
+    if (!findOneBreed)
+      throw new HttpException(
+        `breedId ${breedId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const animal = await this.animalsService.createOne({
       code,
@@ -113,14 +115,14 @@ export class AnimalsController {
       type,
       productionPhase,
       electronicCode,
-      animalStatusId: findoneStatus?.id,
+      animalStatusId,
       locationId: findOneLocation?.id,
-      breedId: breed?.id,
+      breedId: findOneBreed?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: [HttpStatus.CREATED, animal] });
+    return reply({ res, results: animal });
   }
 
   /** Update one Animals */
@@ -133,12 +135,6 @@ export class AnimalsController {
     @Param('animalId', ParseUUIDPipe) animalId: string,
   ) {
     const { user } = req;
-    if (!animalId) {
-      throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
     const {
       code,
       codeFather,
@@ -154,26 +150,38 @@ export class AnimalsController {
       breedId,
     } = body;
 
+    const findOneAnimal = await this.locationsService.findOneBy({
+      locationId,
+    });
+
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
     });
 
     if (!findOneLocation)
       throw new HttpException(
-        `Location number:${findOneLocation.number} doesn't exists please change`,
+        `Location ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const breed = await this.breedsService.findOneBy({
+    const findOneBreed = await this.breedsService.findOneBy({
       breedId,
+      organizationId: user.organizationId,
     });
-
-    const findoneStatus = await this.animalStatusesService.findOneBy({
-      animalStatusId,
-    });
+    if (!findOneBreed)
+      throw new HttpException(
+        `breedId ${breedId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const animal = await this.animalsService.updateOne(
-      { animalId },
+      { animalId: findOneAnimal?.id },
       {
         code,
         codeFather,
@@ -184,15 +192,15 @@ export class AnimalsController {
         type,
         productionPhase,
         electronicCode,
-        animalStatusId: findoneStatus.id,
+        animalStatusId,
         locationId: findOneLocation.id,
-        breedId: breed.id,
+        breedId: findOneBreed.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
     );
 
-    return reply({ res, results: [HttpStatus.ACCEPTED, animal] });
+    return reply({ res, results: animal });
   }
 
   /** Get one Animal */
@@ -200,19 +208,22 @@ export class AnimalsController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('animalId', ParseUUIDPipe) animalId: string,
   ) {
-    const animal = await this.animalsService.findOneBy({
+    const { user } = req;
+    const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
+      organizationId: user.organizationId,
     });
-    if (!animalId) {
+    if (!findOneAnimal) {
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return reply({ res, results: animal });
+    return reply({ res, results: findOneAnimal });
   }
 
   /** Delete one Animal */
@@ -220,19 +231,26 @@ export class AnimalsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('animalId', ParseUUIDPipe) animalId: string,
   ) {
-    if (!animalId) {
+    const { user } = req;
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal) {
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
-    const animal = await this.animalsService.updateOne(
-      { animalId },
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: [HttpStatus.ACCEPTED, animal] });
+    return reply({ res, results: [HttpStatus.ACCEPTED] });
   }
 }

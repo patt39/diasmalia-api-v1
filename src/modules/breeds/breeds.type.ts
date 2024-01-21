@@ -7,7 +7,8 @@ export type GetBreedsSelections = {
 };
 
 export type GetOneBreedsSelections = {
-  breedId: Breed['id'];
+  breedId?: Breed['id'];
+  organizationId?: Breed['organizationId'];
 };
 
 export type UpdateBreedsSelections = {
