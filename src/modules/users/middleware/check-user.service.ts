@@ -1,8 +1,8 @@
-import { sign, verify, JwtPayload } from 'jsonwebtoken';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { config } from '../../../app/config';
 import { UsersService } from '../users.service';
 import { JwtPayloadType } from '../users.type';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CheckUserService {

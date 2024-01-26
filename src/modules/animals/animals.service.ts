@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateAnimalsOptions,
-  GetAnimalsSelections,
-  GetOneAnimalsSelections,
-  UpdateAnimalsOptions,
-  UpdateAnimalsSelections,
-  AnimalSelect,
-} from './animals.type';
+import { Animal, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Animal, Prisma } from '@prisma/client';
+import {
+  AnimalSelect,
+  CreateAnimalsOptions,
+  GetAnimalsSelections,
+  GetOneAnimalsSelections,
+  UpdateAnimalsOptions,
+  UpdateAnimalsSelections,
+} from './animals.type';
 
 @Injectable()
 export class AnimalsService {

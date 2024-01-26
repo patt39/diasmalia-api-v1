@@ -1,24 +1,24 @@
 import {
-  Controller,
-  Res,
   Body,
-  HttpStatus,
+  Controller,
   HttpException,
+  HttpStatus,
   Post,
+  Res,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { UsersService } from './users.service';
-import { CreateLoginUserDto, RegisterUserDto } from './users.dto';
-import { ProfilesService } from '../profiles/profiles.service';
-import { OrganizationsService } from '../organizations/organizations.service';
 import { ContributorsService } from '../contributors/contributors.service';
+import { OrganizationsService } from '../organizations/organizations.service';
+import { ProfilesService } from '../profiles/profiles.service';
+import { CheckUserService } from './middleware/check-user.service';
+import { CreateLoginUserDto, RegisterUserDto } from './users.dto';
+import { UsersService } from './users.service';
 import {
   JwtPayloadType,
   checkIfPasswordMatch,
   hashPassword,
 } from './users.type';
-import { CheckUserService } from './middleware/check-user.service';
 
 @Controller()
 export class UsersAuthController {

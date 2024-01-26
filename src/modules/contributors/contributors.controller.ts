@@ -1,28 +1,28 @@
 import {
+  Body,
   Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Get,
   Post,
-  Body,
-  HttpStatus,
-  HttpException,
-  UseGuards,
   Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { ProfilesService } from '../profiles/profiles.service';
-import { ContributorsService } from './contributors.service';
-import { OrganizationsService } from '../organizations/organizations.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { UsersService } from '../users/users.service';
 import {
   AddContributorUserDto,
   CreateOneContributorUserDto,
 } from '../contributors/contributors.dto';
+import { OrganizationsService } from '../organizations/organizations.service';
+import { ProfilesService } from '../profiles/profiles.service';
+import { JwtAuthGuard } from '../users/middleware';
+import { UsersService } from '../users/users.service';
+import { ContributorsService } from './contributors.service';
 
 @Controller('contributors')
 export class ContributorsController {

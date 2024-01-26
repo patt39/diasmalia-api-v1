@@ -1,18 +1,18 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
+  Post,
   Req,
-  Get,
+  Res,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { ProfilesService } from './profiles.service';
 import { CreateOrUpdateProfilesDto } from './profiles.dto';
+import { ProfilesService } from './profiles.service';
 
 @Controller('profiles')
 export class ProfilesController {

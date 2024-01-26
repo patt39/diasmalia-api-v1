@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateProfilesOptions,
-  GetProfilesSelections,
-  GetOneProfilesSelections,
-  UpdateProfilesOptions,
-  UpdateProfilesSelections,
-} from './profiles.type';
+import { Prisma, Profile } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Profile, Prisma } from '@prisma/client';
+import {
+  CreateProfilesOptions,
+  GetOneProfilesSelections,
+  GetProfilesSelections,
+  UpdateProfilesOptions,
+  UpdateProfilesSelections,
+} from './profiles.type';
 
 @Injectable()
 export class ProfilesService {

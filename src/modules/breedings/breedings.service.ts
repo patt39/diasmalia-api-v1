@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateBreedingsOptions,
-  GetBreedingsSelections,
-  GetOneBreedingsSelections,
-  UpdateBreedingsOptions,
-  UpdateBreedingsSelections,
-  BreedingSelect,
-} from './breedings.type';
+import { Breeding, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Breeding, Prisma } from '@prisma/client';
+import {
+  BreedingSelect,
+  CreateBreedingsOptions,
+  GetBreedingsSelections,
+  GetOneBreedingsSelections,
+  UpdateBreedingsOptions,
+  UpdateBreedingsSelections,
+} from './breedings.type';
 
 @Injectable()
 export class BreedingsService {

@@ -1,11 +1,11 @@
-import { Gender, ProductionPhase, AnimalType } from '@prisma/client';
+import { AnimalType, Gender, ProductionPhase } from '@prisma/client';
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
-  IsUUID,
   IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateAnimalsDto {

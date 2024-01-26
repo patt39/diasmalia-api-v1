@@ -1,8 +1,8 @@
-import { ContributorsUtil } from '../../../contributors/contributors.util';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { config } from '../../../../app/config';
-import { UnauthorizedException, Injectable } from '@nestjs/common';
+import { ContributorsUtil } from '../../../contributors/contributors.util';
 import { UsersService } from '../../users.service';
 
 @Injectable()

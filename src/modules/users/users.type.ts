@@ -1,6 +1,6 @@
 import { User } from '@prisma/client';
-import { PaginationType } from '../../app/utils/pagination/with-pagination';
 import * as argon2 from 'argon2';
+import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type JwtPayloadType = {
   id: string;

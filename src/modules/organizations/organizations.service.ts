@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { Organization, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   CreateOrganizationsOptions,
   GetOneOrganizationsSelections,
   UpdateOrganizationsOptions,
   UpdateOrganizationsSelections,
 } from './organizations.type';
-import { DatabaseService } from '../../app/database/database.service';
-import { Organization, Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrganizationsService {

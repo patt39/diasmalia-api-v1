@@ -1,28 +1,30 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { LocationsService } from './locations.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateLocationsDto } from './locations.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateLocationsDto } from './locations.dto';
+import { LocationsService } from './locations.service';
 
 @Controller('locations')
 export class LocationsController {
@@ -81,8 +83,17 @@ export class LocationsController {
   ) {
     const { squareMeter, manger, through, number } = body;
 
+    const findOneLocation = await this.locationsService.findOneBy({
+      locationId,
+    });
+    if (!findOneLocation) {
+      throw new HttpException(
+        `Location ${locationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const location = await this.locationsService.updateOne(
-      { locationId },
+      { locationId: findOneLocation?.id },
       {
         squareMeter,
         manger,
@@ -101,11 +112,11 @@ export class LocationsController {
     @Res() res,
     @Query('locationId', ParseUUIDPipe) locationId: string,
   ) {
-    const breed = await this.locationsService.findOneBy({
+    const location = await this.locationsService.findOneBy({
       locationId,
     });
 
-    return reply({ res, results: breed });
+    return reply({ res, results: location });
   }
 
   /** Delete one Locations */
@@ -113,8 +124,18 @@ export class LocationsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
+    const findOneLocation = await this.locationsService.findOneBy({
+      locationId,
+    });
+    if (!findOneLocation) {
+      throw new HttpException(
+        `Location ${locationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const location = await this.locationsService.updateOne(
       { locationId },
       { deletedAt: new Date() },

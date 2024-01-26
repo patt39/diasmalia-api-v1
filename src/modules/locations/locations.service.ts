@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateLocationsOptions,
-  GetLocationsSelections,
-  GetOneLocationsSelections,
-  UpdateLocationsOptions,
-  UpdateLocationsSelections,
-  LocationsSelect,
-} from './locations.type';
+import { Location, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Location, Prisma } from '@prisma/client';
+import {
+  CreateLocationsOptions,
+  GetLocationsSelections,
+  GetOneLocationsSelections,
+  LocationsSelect,
+  UpdateLocationsOptions,
+  UpdateLocationsSelections,
+} from './locations.type';
 
 @Injectable()
 export class LocationsService {
@@ -56,14 +56,14 @@ export class LocationsService {
   /** Find one Locations to the database. */
   async findOneBy(selections: GetOneLocationsSelections) {
     const { locationId } = selections;
-    const contact = await this.client.location.findUnique({
+    const location = await this.client.location.findUnique({
       select: LocationsSelect,
       where: {
         id: locationId,
       },
     });
 
-    return contact;
+    return location;
   }
 
   /** Create one Locations to the database. */

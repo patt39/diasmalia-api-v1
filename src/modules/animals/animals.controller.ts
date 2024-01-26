@@ -150,8 +150,9 @@ export class AnimalsController {
       breedId,
     } = body;
 
-    const findOneAnimal = await this.locationsService.findOneBy({
-      locationId,
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      organizationId: user.organizationId,
     });
 
     if (!findOneAnimal)

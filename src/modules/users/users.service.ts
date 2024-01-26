@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   CreateUsersOptions,
   GetOneUsersSelections,
   UpdateUsersOptions,
   UpdateUsersSelections,
 } from './users.type';
-import { DatabaseService } from '../../app/database/database.service';
-import { User, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {

@@ -1,28 +1,30 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { TasksService } from './tasks.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateTasksDto } from './tasks.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateTasksDto } from './tasks.dto';
+import { TasksService } from './tasks.service';
 
 @Controller('tasks')
 export class TasksController {
@@ -87,8 +89,18 @@ export class TasksController {
     const { user } = req;
     const { title, description, dueDate, userId } = body;
 
+    const findOneTask = await this.tasksService.findOneBy({
+      taskId,
+    });
+    if (!findOneTask) {
+      throw new HttpException(
+        `Task ${taskId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const task = await this.tasksService.updateOne(
-      { taskId },
+      { taskId: findOneTask?.id },
       {
         title,
         description,
@@ -118,6 +130,15 @@ export class TasksController {
   @Delete(`/delete/:taskId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(@Res() res, @Param('taskId', ParseUUIDPipe) taskId: string) {
+    const findOneTask = await this.tasksService.findOneBy({
+      taskId,
+    });
+    if (!findOneTask) {
+      throw new HttpException(
+        `Task ${taskId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const task = await this.tasksService.updateOne(
       { taskId },
       { deletedAt: new Date() },

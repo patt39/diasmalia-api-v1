@@ -1,11 +1,11 @@
 import { MethodBreeding } from '@prisma/client';
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
   IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
   IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateBreedingsDto {

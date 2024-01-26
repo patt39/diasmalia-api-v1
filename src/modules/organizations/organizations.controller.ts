@@ -1,10 +1,10 @@
 import {
   Controller,
+  Delete,
+  Get,
   Param,
   ParseUUIDPipe,
-  Delete,
   Res,
-  Get,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 

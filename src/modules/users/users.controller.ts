@@ -1,17 +1,17 @@
 import {
   Controller,
+  Delete,
+  Get,
   Param,
   ParseUUIDPipe,
-  Delete,
   Res,
-  Get,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { UsersService } from './users.service';
-import { ProfilesService } from '../profiles/profiles.service';
 import { ContributorsService } from '../contributors/contributors.service';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { ProfilesService } from '../profiles/profiles.service';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {

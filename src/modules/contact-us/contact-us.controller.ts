@@ -1,25 +1,25 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
+  Post,
   Query,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { ContactUsService } from './contact-us.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateContactUsDto } from './contact-us.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { CreateOrUpdateContactUsDto } from './contact-us.dto';
+import { ContactUsService } from './contact-us.service';
 
 @Controller('contact-us')
 export class ContactUsController {

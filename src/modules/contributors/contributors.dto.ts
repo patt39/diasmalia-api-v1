@@ -1,9 +1,9 @@
 import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
-  IsOptional,
-  IsNotEmpty,
-  IsEmail,
 } from 'class-validator';
 
 export class CreateOrUpdateContributorDto {

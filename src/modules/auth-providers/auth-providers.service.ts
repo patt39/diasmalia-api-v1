@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { AuthProvider, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
+import { useCatch } from '../../app/utils/use-catch';
 import {
   CreateAuthProvidersOptions,
   GetOneAuthProvidersSelections,
   UpdateAuthProvidersOptions,
   UpdateAuthProvidersSelections,
 } from './auth-providers.type';
-import { DatabaseService } from '../../app/database/database.service';
-import { AuthProvider, Prisma } from '@prisma/client';
-import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class AuthProvidersService {
