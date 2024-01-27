@@ -1,32 +1,31 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
-  HttpStatus,
-  HttpException,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { reply } from '../../app/utils/reply';
-import { AnimalsService } from './animals.service';
-import { LocationsService } from '../locations/locations.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateAnimalsDto } from './animals.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
-  addPagination,
   PaginationType,
+  addPagination,
 } from '../../app/utils/pagination/with-pagination';
-import { JwtAuthGuard } from '../users/middleware';
+import { reply } from '../../app/utils/reply';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { BreedsService } from '../breeds/breeds.service';
-import { AnimalStatusesService } from '../animal-statuses/animal-statuses.service';
+import { LocationsService } from '../locations/locations.service';
+import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateAnimalsDto } from './animals.dto';
+import { AnimalsService } from './animals.service';
 
 @Controller('animals')
 export class AnimalsController {
@@ -34,7 +33,6 @@ export class AnimalsController {
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
     private readonly breedsService: BreedsService,
-    private readonly animalStatusesService: AnimalStatusesService,
   ) {}
 
   /** Get all Animals */
@@ -80,10 +78,28 @@ export class AnimalsController {
       type,
       productionPhase,
       electronicCode,
-      animalStatusId,
+      status,
       locationId,
       breedId,
     } = body;
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+      electronicCode,
+      organizationId: user?.organizationId,
+    });
+
+    if (findOneAnimal)
+      throw new HttpException(
+        `Animal code: ${code} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneAnimal)
+      throw new HttpException(
+        `Animal electronicCode: ${electronicCode} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
@@ -115,7 +131,7 @@ export class AnimalsController {
       type,
       productionPhase,
       electronicCode,
-      animalStatusId,
+      status,
       locationId: findOneLocation?.id,
       breedId: findOneBreed?.id,
       organizationId: user?.organizationId,
@@ -145,7 +161,7 @@ export class AnimalsController {
       type,
       productionPhase,
       electronicCode,
-      animalStatusId,
+      status,
       locationId,
       breedId,
     } = body;
@@ -193,7 +209,7 @@ export class AnimalsController {
         type,
         productionPhase,
         electronicCode,
-        animalStatusId,
+        status,
         locationId: findOneLocation.id,
         breedId: findOneBreed.id,
         organizationId: user?.organizationId,

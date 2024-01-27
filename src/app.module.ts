@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './app/database/database.module';
-import { AnimalStatusesModule } from './modules/animal-statuses/animal-statuses.module';
 import { AnimalsModule } from './modules/animals/animals.module';
 import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
 import { BreedingsModule } from './modules/breedings/breedings.module';
@@ -19,9 +18,7 @@ import { LocationsModule } from './modules/locations/locations.module';
 import { MedicationsModule } from './modules/medications/medications.module';
 import { MilkingsModule } from './modules/milking /milkings.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
-import { ProductsModule } from './modules/products/products.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
-import { ReviewsModule } from './modules/reviews/reviews.module';
 import { SellingsModule } from './modules/selling/sellings.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { TreatmentsModule } from './modules/treatments/treatments.module';
@@ -31,8 +28,6 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
 @Module({
   imports: [
     DatabaseModule,
-    ProductsModule,
-    ReviewsModule,
     ContactUsModule,
     ProfilesModule,
     UsersModule,
@@ -54,7 +49,6 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     MedicationsModule,
     ContributorsModule,
     OrganizationsModule,
-    AnimalStatusesModule,
     AuthProvidersModule,
     FinancialDetailModule,
     CheckPregnanciesModule,

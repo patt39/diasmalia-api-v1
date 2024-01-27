@@ -59,12 +59,20 @@ export class BreedingsService {
 
   /** Find one Breedings to the database. */
   async findOneBy(selections: GetOneBreedingsSelections) {
-    const { breedingId } = selections;
-    const breeding = await this.client.breeding.findUnique({
-      select: BreedingSelect,
-      where: {
-        id: breedingId,
-      },
+    const prismaWhere = {} as Prisma.BreedingWhereInput;
+
+    const { breedingId, organizationId } = selections;
+
+    if (breedingId) {
+      Object.assign(prismaWhere, { id: breedingId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const breeding = await this.client.breeding.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
     });
 
     return breeding;
@@ -72,15 +80,23 @@ export class BreedingsService {
 
   /** Create one Breedings to the database. */
   async createOne(options: CreateBreedingsOptions): Promise<Breeding> {
-    const { date, note, method, animalId, organizationId, userCreatedId } =
-      options;
+    const {
+      date,
+      note,
+      method,
+      animalFemaleId,
+      animalMaleId,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const breeding = this.client.breeding.create({
       data: {
         date,
         note,
         method,
-        animalId,
+        animalFemaleId,
+        animalMaleId,
         organizationId,
         userCreatedId,
       },
@@ -95,7 +111,8 @@ export class BreedingsService {
     options: UpdateBreedingsOptions,
   ): Promise<Breeding> {
     const { breedingId } = selections;
-    const { date, note, method, animalId, deletedAt } = options;
+    const { date, note, method, animalFemaleId, animalMaleId, deletedAt } =
+      options;
 
     const breeding = this.client.breeding.update({
       where: {
@@ -105,7 +122,8 @@ export class BreedingsService {
         date,
         note,
         method,
-        animalId,
+        animalFemaleId,
+        animalMaleId,
         deletedAt,
       },
     });

@@ -12,20 +12,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Product {
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  deletedAt    DateTime?
-  id           String       @id @default(uuid())
-  name         String       @unique
-  price        Float
-  sale         Boolean      @default(false)
-  availibility Availibility
-  reviews      Review[]
-  tags         Tag[]
-  description  Description?
-}
-
 enum Availibility {
   IN_STORE
   ONLINE
@@ -141,35 +127,6 @@ model AuthProvider {
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Description {
-  deletedAt DateTime?
-  id        String    @id @default(uuid())
-  content   String
-  product   Product   @relation(fields: [productId], references: [id])
-  productId String    @unique
-}
-
-model Review {
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-  id        Int       @id @default(autoincrement())
-  title     String
-  content   String
-  rating    Int
-  product   Product   @relation(fields: [productId], references: [id])
-  productId String
-}
-
-model Tag {
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-  id        String    @id @default(uuid())
-  content   String
-  products  Product[]
-}
-
 model Task {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -183,16 +140,6 @@ model Task {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-}
-
-model AnimalStatus {
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-  id        String    @id @default(uuid())
-  title     String
-  color     String
-  animals   Animal[]
 }
 
 model Location {
@@ -247,7 +194,7 @@ model Animal {
   updatedAt       DateTime        @updatedAt
   deletedAt       DateTime?
   id              String          @id @default(uuid())
-  code            String?
+  code            String         
   codeFather      String?
   codeMother      String?
   birthday        DateTime?
@@ -256,8 +203,7 @@ model Animal {
   type            AnimalType
   productionPhase ProductionPhase
   electronicCode  String?
-  animalStatusId  String?
-  animalStatus    AnimalStatus?   @relation(fields: [animalStatusId], references: [id], onDelete: Cascade)
+  status          AnimalStatus
   locationId      String?
   location        Location?       @relation(fields: [locationId], references: [id], onDelete: Cascade)
   breedId         String?
@@ -266,7 +212,6 @@ model Animal {
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   treatments      Treatment[]
-  breedings       Breeding[]
   farrowings      Farrowing[]
   weanings        Weaning[]
   gestations      Gestation[]
@@ -279,6 +224,12 @@ model Animal {
 enum Gender {
   MALE
   FEMALE
+}
+
+enum AnimalStatus {
+  ACTIVE
+  DEAD
+  SOLD
 }
 
 enum AnimalType {
@@ -335,8 +286,8 @@ model Breeding {
   date             DateTime?
   note             String?
   method           MethodBreeding?
-  animalId         String
-  animal           Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalFemaleId   String
+  animalMaleId     String
   organizationId   String
   organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId    String

@@ -9,6 +9,12 @@ export type GetAnimalsSelections = {
 
 export type GetOneAnimalsSelections = {
   animalId?: Animal['id'];
+  code?: Animal['code'];
+  gender?: Animal['gender'];
+  electronicCode?: Animal['electronicCode'];
+  type?: Animal['type'];
+  status?: Animal['status'];
+  productionPhase?: Animal['productionPhase'];
   organizationId?: Animal['organizationId'];
 };
 
@@ -32,7 +38,12 @@ export const AnimalSelect = {
   gender: true,
   productionPhase: true,
   electronicCode: true,
-  animalStatusId: true,
+  status: true,
   locationId: true,
+  location: {
+    select: {
+      number: true,
+    },
+  },
   breedId: true,
 };

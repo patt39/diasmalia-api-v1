@@ -63,10 +63,43 @@ export class AnimalsService {
   /** Find one Animal in database. */
   async findOneBy(selections: GetOneAnimalsSelections) {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
-    const { animalId, organizationId } = selections;
+    const {
+      animalId,
+      organizationId,
+      code,
+      gender,
+      status,
+      electronicCode,
+      type,
+      productionPhase,
+    } = selections;
 
     if (animalId) {
       Object.assign(prismaWhere, { id: animalId });
+    }
+
+    if (gender) {
+      Object.assign(prismaWhere, { gender });
+    }
+
+    if (electronicCode) {
+      Object.assign(prismaWhere, { electronicCode });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
+    }
+
+    if (code) {
+      Object.assign(prismaWhere, { code });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    if (productionPhase) {
+      Object.assign(prismaWhere, { productionPhase });
     }
 
     if (organizationId) {
@@ -75,6 +108,7 @@ export class AnimalsService {
 
     const animal = await this.client.animal.findFirst({
       where: { ...prismaWhere, deletedAt: null },
+      select: AnimalSelect,
     });
 
     return animal;
@@ -92,7 +126,7 @@ export class AnimalsService {
       type,
       productionPhase,
       electronicCode,
-      animalStatusId,
+      status,
       locationId,
       breedId,
       organizationId,
@@ -110,7 +144,7 @@ export class AnimalsService {
         type,
         productionPhase,
         electronicCode,
-        animalStatusId,
+        status,
         locationId,
         breedId,
         organizationId,
@@ -136,7 +170,7 @@ export class AnimalsService {
       gender,
       productionPhase,
       electronicCode,
-      animalStatusId,
+      status,
       locationId,
       type,
       breedId,
@@ -156,7 +190,7 @@ export class AnimalsService {
         gender,
         productionPhase,
         electronicCode,
-        animalStatusId,
+        status,
         locationId,
         type,
         breedId,

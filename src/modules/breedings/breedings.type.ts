@@ -9,6 +9,7 @@ export type GetBreedingsSelections = {
 
 export type GetOneBreedingsSelections = {
   breedingId: Breeding['id'];
+  organizationId?: Breeding['organizationId'];
 };
 
 export type UpdateBreedingsSelections = {
@@ -24,6 +25,8 @@ export const BreedingSelect = {
   id: true,
   date: true,
   note: true,
+  codeFemale: true,
+  codeMale: true,
   method: true,
   animalId: true,
   organizationId: true,
