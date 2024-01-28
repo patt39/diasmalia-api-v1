@@ -11,6 +11,8 @@ import {
   Query,
   UseGuards,
   Put,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
@@ -82,6 +84,17 @@ export class BreedsController {
     const { name } = body;
     const { user } = req;
 
+    const findOneBreed = await this.breedsService.findOneBy({
+      breedId,
+    });
+
+    if (!findOneBreed) {
+      throw new HttpException(
+        `${breedId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const breed = await this.breedsService.updateOne(
       { breedId },
       {
@@ -103,6 +116,16 @@ export class BreedsController {
     @Query('breedId', ParseUUIDPipe) breedId: string,
   ) {
     const { user } = req;
+    const findOneBreed = await this.breedsService.findOneBy({
+      breedId,
+    });
+
+    if (!findOneBreed) {
+      throw new HttpException(
+        `${breedId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const breed = await this.breedsService.findOneBy({
       breedId,
       organizationId: user.organizationId,
@@ -118,6 +141,16 @@ export class BreedsController {
     @Res() res,
     @Param('BreedId', ParseUUIDPipe) breedId: string,
   ) {
+    const findOneBreed = await this.breedsService.findOneBy({
+      breedId,
+    });
+
+    if (!findOneBreed) {
+      throw new HttpException(
+        `${breedId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const breed = await this.breedsService.updateOne(
       { breedId },
       { deletedAt: new Date() },

@@ -28,6 +28,7 @@ export const BreedingSelect = {
   codeFemale: true,
   codeMale: true,
   method: true,
+  status: true,
   animalId: true,
   organizationId: true,
 };

@@ -285,13 +285,14 @@ model Breeding {
   id               String           @id @default(uuid())
   date             DateTime?
   note             String?
+  status           Boolean?         @default(false)
   method           MethodBreeding?
   animalFemaleId   String
   animalMaleId     String
   organizationId   String
   organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId    String
-  checkPregnancies CheckPregnancy[]
+  checkPregnancy   CheckPregnancy[]
 }
 
 enum MethodBreeding {
@@ -306,16 +307,16 @@ model CheckPregnancy {
   id             String               @id @default(uuid())
   date           DateTime?
   note           String?
-  farrowingDate  DateTime?
+  animalFemaleId String?
   method         MethodCheckPregnancy?
   result         ResultCheckPregnancy?
-  breedingId     String
-  breeding       Breeding             @relation(fields: [breedingId], references: [id], onDelete: Cascade)
+  farrowingDate  DateTime?
   organizationId String
   organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  breedingId     String
+  breeding       Breeding        @relation(fields: [breedingId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  farrowings     Farrowing[]
-  gestations     Gestation[]
+  gestation      Gestation[]
 }
 
 enum MethodCheckPregnancy {
@@ -344,8 +345,6 @@ model Farrowing {
   userCreatedId    String
   animalId         String
   animal           Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  checkPregnancyId String
-  checkPregnancy   CheckPregnancy @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
 }
 
 model Weaning {
@@ -373,8 +372,8 @@ model Gestation {
   userCreatedId  String
   animalId       String
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  checkPregnancyId    String
-  checkPregnancy CheckPregnancy @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
+  checkPregnancyId  String
+  checkPregnancy CheckPregnancy    @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
   note           String?
 }
 model Death {

@@ -1,32 +1,38 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { FarrowingsService } from './farrowings.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateFarrowingsDto } from './farrowings.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateFarrowingsDto } from './farrowings.dto';
+import { FarrowingsService } from './farrowings.service';
 
 @Controller('farrowings')
 export class FarrowingsController {
-  constructor(private readonly farrowingsService: FarrowingsService) {}
+  constructor(
+    private readonly farrowingsService: FarrowingsService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   /** Get all farrowings */
   @Get(`/`)
@@ -61,22 +67,44 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, date, checkPregnancyId, animalId } = body;
+    const { litter, note, date, codeFemale } = body;
+
+    const findOneFemale = await this.animalsService.findOneBy({
+      code: codeFemale,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'GESTATION',
+      organizationId: user.organizationId,
+    });
+
+    if (!findOneFemale) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const farrowing = await this.farrowingsService.createOne({
       litter,
       note,
       date,
-      checkPregnancyId,
-      animalId,
+      animalId: findOneFemale?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: farrowing });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: farrowing,
+        message:
+          'Farrowing created successfully please change productionPhase to LACTATION',
+      },
+    });
   }
 
-  /** Post one Farrowing */
+  /** Update one Farrowing */
   @Put(`/:farrowingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -86,7 +114,29 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, date, checkPregnancyId, animalId } = body;
+    const { litter, note, date, codeFemale } = body;
+
+    if (!farrowingId) {
+      throw new HttpException(
+        `${farrowingId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const findOneFemale = await this.animalsService.findOneBy({
+      code: codeFemale,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'GESTATION',
+      organizationId: user?.organizationId,
+    });
+
+    if (!findOneFemale) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId },
@@ -94,14 +144,19 @@ export class FarrowingsController {
         litter,
         note,
         date,
-        checkPregnancyId,
-        animalId,
-        organizationId: user.organizationId,
+        animalId: findOneFemale?.id,
+        organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
     );
 
-    return reply({ res, results: farrowing });
+    return reply({
+      res,
+      results: {
+        data: farrowing,
+        message: 'Farrowing updated successfully',
+      },
+    });
   }
 
   /** Get one Farrowing */
@@ -115,6 +170,13 @@ export class FarrowingsController {
       farrowingId,
     });
 
+    if (!farrowingId) {
+      throw new HttpException(
+        `${farrowingId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     return reply({ res, results: farrowing });
   }
 
@@ -125,6 +187,13 @@ export class FarrowingsController {
     @Res() res,
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
+    if (!farrowingId) {
+      throw new HttpException(
+        `${farrowingId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId },
       { deletedAt: new Date() },

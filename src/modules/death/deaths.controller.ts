@@ -1,31 +1,37 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { reply } from '../../app/utils/reply';
-import { DeathsService } from './deaths.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateDeathsDto } from './deaths.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
-  addPagination,
   PaginationType,
+  addPagination,
 } from '../../app/utils/pagination/with-pagination';
+import { reply } from '../../app/utils/reply';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateDeathsDto } from './deaths.dto';
+import { DeathsService } from './deaths.service';
 
 @Controller('deaths')
 export class DeathsController {
-  constructor(private readonly deathsService: DeathsService) {}
+  constructor(
+    private readonly deathsService: DeathsService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   /** Get all Deaths */
   @Get(`/`)
@@ -61,12 +67,24 @@ export class DeathsController {
   ) {
     const { user } = req;
     const { date, cause, method, animalId, note } = body;
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      status: 'DEAD',
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${findOneAnimal.code} doesn't exists, isn't in DEAD please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const death = await this.deathsService.createOne({
       date,
       cause,
       method,
-      animalId,
       note,
+      animalId: findOneAnimal?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -108,6 +126,16 @@ export class DeathsController {
     @Res() res,
     @Query('deathId', ParseUUIDPipe) deathId: string,
   ) {
+    const findOneDeadAnimal = await this.deathsService.findOneBy({
+      deathId,
+    });
+
+    if (!findOneDeadAnimal) {
+      throw new HttpException(
+        `${deathId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const death = await this.deathsService.findOneBy({
       deathId,
     });
@@ -122,6 +150,16 @@ export class DeathsController {
     @Res() res,
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
+    const findOneDeadAnimal = await this.deathsService.findOneBy({
+      deathId,
+    });
+
+    if (!findOneDeadAnimal) {
+      throw new HttpException(
+        `${deathId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const death = await this.deathsService.updateOne(
       { deathId },
       { deletedAt: new Date() },
