@@ -60,11 +60,10 @@ export class GestationsController {
     @Body() body: CreateOrUpdateGestationsDto,
   ) {
     const { user } = req;
-    const { note, animalId, checkPregnancyId } = body;
+    const { note, animalId } = body;
     const gestation = await this.gestationsService.createOne({
       note,
       animalId,
-      checkPregnancyId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -82,14 +81,13 @@ export class GestationsController {
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const { note, animalId, checkPregnancyId } = body;
+    const { note, animalId } = body;
 
     const gestation = await this.gestationsService.updateOne(
       { gestationId },
       {
         note,
         animalId,
-        checkPregnancyId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },

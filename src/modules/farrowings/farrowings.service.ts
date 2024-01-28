@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateFarrowingsOptions,
-  GetFarrowingsSelections,
-  GetOneFarrowingsSelections,
-  UpdateFarrowingsOptions,
-  UpdateFarrowingsSelections,
-  FarrowingSelect,
-} from './farrowings.type';
+import { Farrowing, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Prisma, Farrowing } from '@prisma/client';
+import {
+  CreateFarrowingsOptions,
+  FarrowingSelect,
+  GetFarrowingsSelections,
+  GetOneFarrowingsSelections,
+  UpdateFarrowingsOptions,
+  UpdateFarrowingsSelections,
+} from './farrowings.type';
 
 @Injectable()
 export class FarrowingsService {
@@ -72,15 +72,8 @@ export class FarrowingsService {
 
   /** Create one farrowing in database. */
   async createOne(options: CreateFarrowingsOptions): Promise<Farrowing> {
-    const {
-      note,
-      litter,
-      date,
-      organizationId,
-      userCreatedId,
-      checkPregnancyId,
-      animalId,
-    } = options;
+    const { note, litter, date, organizationId, userCreatedId, animalId } =
+      options;
 
     const farrowing = this.client.farrowing.create({
       data: {
@@ -89,7 +82,6 @@ export class FarrowingsService {
         date,
         organizationId,
         userCreatedId,
-        checkPregnancyId,
         animalId,
       },
     });
@@ -109,7 +101,6 @@ export class FarrowingsService {
       date,
       organizationId,
       userCreatedId,
-      checkPregnancyId,
       animalId,
       deletedAt,
     } = options;
@@ -124,7 +115,6 @@ export class FarrowingsService {
         date,
         organizationId,
         userCreatedId,
-        checkPregnancyId,
         animalId,
         deletedAt,
       },

@@ -148,7 +148,14 @@ export class BreedingsController {
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: breeding });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: breeding,
+        message: `Breeding created please don't forget to checkPregnancy`,
+      },
+    });
   }
 
   /** Update one Breeding */
@@ -181,7 +188,7 @@ export class BreedingsController {
     });
     if (!findOneMale) {
       throw new HttpException(
-        `Animal ${codeMale} doesn't exists or is not ACTIVE please change`,
+        `Animal ${codeMale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -194,7 +201,39 @@ export class BreedingsController {
     });
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${codeFemale} doesn't exists or is not ACTIVE please change`,
+        `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    /** This is to check that animals are of same type */
+    if (findOneMale?.type !== findOneFemale?.type) {
+      throw new HttpException(
+        `Unable to perform breeding animals aren't of same type please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    /** This is to check that animals don't have same parents */
+    if (
+      findOneMale.codeMother == findOneFemale.codeMother &&
+      findOneMale.codeFather == findOneFemale.codeFather
+    ) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same parents`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    /** This is to check that animals don't have same ancestors */
+    if (
+      findOneMale.code == findOneFemale.codeFather &&
+      findOneMale.code == findOneFemale.codeMother &&
+      findOneMale.codeFather == findOneFemale.code &&
+      findOneMale.codeMother == findOneFemale.code
+    ) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same ancestors`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -212,7 +251,14 @@ export class BreedingsController {
       },
     );
 
-    return reply({ res, results: breeding });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: breeding,
+        message: `Breeding updated successfully`,
+      },
+    });
   }
 
   /** Get one Breedings */
@@ -220,20 +266,23 @@ export class BreedingsController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('breedingId', ParseUUIDPipe) breedingId: string,
   ) {
-    const breeding = await this.breedingsService.findOneBy({
+    const { user } = req;
+    const findOnebreeding = await this.breedingsService.findOneBy({
       breedingId,
+      organizationId: user?.organization,
     });
 
-    if (!breeding) {
+    if (!findOnebreeding) {
       throw new HttpException(
         `${breedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return reply({ res, results: breeding });
+    return reply({ res, results: findOnebreeding });
   }
 
   /** Delete one Breedings */
@@ -241,19 +290,25 @@ export class BreedingsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('breedingId', ParseUUIDPipe) breedingId: string,
   ) {
-    const breeding = await this.breedingsService.updateOne(
-      { breedingId },
-      { deletedAt: new Date() },
-    );
-    if (!breeding) {
+    const { user } = req;
+    const findOneBreeding = await this.breedingsService.findOneBy({
+      breedingId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneBreeding) {
       throw new HttpException(
-        `${breedingId} doesn't exists please change`,
+        `Breeding ${breedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+    await this.breedingsService.updateOne(
+      { breedingId: findOneBreeding?.id },
+      { deletedAt: new Date() },
+    );
 
-    return reply({ res, results: breeding });
+    return reply({ res, results: findOneBreeding });
   }
 }

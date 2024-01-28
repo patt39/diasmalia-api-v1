@@ -1,17 +1,21 @@
 import { MethodCheckPregnancy, ResultCheckPregnancy } from '@prisma/client';
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
   IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
   IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateCheckPregnanciesDto {
   @IsNotEmpty()
   @IsString()
   date: Date;
+
+  @IsNotEmpty()
+  @IsString()
+  codeFemale: string;
 
   @IsOptional()
   @IsString()

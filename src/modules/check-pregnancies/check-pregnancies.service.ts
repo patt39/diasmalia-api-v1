@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateCheckPregnanciesOptions,
-  GetCheckPregnanciesSelections,
-  GetOneCheckPregnanciesSelections,
-  UpdateCheckPregnanciesOptions,
-  UpdateCheckPregnanciesSelections,
-  CheckPregnancySelect,
-} from './check-pregnancies.type';
+import { CheckPregnancy, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { CheckPregnancy, Prisma } from '@prisma/client';
+import {
+  CheckPregnancySelect,
+  CreateCheckPregnanciesOptions,
+  GetCheckPregnanciesSelections,
+  GetOneCheckPregnanciesSelections,
+  UpdateCheckPregnanciesOptions,
+  UpdateCheckPregnanciesSelections,
+} from './check-pregnancies.type';
 
 @Injectable()
 export class CheckPregnanciesService {
@@ -57,7 +57,7 @@ export class CheckPregnanciesService {
     });
   }
 
-  /** Find one CheckPregnancies to the database. */
+  /** Find one CheckPregnancy in database. */
   async findOneBy(selections: GetOneCheckPregnanciesSelections) {
     const { checkPregnancyId } = selections;
     const checkPregnancy = await this.client.checkPregnancy.findUnique({
@@ -70,7 +70,7 @@ export class CheckPregnanciesService {
     return checkPregnancy;
   }
 
-  /** Create one CheckPregnancies to the database. */
+  /** Create one CheckPregnancy in database. */
   async createOne(
     options: CreateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
@@ -80,8 +80,9 @@ export class CheckPregnanciesService {
       farrowingDate,
       method,
       result,
-      breedingId,
+      animalFemaleId,
       organizationId,
+      breedingId,
       userCreatedId,
     } = options;
 
@@ -92,8 +93,9 @@ export class CheckPregnanciesService {
         farrowingDate,
         method,
         result,
-        breedingId,
+        animalFemaleId,
         organizationId,
+        breedingId,
         userCreatedId,
       },
     });
@@ -101,7 +103,7 @@ export class CheckPregnanciesService {
     return checkPregnancy;
   }
 
-  /** Update one CheckPregnancies to the database. */
+  /** Update one CheckPregnancy in database. */
   async updateOne(
     selections: UpdateCheckPregnanciesSelections,
     options: UpdateCheckPregnanciesOptions,

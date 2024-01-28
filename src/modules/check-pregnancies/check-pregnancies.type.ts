@@ -28,4 +28,5 @@ export const CheckPregnancySelect = {
   result: true,
   farrowingDate: true,
   organizationId: true,
+  breedingId: true,
 };

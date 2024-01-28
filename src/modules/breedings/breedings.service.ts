@@ -57,7 +57,7 @@ export class BreedingsService {
     });
   }
 
-  /** Find one Breedings to the database. */
+  /** Find one Breeding in database. */
   async findOneBy(selections: GetOneBreedingsSelections) {
     const prismaWhere = {} as Prisma.BreedingWhereInput;
 

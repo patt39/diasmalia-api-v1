@@ -1,28 +1,30 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { DiagnosisService } from './diagnosis.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateDiagnosisDto } from './diagnosis.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateDiagnosisDto } from './diagnosis.dto';
+import { DiagnosisService } from './diagnosis.service';
 
 @Controller('diagnosis')
 export class DiagnosisController {
@@ -72,7 +74,7 @@ export class DiagnosisController {
     return reply({ res, results: medication });
   }
 
-  /** Post one Diagnosis */
+  /** Update one Diagnosis */
   @Put(`/:diagnosisId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -84,7 +86,18 @@ export class DiagnosisController {
     const { user } = req;
     const { name } = body;
 
-    const medication = await this.diagnosisService.updateOne(
+    const findOneDiagnosis = await this.diagnosisService.findOneBy({
+      diagnosisId,
+    });
+
+    if (!diagnosisId) {
+      throw new HttpException(
+        `${diagnosisId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    await this.diagnosisService.updateOne(
       { diagnosisId },
       {
         name,
@@ -93,7 +106,7 @@ export class DiagnosisController {
       },
     );
 
-    return reply({ res, results: medication });
+    return reply({ res, results: findOneDiagnosis });
   }
 
   /** Get one Diagnosis */
@@ -103,11 +116,18 @@ export class DiagnosisController {
     @Res() res,
     @Query('diagnosisId', ParseUUIDPipe) diagnosisId: string,
   ) {
-    const medication = await this.diagnosisService.findOneBy({
+    const findOneDiagnosis = await this.diagnosisService.findOneBy({
       diagnosisId,
     });
 
-    return reply({ res, results: medication });
+    if (!diagnosisId) {
+      throw new HttpException(
+        `${diagnosisId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOneDiagnosis });
   }
 
   /** Delete one Diagnosis */
@@ -117,11 +137,18 @@ export class DiagnosisController {
     @Res() res,
     @Param('diagnosisId', ParseUUIDPipe) diagnosisId: string,
   ) {
-    const medication = await this.diagnosisService.updateOne(
+    const findOneDiagnosis = await this.diagnosisService.updateOne(
       { diagnosisId },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: medication });
+    if (!diagnosisId) {
+      throw new HttpException(
+        `${diagnosisId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOneDiagnosis });
   }
 }

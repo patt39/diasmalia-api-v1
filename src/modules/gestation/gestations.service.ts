@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateGestationsOptions,
-  GetGestationsSelections,
-  GetOneGestationSelections,
-  UpdateGestationsOptions,
-  UpdateGestationsSelections,
-  GestationSelect,
-} from './gestations.type';
+import { Gestation, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Prisma, Gestation } from '@prisma/client';
+import {
+  CreateGestationsOptions,
+  GestationSelect,
+  GetGestationsSelections,
+  GetOneGestationSelections,
+  UpdateGestationsOptions,
+  UpdateGestationsSelections,
+} from './gestations.type';
 
 @Injectable()
 export class GestationsService {
@@ -72,14 +72,14 @@ export class GestationsService {
 
   /** Create one Gestation to the database. */
   async createOne(options: CreateGestationsOptions): Promise<Gestation> {
-    const { checkPregnancyId, animalId, organizationId, userCreatedId, note } =
+    const { animalId, organizationId, userCreatedId, checkPregnancyId, note } =
       options;
 
     const gestation = this.client.gestation.create({
       data: {
-        checkPregnancyId,
         animalId,
         organizationId,
+        checkPregnancyId,
         userCreatedId,
         note,
       },
@@ -94,21 +94,14 @@ export class GestationsService {
     options: UpdateGestationsOptions,
   ): Promise<Gestation> {
     const { gestationId } = selections;
-    const {
-      checkPregnancyId,
-      animalId,
-      organizationId,
-      userCreatedId,
-      note,
-      deletedAt,
-    } = options;
+    const { animalId, organizationId, userCreatedId, note, deletedAt } =
+      options;
 
     const gestation = this.client.gestation.update({
       where: {
         id: gestationId,
       },
       data: {
-        checkPregnancyId,
         animalId,
         organizationId,
         userCreatedId,

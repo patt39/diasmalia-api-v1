@@ -28,5 +28,4 @@ export const FarrowingSelect = {
   organizationId: true,
   userCreatedId: true,
   animalId: true,
-  checkPregnancyId: true,
 };

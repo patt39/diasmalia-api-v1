@@ -4,13 +4,18 @@ import {
   MaxLength,
   IsOptional,
   IsUUID,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateOrUpdateFarrowingsDto {
   @IsNotEmpty()
+  @IsNumber()
+  litter: number;
+
+  @IsNotEmpty()
   @IsString()
   @MaxLength(100)
-  litter: number;
+  codeFemale: string;
 
   @IsOptional()
   @IsString()
@@ -20,11 +25,6 @@ export class CreateOrUpdateFarrowingsDto {
   @IsNotEmpty()
   @IsString()
   date: Date;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  checkPregnancyId: string;
 
   @IsNotEmpty()
   @IsString()
