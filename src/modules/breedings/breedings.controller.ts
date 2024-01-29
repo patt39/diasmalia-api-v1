@@ -171,6 +171,7 @@ export class BreedingsController {
     const { date, note, method, codeMale, codeFemale } = body;
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
+      checkStatus: false,
       organizationId: user.organizationId,
     });
     if (!findOneBreeding) {
@@ -272,6 +273,7 @@ export class BreedingsController {
     const { user } = req;
     const findOnebreeding = await this.breedingsService.findOneBy({
       breedingId,
+      checkStatus: false,
       organizationId: user?.organization,
     });
 
@@ -296,6 +298,7 @@ export class BreedingsController {
     const { user } = req;
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
+      checkStatus: false,
       organizationId: user.organizationId,
     });
     if (!findOneBreeding) {

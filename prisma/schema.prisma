@@ -285,7 +285,7 @@ model Breeding {
   id               String           @id @default(uuid())
   date             DateTime?
   note             String?
-  status           Boolean?         @default(false)
+  checkStatus      Boolean?         @default(false)
   method           MethodBreeding?
   animalFemaleId   String
   animalMaleId     String

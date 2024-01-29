@@ -57,7 +57,7 @@ export class GestationsService {
     });
   }
 
-  /** Find one Gestation to the database. */
+  /** Find one Gestation in database. */
   async findOneBy(selections: GetOneGestationSelections) {
     const { gestationId } = selections;
     const gestation = await this.client.gestation.findUnique({
@@ -70,7 +70,7 @@ export class GestationsService {
     return gestation;
   }
 
-  /** Create one Gestation to the database. */
+  /** Create one Gestation database. */
   async createOne(options: CreateGestationsOptions): Promise<Gestation> {
     const { animalId, organizationId, userCreatedId, checkPregnancyId, note } =
       options;
@@ -88,14 +88,20 @@ export class GestationsService {
     return gestation;
   }
 
-  /** Update one Gestation to the database. */
+  /** Update one Gestation database. */
   async updateOne(
     selections: UpdateGestationsSelections,
     options: UpdateGestationsOptions,
   ): Promise<Gestation> {
     const { gestationId } = selections;
-    const { animalId, organizationId, userCreatedId, note, deletedAt } =
-      options;
+    const {
+      animalId,
+      organizationId,
+      userCreatedId,
+      checkPregnancyId,
+      note,
+      deletedAt,
+    } = options;
 
     const gestation = this.client.gestation.update({
       where: {
@@ -105,6 +111,7 @@ export class GestationsService {
         animalId,
         organizationId,
         userCreatedId,
+        checkPregnancyId,
         note,
         deletedAt,
       },

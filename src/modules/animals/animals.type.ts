@@ -46,4 +46,9 @@ export const AnimalSelect = {
     },
   },
   breedId: true,
+  breed: {
+    select: {
+      name: true,
+    },
+  },
 };

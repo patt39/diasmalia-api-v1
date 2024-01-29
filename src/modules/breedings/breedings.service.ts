@@ -61,7 +61,7 @@ export class BreedingsService {
   async findOneBy(selections: GetOneBreedingsSelections) {
     const prismaWhere = {} as Prisma.BreedingWhereInput;
 
-    const { breedingId, organizationId } = selections;
+    const { breedingId, organizationId, checkStatus } = selections;
 
     if (breedingId) {
       Object.assign(prismaWhere, { id: breedingId });
@@ -69,6 +69,10 @@ export class BreedingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (checkStatus) {
+      Object.assign(prismaWhere, { checkStatus });
     }
 
     const breeding = await this.client.breeding.findFirst({

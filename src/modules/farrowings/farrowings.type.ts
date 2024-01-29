@@ -28,4 +28,25 @@ export const FarrowingSelect = {
   organizationId: true,
   userCreatedId: true,
   animalId: true,
+  animal: {
+    select: {
+      code: true,
+      productionPhase: true,
+      weight: true,
+      electronicCode: true,
+      status: true,
+      gender: true,
+      type: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
 };

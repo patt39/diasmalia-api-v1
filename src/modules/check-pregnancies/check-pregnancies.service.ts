@@ -59,12 +59,24 @@ export class CheckPregnanciesService {
 
   /** Find one CheckPregnancy in database. */
   async findOneBy(selections: GetOneCheckPregnanciesSelections) {
-    const { checkPregnancyId } = selections;
-    const checkPregnancy = await this.client.checkPregnancy.findUnique({
-      select: CheckPregnancySelect,
-      where: {
-        id: checkPregnancyId,
-      },
+    const prismaWhere = {} as Prisma.CheckPregnancyWhereInput;
+
+    const { checkPregnancyId, organizationId, result } = selections;
+
+    if (checkPregnancyId) {
+      Object.assign(prismaWhere, { id: checkPregnancyId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (result) {
+      Object.assign(prismaWhere, { result });
+    }
+
+    const checkPregnancy = await this.client.checkPregnancy.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
     });
 
     return checkPregnancy;
