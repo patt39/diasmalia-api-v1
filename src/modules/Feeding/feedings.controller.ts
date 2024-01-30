@@ -1,30 +1,30 @@
 import {
-  Controller,
-  Post,
   Body,
-  Param,
-  ParseUUIDPipe,
+  Controller,
   Delete,
-  Res,
-  Req,
   Get,
-  Query,
-  UseGuards,
-  Put,
   HttpException,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { reply } from '../../app/utils/reply';
-import { FeedingsService } from './feedings.service';
-import { AnimalsService } from '../animals/animals.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateFeedingsDto } from './feedings.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
-  addPagination,
   PaginationType,
+  addPagination,
 } from '../../app/utils/pagination/with-pagination';
+import { reply } from '../../app/utils/reply';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateFeedingsDto } from './feedings.dto';
+import { FeedingsService } from './feedings.service';
 
 @Controller('feedings')
 export class FeedingsController {
@@ -82,8 +82,8 @@ export class FeedingsController {
       date,
       quantity,
       type,
-      animalId: findOneAnimal.id,
       note,
+      animalId: findOneAnimal.id,
       productionPhase: findOneAnimal.productionPhase,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -128,6 +128,16 @@ export class FeedingsController {
     @Res() res,
     @Query('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
+    const findOneFeeding = await this.feedingsService.findOneBy({
+      feedingId,
+    });
+
+    if (!findOneFeeding)
+      throw new HttpException(
+        `Animal doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const death = await this.feedingsService.findOneBy({
       feedingId,
     });
@@ -142,6 +152,15 @@ export class FeedingsController {
     @Res() res,
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
+    const findOneFeeding = await this.feedingsService.findOneBy({
+      feedingId,
+    });
+
+    if (!findOneFeeding)
+      throw new HttpException(
+        `Animal doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
     const feeding = await this.feedingsService.updateOne(
       { feedingId },
       { deletedAt: new Date() },

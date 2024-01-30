@@ -12,11 +12,6 @@ export class CreateOrUpdateFarrowingsDto {
   @IsNumber()
   litter: number;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
-  codeFemale: string;
-
   @IsOptional()
   @IsString()
   @MaxLength(100)

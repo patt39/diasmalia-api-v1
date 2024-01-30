@@ -9,6 +9,7 @@ export type GetGestationsSelections = {
 
 export type GetOneGestationSelections = {
   gestationId: Gestation['id'];
+  organizationId: Gestation['id'];
 };
 
 export type UpdateGestationsSelections = {
@@ -23,8 +24,39 @@ export const GestationSelect = {
   createdAt: true,
   id: true,
   animalId: true,
+  animal: {
+    select: {
+      code: true,
+      productionPhase: true,
+      weight: true,
+      electronicCode: true,
+      status: true,
+      gender: true,
+      type: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
   checkPregnancyId: true,
+  checkPregnancy: {
+    select: {
+      farrowingDate: true,
+    },
+  },
   organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
   userCreatedId: true,
   note: true,
 };

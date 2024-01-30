@@ -103,6 +103,7 @@ export class AnimalsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
+      organizationId: user?.organizationId,
     });
 
     if (!findOneLocation)
@@ -179,6 +180,7 @@ export class AnimalsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
+      organizationId: user?.organizationId,
     });
 
     if (!findOneLocation)

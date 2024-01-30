@@ -31,8 +31,7 @@ export class CreateOrUpdateAnimalsDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  weight: string;
+  weight: number;
 
   @IsNotEmpty()
   @IsString()

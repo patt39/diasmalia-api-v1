@@ -27,6 +27,34 @@ export const MilkingSelect = {
   method: true,
   quantity: true,
   animalId: true,
+  animal: {
+    select: {
+      productionPhase: true,
+      weight: true,
+      status: true,
+      type: true,
+      birthday: true,
+      gender: true,
+      code: true,
+      locationId: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breedId: true,
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+      organizationId: true,
+      organization: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
   userCreatedId: true,
-  organizationId: true,
 };

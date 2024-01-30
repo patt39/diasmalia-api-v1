@@ -1,12 +1,13 @@
 import { MethodMilking } from '@prisma/client';
 
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
-  IsUUID,
   IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateMilkingsDto {
@@ -20,8 +21,7 @@ export class CreateOrUpdateMilkingsDto {
   date: Date;
 
   @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsNumber()
   quantity: number;
 
   @IsNotEmpty()

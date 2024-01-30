@@ -60,7 +60,7 @@ export class CheckPregnanciesController {
     return reply({ res, results: CheckPregnancies });
   }
 
-  /** Post one CheckPregnancies */
+  /** Post one CheckPregnancy */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -81,14 +81,9 @@ export class CheckPregnanciesController {
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
+      checkStatus: false,
       organizationId: user.organizationId,
     });
-    if (!findOneBreeding) {
-      throw new HttpException(
-        `Animal ${findOneBreeding} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -100,6 +95,13 @@ export class CheckPregnanciesController {
     if (!findOneFemale) {
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (findOneBreeding.checkStatus == true) {
+      throw new HttpException(
+        `Animal ${codeFemale} can't be checked already done please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -116,22 +118,10 @@ export class CheckPregnanciesController {
       userCreatedId: user?.id,
     });
 
-    /**  if (checkPregnancy.result == 'PREGNANT') {
-      throw new HttpException(
-        `GOOD, animal: ${codeFemale} is PREGNANT please change the productionPase to GESTATION`,
-        HttpStatus.OK,
-      );
-    } else {
-      throw new HttpException(
-        `BAD, animal: ${codeFemale} still OPEN breeding failed please try again later`,
-        HttpStatus.OK,
-      );
-    }*/
-
     return reply({ res, results: checkPregnancy });
   }
 
-  /** Update one CheckPregnancies */
+  /** Update one CheckPregnancy */
   @Put(`/:checkPregnancyId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -151,8 +141,21 @@ export class CheckPregnanciesController {
       breedingId,
     } = body;
 
+    const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
+      checkPregnancyId,
+      organizationId: user.organizationId,
+    });
+
+    if (!findOnecheckPregnancy) {
+      throw new HttpException(
+        `${checkPregnancyId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
+      checkStatus: false,
       organizationId: user.organizationId,
     });
     if (!findOneBreeding) {
@@ -195,15 +198,18 @@ export class CheckPregnanciesController {
     return reply({ res, results: checkPregnancy });
   }
 
-  /** Get one CheckPregnancies */
+  /** Get one CheckPregnancy */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
+    const { user } = req;
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
+      organizationId: user.organizationId,
     });
 
     if (!checkPregnancyId) {
@@ -216,15 +222,18 @@ export class CheckPregnanciesController {
     return reply({ res, results: findOnecheckPregnancy });
   }
 
-  /** Delete one CheckPregnancies */
+  /** Delete one CheckPregnancy */
   @Delete(`/delete/:checkPregnancyId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
+    const { user } = req;
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
+      organizationId: user.organizationId,
     });
 
     if (!checkPregnancyId) {

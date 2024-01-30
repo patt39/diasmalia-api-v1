@@ -67,10 +67,10 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, date, codeFemale } = body;
+    const { litter, note, date, animalId } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
+      animalId,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
@@ -114,7 +114,7 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, date, codeFemale } = body;
+    const { litter, note, date, animalId } = body;
 
     if (!farrowingId) {
       throw new HttpException(
@@ -124,7 +124,7 @@ export class FarrowingsController {
     }
 
     const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
+      animalId,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'GESTATION',

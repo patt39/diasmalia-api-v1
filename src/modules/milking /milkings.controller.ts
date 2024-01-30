@@ -1,34 +1,40 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { MilkingsService } from './milkings.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateMilkingsDto } from './milkings.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateMilkingsDto } from './milkings.dto';
+import { MilkingsService } from './milkings.service';
+import { AnimalsService } from '../animals/animals.service';
 
 @Controller('milkings')
 export class MilkingsController {
-  constructor(private readonly milkingsService: MilkingsService) {}
+  constructor(
+    private readonly milkingsService: MilkingsService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
-  /** Get all Milkings */
+  /** Get all milkings */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -52,7 +58,7 @@ export class MilkingsController {
     return reply({ res, results: milkings });
   }
 
-  /** Post one Milkings */
+  /** Post one milking */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -63,12 +69,26 @@ export class MilkingsController {
     const { user } = req;
     const { note, date, quantity, method, animalId } = body;
 
+    const findOneFemale = await this.animalsService.findOneBy({
+      animalId,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'LACTATION',
+      organizationId: user.organizationId,
+    });
+    if (!findOneFemale) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const milking = await this.milkingsService.createOne({
       note,
       date,
       quantity,
       method,
-      animalId,
+      animalId: findOneFemale.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -76,7 +96,7 @@ export class MilkingsController {
     return reply({ res, results: milking });
   }
 
-  /** Post one Medications */
+  /** Update one milking */
   @Put(`/:milkingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -88,6 +108,20 @@ export class MilkingsController {
     const { user } = req;
     const { note, date, quantity, method, animalId } = body;
 
+    const findOneFemale = await this.animalsService.findOneBy({
+      animalId,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'LACTATION',
+      organizationId: user.organizationId,
+    });
+    if (!findOneFemale) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const milking = await this.milkingsService.updateOne(
       { milkingId },
       {
@@ -95,7 +129,7 @@ export class MilkingsController {
         date,
         quantity,
         method,
-        animalId,
+        animalId: findOneFemale.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -104,32 +138,45 @@ export class MilkingsController {
     return reply({ res, results: milking });
   }
 
-  /** Get one Medications */
+  /** Get one milking */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
     @Query('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
-    const milking = await this.milkingsService.findOneBy({
+    const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
     });
+    if (!findOneMilking) {
+      throw new HttpException(
+        `Animal ${milkingId} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-    return reply({ res, results: milking });
+    return reply({ res, results: findOneMilking });
   }
 
-  /** Delete one Medications */
+  /** Delete one milking */
   @Delete(`/delete/:milkingId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
     @Param('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
-    const milking = await this.milkingsService.updateOne(
+    const findOneMilking = await this.milkingsService.updateOne(
       { milkingId },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: milking });
+    if (!findOneMilking) {
+      throw new HttpException(
+        `Animal ${milkingId} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOneMilking });
   }
 }

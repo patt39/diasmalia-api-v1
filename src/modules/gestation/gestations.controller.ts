@@ -1,31 +1,39 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { reply } from '../../app/utils/reply';
-import { GestationsService } from './gestations.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateGestationsDto } from './gestations.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
-  addPagination,
   PaginationType,
+  addPagination,
 } from '../../app/utils/pagination/with-pagination';
+import { reply } from '../../app/utils/reply';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
+import { CheckPregnanciesService } from '../check-pregnancies/check-pregnancies.service';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateGestationsDto } from './gestations.dto';
+import { GestationsService } from './gestations.service';
 
 @Controller('gestations')
 export class GestationsController {
-  constructor(private readonly gestationsService: GestationsService) {}
+  constructor(
+    private readonly gestationsService: GestationsService,
+    private readonly animalsService: AnimalsService,
+    private readonly checkPregnanciesService: CheckPregnanciesService,
+  ) {}
 
   /** Get all Gestations */
   @Get(`/`)
@@ -60,15 +68,51 @@ export class GestationsController {
     @Body() body: CreateOrUpdateGestationsDto,
   ) {
     const { user } = req;
-    const { note, animalId } = body;
+    const { note, animalId, checkPregnancyId } = body;
+
+    const findOneCheckPregnancy = await this.checkPregnanciesService.findOneBy({
+      checkPregnancyId,
+      result: 'PREGNANT',
+      organizationId: user?.organization,
+    });
+
+    const findOneFemale = await this.animalsService.findOneBy({
+      animalId,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'GESTATION',
+      organizationId: user.organizationId,
+    });
+    if (!findOneFemale) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (!findOneCheckPregnancy) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} is not PREGNANT please change it's production phase`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const gestation = await this.gestationsService.createOne({
       note,
-      animalId,
+      animalId: findOneFemale.id,
+      checkPregnancyId: findOneCheckPregnancy.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: gestation });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: gestation,
+        message: 'Gestation created successfully',
+      },
+    });
   }
 
   /** Update one Gestation */
@@ -81,19 +125,52 @@ export class GestationsController {
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const { note, animalId } = body;
+    const { note, animalId, checkPregnancyId } = body;
+    const findOneCheckPregnancy = await this.checkPregnanciesService.findOneBy({
+      checkPregnancyId,
+      organizationId: user?.organization,
+    });
+    console.log('log =======>', findOneCheckPregnancy);
+
+    if (!findOneCheckPregnancy) {
+      throw new HttpException(
+        `${checkPregnancyId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const findOneFemale = await this.animalsService.findOneBy({
+      animalId,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'GESTATION',
+      organizationId: user.organizationId,
+    });
+    if (!findOneFemale) {
+      throw new HttpException(
+        `Animal ${findOneFemale.code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const gestation = await this.gestationsService.updateOne(
       { gestationId },
       {
         note,
-        animalId,
+        animalId: findOneFemale.id,
+        checkPregnancyId: findOneCheckPregnancy.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
     );
 
-    return reply({ res, results: gestation });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: gestation,
+        message: 'Gestation updated successfully',
+      },
+    });
   }
 
   /** Get one Gestation */
@@ -101,10 +178,24 @@ export class GestationsController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
+    const { user } = req;
+    const findOneCheckPregnancy = await this.gestationsService.findOneBy({
+      gestationId,
+      organizationId: user?.organization,
+    });
+
+    if (!findOneCheckPregnancy) {
+      throw new HttpException(
+        `${gestationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const gestation = await this.gestationsService.findOneBy({
       gestationId,
+      organizationId: user?.organization,
     });
 
     return reply({ res, results: gestation });
@@ -115,8 +206,21 @@ export class GestationsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
+    const { user } = req;
+    const findOneCheckPregnancy = await this.gestationsService.findOneBy({
+      gestationId,
+      organizationId: user?.organization,
+    });
+
+    if (!findOneCheckPregnancy) {
+      throw new HttpException(
+        `${gestationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const gestation = await this.gestationsService.updateOne(
       { gestationId },
       { deletedAt: new Date() },
