@@ -33,7 +33,7 @@ export class ContributorsController {
     private readonly organizationsService: OrganizationsService,
   ) {}
 
-  /** Post one Contributors */
+  /** Post one Contributor */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async addOne(@Res() res, @Req() req, @Body() body: AddContributorUserDto) {
@@ -67,7 +67,7 @@ export class ContributorsController {
     return reply({ res, results: 'Contributor save successfully' });
   }
 
-  /** Post one Contributors */
+  /** Post one Contributor */
   @Post(`/new-contributor`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -107,7 +107,7 @@ export class ContributorsController {
     return reply({ res, results: 'Contributor save successfully' });
   }
 
-  /** Get one Users */
+  /** Get one User */
   @Get(`/show/:contributorId`)
   // @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
@@ -121,7 +121,7 @@ export class ContributorsController {
     return reply({ res, results: contributor });
   }
 
-  /** Delete one Users */
+  /** Delete one User */
   @Delete(`/delete/:contributorId`)
   // @UseGuards(JwtAuthGuard)
   async deleteOne(

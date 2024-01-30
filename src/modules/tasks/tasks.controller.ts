@@ -54,7 +54,7 @@ export class TasksController {
     return reply({ res, results: tasks });
   }
 
-  /** Post one Tasks */
+  /** Post one Task */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -63,13 +63,13 @@ export class TasksController {
     @Body() body: CreateOrUpdateTasksDto,
   ) {
     const { user } = req;
-    const { title, description, dueDate, userId } = body;
+    const { title, description, dueDate, statusTaskId } = body;
 
     const task = await this.tasksService.createOne({
       title,
       description,
       dueDate,
-      userId,
+      statusTaskId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -77,7 +77,7 @@ export class TasksController {
     return reply({ res, results: task });
   }
 
-  /** Post one Tasks */
+  /** Post one Task */
   @Put(`/:taskId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -87,10 +87,11 @@ export class TasksController {
     @Param('taskId', ParseUUIDPipe) taskId: string,
   ) {
     const { user } = req;
-    const { title, description, dueDate, userId } = body;
+    const { title, description, dueDate, statusTaskId } = body;
 
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
+      organizationId: user.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -105,7 +106,7 @@ export class TasksController {
         title,
         description,
         dueDate,
-        userId,
+        statusTaskId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -114,7 +115,7 @@ export class TasksController {
     return reply({ res, results: task });
   }
 
-  /** Get one Tasks */
+  /** Get one Task */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
@@ -126,7 +127,7 @@ export class TasksController {
     return reply({ res, results: task });
   }
 
-  /** Delete one Tasks */
+  /** Delete one Task */
   @Delete(`/delete/:taskId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(@Res() res, @Param('taskId', ParseUUIDPipe) taskId: string) {

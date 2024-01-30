@@ -12,7 +12,6 @@ export class CreateOrUpdateContributorDto {
   @MaxLength(50)
   role: string;
 }
-
 export class AddContributorUserDto {
   @IsNotEmpty()
   @IsString()
@@ -20,7 +19,6 @@ export class AddContributorUserDto {
   @MaxLength(50)
   email: string;
 }
-
 export class CreateOneContributorUserDto {
   @IsNotEmpty()
   @IsString()
