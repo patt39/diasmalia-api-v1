@@ -90,7 +90,7 @@ export class BreedingsController {
       productionPhase: 'REPRODUCTION',
       organizationId: user.organizationId,
     });
-    //console.log('log====>', findOneFemale);
+
     if (!findOneFemale) {
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
@@ -106,37 +106,27 @@ export class BreedingsController {
       );
     }
 
-    /** This is to check that animals don't have same parents */
-    if (
-      findOneMale.codeMother == findOneFemale.codeMother &&
-      findOneMale.codeFather == findOneFemale.codeFather
-    ) {
-      throw new HttpException(
-        `Unable to perform breeding animals have same parents`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    /** This is to check that animals don't have same ancestors */
-    if (
-      findOneMale.code == findOneFemale.codeFather &&
-      findOneMale.code == findOneFemale.codeMother &&
-      findOneMale.codeFather == findOneFemale.code &&
-      findOneMale.codeMother == findOneFemale.code
-    ) {
+    if (findOneMale.code == findOneFemale.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (findOneMale.codeMother == findOneFemale.code) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same ancestors`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (findOneMale.codeMother == findOneFemale.codeMother) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same mother`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (findOneMale.codeFather == findOneFemale.codeFather) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same father`,
+        HttpStatus.BAD_REQUEST,
       );
     }
-
-    /** This is to check that animals are of same productionPhase 
-    if (findOneMale.productionPhase !== 'REPRODUCTION') {
-      throw new HttpException(
-        `Unable to perform breeding animal isn't in REPRODUCION phase`,
-        HttpStatus.NOT_FOUND,
-      );
-    } */
 
     const breeding = await this.breedingsService.createOne({
       date,
@@ -211,31 +201,29 @@ export class BreedingsController {
     if (findOneMale?.type !== findOneFemale?.type) {
       throw new HttpException(
         `Unable to perform breeding animals aren't of same type please change`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.BAD_REQUEST,
       );
     }
 
-    /** This is to check that animals don't have same parents */
-    if (
-      findOneMale.codeMother == findOneFemale.codeMother &&
-      findOneMale.codeFather == findOneFemale.codeFather
-    ) {
-      throw new HttpException(
-        `Unable to perform breeding animals have same parents`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    /** This is to check that animals don't have same ancestors */
-    if (
-      findOneMale.code == findOneFemale.codeFather &&
-      findOneMale.code == findOneFemale.codeMother &&
-      findOneMale.codeFather == findOneFemale.code &&
-      findOneMale.codeMother == findOneFemale.code
-    ) {
+    if (findOneMale.code == findOneFemale.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (findOneMale.codeMother == findOneFemale.code) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same ancestors`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (findOneMale.codeMother == findOneFemale.codeMother) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same mother`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (findOneMale.codeFather == findOneFemale.codeFather) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same father`,
+        HttpStatus.BAD_REQUEST,
       );
     }
 

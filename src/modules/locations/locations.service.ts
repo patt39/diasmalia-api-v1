@@ -53,22 +53,31 @@ export class LocationsService {
     });
   }
 
-  /** Find one Locations to the database. */
+  /** Find one location in database. */
   async findOneBy(selections: GetOneLocationsSelections) {
-    const { locationId } = selections;
-    const location = await this.client.location.findUnique({
+    const prismaWhere = {} as Prisma.LocationWhereInput;
+
+    const { locationId, organizationId } = selections;
+
+    if (locationId) {
+      Object.assign(prismaWhere, { id: locationId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const location = await this.client.location.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: LocationsSelect,
-      where: {
-        id: locationId,
-      },
     });
 
     return location;
   }
 
-  /** Create one Locations to the database. */
+  /** Create one location in database. */
   async createOne(options: CreateLocationsOptions): Promise<Location> {
-    const { squareMeter, manger, through, number } = options;
+    const { squareMeter, manger, through, number, organizationId } = options;
 
     const location = this.client.location.create({
       data: {
@@ -76,19 +85,21 @@ export class LocationsService {
         manger,
         through,
         number,
+        organizationId,
       },
     });
 
     return location;
   }
 
-  /** Update one Locationss to the database. */
+  /** Update one location in database. */
   async updateOne(
     selections: UpdateLocationsSelections,
     options: UpdateLocationsOptions,
   ): Promise<Location> {
     const { locationId } = selections;
-    const { squareMeter, manger, through, number, deletedAt } = options;
+    const { squareMeter, manger, through, number, organizationId, deletedAt } =
+      options;
 
     const location = this.client.location.update({
       where: {
@@ -99,6 +110,7 @@ export class LocationsService {
         manger,
         through,
         number,
+        organizationId,
         deletedAt,
       },
     });

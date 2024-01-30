@@ -52,7 +52,7 @@ export class LocationsController {
     return reply({ res, results: Locations });
   }
 
-  /** Post one Locations */
+  /** Post one Location */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -60,6 +60,7 @@ export class LocationsController {
     @Req() req,
     @Body() body: CreateOrUpdateLocationsDto,
   ) {
+    const { user } = req;
     const { squareMeter, manger, through, number } = body;
 
     const location = await this.locationsService.createOne({
@@ -67,12 +68,13 @@ export class LocationsController {
       manger,
       through,
       number,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: location });
   }
 
-  /** Post one Locations */
+  /** Update one location */
   @Put(`/:locationId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -81,10 +83,12 @@ export class LocationsController {
     @Body() body: CreateOrUpdateLocationsDto,
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
+    const { user } = req;
     const { squareMeter, manger, through, number } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
+      organizationId: user?.organization,
     });
     if (!findOneLocation) {
       throw new HttpException(
@@ -99,27 +103,41 @@ export class LocationsController {
         manger,
         through,
         number,
+        organizationId: user.organizationId,
       },
     );
 
     return reply({ res, results: location });
   }
 
-  /** Get one Locations */
+  /** Get one Location */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('locationId', ParseUUIDPipe) locationId: string,
   ) {
+    const { user } = req;
+    const findOneLocation = await this.locationsService.findOneBy({
+      locationId,
+      organizationId: user?.organization,
+    });
+    if (!findOneLocation) {
+      throw new HttpException(
+        `Location ${locationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const location = await this.locationsService.findOneBy({
       locationId,
+      organizationId: user?.organization,
     });
 
     return reply({ res, results: location });
   }
 
-  /** Delete one Locations */
+  /** Delete one Location */
   @Delete(`/delete/:locationId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
@@ -127,8 +145,10 @@ export class LocationsController {
     @Req() req,
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
+    const { user } = req;
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
+      organizationId: user?.organization,
     });
     if (!findOneLocation) {
       throw new HttpException(

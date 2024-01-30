@@ -23,5 +23,16 @@ export const MedicationSelect = {
   createdAt: true,
   id: true,
   name: true,
+  userCreatedId: true,
+  user: {
+    select: {
+      username: true,
+    },
+  },
   organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
 };

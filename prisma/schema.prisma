@@ -101,6 +101,7 @@ model Organization {
   sellings         Selling[]
   financialDetails FinancialDetail[]
   financialMgts    FinancialMgt[]
+  locations        Location[]
 }
 
 model ContactUs {
@@ -151,6 +152,8 @@ model Location {
   manger      Int
   through     Int
   number      Int
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   animals     Animal[]
 }
 
@@ -198,7 +201,7 @@ model Animal {
   codeFather      String?
   codeMother      String?
   birthday        DateTime?
-  weight          String
+  weight          Int?
   gender          Gender
   type            AnimalType
   productionPhase ProductionPhase

@@ -41,7 +41,7 @@ export const CheckPregnancySelect = {
       animalFemaleId: true,
       date: true,
       method: true,
-      status: true,
+      checkStatus: true,
     },
   },
 };

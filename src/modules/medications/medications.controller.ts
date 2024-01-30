@@ -1,28 +1,30 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { MedicationsService } from './medications.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateMedicationsDto } from './medications.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateMedicationsDto } from './medications.dto';
+import { MedicationsService } from './medications.service';
 
 @Controller('medications')
 export class MedicationsController {
@@ -52,7 +54,7 @@ export class MedicationsController {
     return reply({ res, results: medications });
   }
 
-  /** Post one Medications */
+  /** Post one Medication */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -83,8 +85,7 @@ export class MedicationsController {
   ) {
     const { user } = req;
     const { name } = body;
-
-    const medication = await this.medicationsService.updateOne(
+    const findOneMedication = await this.medicationsService.updateOne(
       { medicationId },
       {
         name,
@@ -93,24 +94,38 @@ export class MedicationsController {
       },
     );
 
-    return reply({ res, results: medication });
+    if (!findOneMedication) {
+      throw new HttpException(
+        ` ${medicationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOneMedication });
   }
 
-  /** Get one Medications */
+  /** Get one Medication */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Res() req,
     @Query('medicationId', ParseUUIDPipe) medicationId: string,
   ) {
-    const medication = await this.medicationsService.findOneBy({
+    const findOneMedication = await this.medicationsService.findOneBy({
       medicationId,
     });
+    if (!findOneMedication) {
+      throw new HttpException(
+        ` ${medicationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-    return reply({ res, results: medication });
+    return reply({ res, results: findOneMedication });
   }
 
-  /** Delete one Medications */
+  /** Delete one medication */
   @Delete(`/delete/:medicationId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(

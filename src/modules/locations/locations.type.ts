@@ -8,6 +8,7 @@ export type GetLocationsSelections = {
 
 export type GetOneLocationsSelections = {
   locationId: Location['id'];
+  organizationId: Location['organizationId'];
 };
 
 export type UpdateLocationsSelections = {
@@ -25,4 +26,10 @@ export const LocationsSelect = {
   squareMeter: true,
   through: true,
   manger: true,
+  organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
 };
