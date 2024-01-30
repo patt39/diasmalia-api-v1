@@ -16,7 +16,6 @@ enum Availibility {
   IN_STORE
   ONLINE
 }
-
 model User {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -35,9 +34,7 @@ model User {
   organization   Organization?
   contributors   Contributor[]
   authProviders  AuthProvider[]
-  tasks          Task[]
 }
-
 model Contributor {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
@@ -49,13 +46,13 @@ model Contributor {
   organizationId String
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+  task           Task[]
 }
 
 enum RoleContributorRole {
   SUPERADMIN
   ADMIN
 }
-
 model Profile {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -73,7 +70,6 @@ model Profile {
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 model Organization {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -102,8 +98,8 @@ model Organization {
   financialDetails FinancialDetail[]
   financialMgts    FinancialMgt[]
   locations        Location[]
+  statusTask       StatusTask[]        
 }
-
 model ContactUs {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -115,7 +111,6 @@ model ContactUs {
   subject     String?
   description String?
 }
-
 model AuthProvider {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -127,7 +122,6 @@ model AuthProvider {
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 model Task {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -136,13 +130,25 @@ model Task {
   title          String
   description    String
   dueDate        DateTime
-  userId         String
-  user           User         @relation(fields: [userId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contributorId  String
+  contributor    Contributor  @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  statusTaskId   String
+  statusTask     StatusTask  @relation(fields: [statusTaskId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+}
+model StatusTask {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+  tasks          Task []
 }
-
 model Location {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -156,7 +162,6 @@ model Location {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   animals     Animal[]
 }
-
 model Diagnosis {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -168,7 +173,6 @@ model Diagnosis {
   userCreatedId  String
   treatments     Treatment[]
 }
-
 model Medication {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -180,7 +184,6 @@ model Medication {
   userCreatedId  String
   treatments     Treatment[]
 }
-
 model Breed {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -252,7 +255,6 @@ enum ProductionPhase {
   ISOLATION
   WEANING
 }
-
 model Treatment {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -349,7 +351,6 @@ model Farrowing {
   animalId         String
   animal           Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
-
 model Weaning {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -364,7 +365,6 @@ model Weaning {
   animalId       String
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
-
 model Gestation {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -447,7 +447,6 @@ enum FeedType {
   BYPRODUCTS
   SILAGE
 }
-
 model Selling {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -485,7 +484,6 @@ model FinancialDetail {
   userCreatedId  String
   financialMgts   FinancialMgt[]
 }
-
 model FinancialMgt {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateOrUpdateTasksDto {
   @IsNotEmpty()
@@ -17,4 +23,9 @@ export class CreateOrUpdateTasksDto {
   @IsNotEmpty()
   @IsString()
   dueDate: Date;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  statusTaskId: string;
 }

@@ -9,6 +9,7 @@ export type GetTasksSelections = {
 
 export type GetOneTasksSelections = {
   taskId: Task['id'];
+  organizationId?: Task['organizationId'];
 };
 
 export type UpdateTasksSelections = {
