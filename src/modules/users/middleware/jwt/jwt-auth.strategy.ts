@@ -26,6 +26,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     const { contributor } =
       await this.contributorsUtil.getAuthorizationToContributor({
         userId: user?.id,
+        organizationId: user?.organizationId,
       });
     if (!contributor) throw new UnauthorizedException('Invalid organization');
 

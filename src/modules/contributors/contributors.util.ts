@@ -8,11 +8,13 @@ export class ContributorsUtil {
   /** Get one Authorization to the database. */
   async getAuthorizationToContributor(options: {
     userId: string;
+    organizationId: string;
   }): Promise<any> {
-    const { userId } = options;
+    const { userId, organizationId } = options;
     if (userId) {
       const contributor = await this.contributorsService.findOneBy({
         userId,
+        organizationId,
       });
       return { contributor };
     }
