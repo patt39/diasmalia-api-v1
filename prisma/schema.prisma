@@ -350,6 +350,7 @@ model Farrowing {
   userCreatedId    String
   animalId         String
   animal           Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  weaning         Weaning[]
 }
 model Weaning {
   createdAt      DateTime     @default(now())
@@ -364,6 +365,8 @@ model Weaning {
   userCreatedId  String
   animalId       String
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farrowingId    String
+  farrowing      Farrowing    @relation(fields: [farrowingId], references: [id], onDelete: Cascade)
 }
 model Gestation {
   createdAt      DateTime     @default(now())

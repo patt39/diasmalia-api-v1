@@ -25,7 +25,39 @@ export const WeaningSelect = {
   litter: true,
   note: true,
   date: true,
-  organizationId: true,
-  userCreatedId: true,
   animalId: true,
+  animal: {
+    select: {
+      code: true,
+      productionPhase: true,
+      weight: true,
+      electronicCode: true,
+      status: true,
+      gender: true,
+      type: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+  farrowingId: true,
+  farrowing: {
+    select: {
+      litter: true,
+    },
+  },
+  organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
+  userCreatedId: true,
 };

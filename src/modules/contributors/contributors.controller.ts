@@ -18,9 +18,9 @@ import { reply } from '../../app/utils/reply';
 
 import {
   PaginationType,
-  RequestPaginationDto,
   addPagination,
-} from 'src/app/utils/pagination';
+} from '../../app/utils/pagination/with-pagination';
+import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import { SearchQueryDto } from 'src/app/utils/search-query';
 import {
   AddContributorUserDto,
