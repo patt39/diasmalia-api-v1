@@ -12,14 +12,11 @@ import {
 
 export class CreateOrUpdateTreatmentsDto {
   @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
   @IsInt()
   numberOfDose: number;
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
   treatmentName: string;
 
   @IsNotEmpty()

@@ -1,15 +1,15 @@
 import {
-  IsString,
   IsNotEmpty,
-  MaxLength,
+  IsNumber,
   IsOptional,
+  IsString,
   IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateWeaningsDto {
   @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsNumber()
   litter: number;
 
   @IsOptional()
@@ -25,4 +25,9 @@ export class CreateOrUpdateWeaningsDto {
   @IsString()
   @IsUUID()
   animalId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  farrowingId: string;
 }

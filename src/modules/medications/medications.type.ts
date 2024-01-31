@@ -24,11 +24,6 @@ export const MedicationSelect = {
   id: true,
   name: true,
   userCreatedId: true,
-  user: {
-    select: {
-      username: true,
-    },
-  },
   organizationId: true,
   organization: {
     select: {

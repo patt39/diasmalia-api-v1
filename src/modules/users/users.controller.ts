@@ -23,17 +23,17 @@ export class UsersController {
   ) {}
 
   /** Get one Users */
-  @Get(`/show/:UserId`)
+  @Get(`/show/:userId`)
   // @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
     @Param('userId', ParseUUIDPipe) userId: string,
   ) {
-    const User = await this.usersService.findOneBy({
+    const user = await this.usersService.findOneBy({
       userId,
     });
 
-    return reply({ res, results: User });
+    return reply({ res, results: user });
   }
 
   /** Delete one Users */

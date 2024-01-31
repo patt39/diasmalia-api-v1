@@ -1,5 +1,7 @@
+import { RoleContributorRole } from '@prisma/client';
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -10,7 +12,8 @@ export class CreateOrUpdateContributorDto {
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  role: string;
+  @IsEnum(RoleContributorRole)
+  role: RoleContributorRole;
 }
 export class AddContributorUserDto {
   @IsNotEmpty()

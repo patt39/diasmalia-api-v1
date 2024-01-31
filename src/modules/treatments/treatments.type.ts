@@ -22,14 +22,50 @@ export type UpdateTreatmentsOptions = Partial<Treatment>;
 export const TreatmentSelect = {
   createdAt: true,
   id: true,
+  method: true,
+  note: true,
   numberOfDose: true,
   treatmentName: true,
   treatmentDate: true,
   medicationId: true,
-  method: true,
-  note: true,
+  medications: {
+    select: {
+      name: true,
+    },
+  },
   diagnosisId: true,
+  diagnosis: {
+    select: {
+      name: true,
+    },
+  },
   animalId: true,
+  animal: {
+    select: {
+      code: true,
+      productionPhase: true,
+      weight: true,
+      electronicCode: true,
+      status: true,
+      gender: true,
+      type: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
   organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
   userCreatedId: true,
 };

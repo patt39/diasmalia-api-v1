@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  WeaningSelect,
-  GetWeaningsSelections,
-  GetOneWeaningSelections,
-  UpdateWeaningsSelections,
-  CreateWeaningsOptions,
-  UpdateWeaningsOptions,
-} from './weaning.type';
+import { Prisma, Weaning } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Prisma, Weaning } from '@prisma/client';
+import {
+  CreateWeaningsOptions,
+  GetOneWeaningSelections,
+  GetWeaningsSelections,
+  UpdateWeaningsOptions,
+  UpdateWeaningsSelections,
+  WeaningSelect,
+} from './weaning.type';
 
 @Injectable()
 export class WeaningsService {
@@ -71,17 +71,25 @@ export class WeaningsService {
 
   /** Create one weaning in database. */
   async createOne(options: CreateWeaningsOptions): Promise<Weaning> {
-    const { note, litter, date, organizationId, userCreatedId, animalId } =
-      options;
+    const {
+      note,
+      litter,
+      date,
+      organizationId,
+      userCreatedId,
+      animalId,
+      farrowingId,
+    } = options;
 
     const weaning = this.client.weaning.create({
       data: {
         note,
         litter,
         date,
+        animalId,
+        farrowingId,
         organizationId,
         userCreatedId,
-        animalId,
       },
     });
 
