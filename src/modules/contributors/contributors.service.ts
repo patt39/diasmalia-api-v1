@@ -6,6 +6,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import {
+  ContributorSelect,
   CreateContributorsOptions,
   GetContributorsSelections,
   GetOneContributorsSelections,
@@ -25,6 +26,7 @@ export class ContributorsService {
     const contributors = await this.client.contributor.findMany({
       where: { ...prismaWhereContributor, deletedAt: null },
       skip: pagination.skip,
+      select: ContributorSelect,
       take: pagination.take,
       orderBy: pagination.orderBy,
     });
@@ -58,6 +60,13 @@ export class ContributorsService {
 
     const contributor = await this.client.contributor.findFirst({
       where: { ...prismaWhereContributor, deletedAt: null },
+      include: {
+        user: {
+          select: {
+            organization: true,
+          },
+        },
+      },
     });
 
     return contributor;
@@ -85,11 +94,11 @@ export class ContributorsService {
     options: UpdateContributorsOptions,
   ): Promise<Contributor> {
     const { contributorId } = selections;
-    const { role, deletedAt } = options;
+    const { role, deletedAt, updatedAt } = options;
 
     const contributor = this.client.contributor.update({
       where: { id: contributorId },
-      data: { role, deletedAt },
+      data: { role, deletedAt, updatedAt },
     });
 
     return contributor;

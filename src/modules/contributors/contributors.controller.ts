@@ -8,6 +8,8 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -15,8 +17,15 @@ import {
 import { reply } from '../../app/utils/reply';
 
 import {
+  PaginationType,
+  RequestPaginationDto,
+  addPagination,
+} from 'src/app/utils/pagination';
+import { SearchQueryDto } from 'src/app/utils/search-query';
+import {
   AddContributorUserDto,
   CreateOneContributorUserDto,
+  CreateOrUpdateContributorDto,
 } from '../contributors/contributors.dto';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { ProfilesService } from '../profiles/profiles.service';
@@ -64,7 +73,7 @@ export class ContributorsController {
       organizationId: user?.organizationId,
     });
 
-    return reply({ res, results: 'Contributor save successfully' });
+    return reply({ res, results: 'Contributor saved successfully' });
   }
 
   /** Post one Contributor */
@@ -76,7 +85,7 @@ export class ContributorsController {
     @Body() body: CreateOneContributorUserDto,
   ) {
     const { user } = req;
-    const { email, lastName, firstName } = body;
+    const { email, lastName, firstName, phone } = body;
 
     const findOneUser = await this.usersService.findOneBy({ email });
     if (findOneUser)
@@ -94,6 +103,7 @@ export class ContributorsController {
     await this.profilesService.createOne({
       firstName,
       lastName,
+      phone,
       userId: newUser.id,
     });
 
@@ -104,30 +114,106 @@ export class ContributorsController {
       userCreatedId: user.id,
     });
 
-    return reply({ res, results: 'Contributor save successfully' });
+    return reply({ res, results: 'Contributor saved successfully' });
   }
 
-  /** Get one User */
+  /** Update one Contributor */
+  @Put(`/:contributorId`)
+  @UseGuards(JwtAuthGuard)
+  async updateOne(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateContributorDto,
+    @Param('contributorId', ParseUUIDPipe) contributorId: string,
+  ) {
+    const { role } = body;
+    const { user } = req;
+
+    const fineOnecontributor = await this.contributorsService.findOneBy({
+      contributorId,
+    });
+
+    if (!fineOnecontributor) {
+      throw new HttpException(
+        `${contributorId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const contributor = await this.contributorsService.updateOne(
+      { contributorId },
+      {
+        role,
+        userCreatedId: user?.id,
+        updatedAt: new Date(),
+      },
+    );
+
+    return reply({ res, results: contributor });
+  }
+
+  /** Get all contributors */
+  @Get(`/`)
+  @UseGuards(JwtAuthGuard)
+  async findAll(
+    @Res() res,
+    @Req() req,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+  ) {
+    const { user } = req;
+    const { search } = query;
+
+    const { take, page, sort } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({ page, take, sort });
+
+    const contributors = await this.contributorsService.findAll({
+      search,
+      pagination,
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: contributors });
+  }
+
+  /** Get one contributor */
   @Get(`/show/:contributorId`)
   // @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
     @Param('contributorId', ParseUUIDPipe) contributorId: string,
   ) {
-    const contributor = await this.contributorsService.findOneBy({
+    const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
     });
 
-    return reply({ res, results: contributor });
+    if (!fineOnecontributor) {
+      throw new HttpException(
+        `${contributorId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: fineOnecontributor });
   }
 
-  /** Delete one User */
+  /** Delete one contributor */
   @Delete(`/delete/:contributorId`)
   // @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
     @Param('contributorId', ParseUUIDPipe) contributorId: string,
   ) {
+    const fineOnecontributor = await this.contributorsService.findOneBy({
+      contributorId,
+    });
+
+    if (!fineOnecontributor) {
+      throw new HttpException(
+        `${contributorId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const contributor = await this.contributorsService.updateOne(
       { contributorId },
       { deletedAt: new Date() },

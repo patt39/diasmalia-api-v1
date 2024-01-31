@@ -52,7 +52,7 @@ export class BreedsController {
     return reply({ res, results: breeds });
   }
 
-  /** Post one Breeds */
+  /** Post one Breed */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -72,7 +72,7 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Post one Breeds */
+  /** Update one Breed */
   @Put(`/:breedId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -90,7 +90,7 @@ export class BreedsController {
 
     if (!findOneBreed) {
       throw new HttpException(
-        `${breedId} doesn't exists please change`,
+        `${findOneBreed} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -107,7 +107,7 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Get one Breeds */
+  /** Get one Breed */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
@@ -134,7 +134,7 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Delete one Breeds */
+  /** Delete one Breed */
   @Delete(`/delete/:breedId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
