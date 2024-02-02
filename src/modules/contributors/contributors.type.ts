@@ -11,6 +11,7 @@ export type GetOneContributorsSelections = {
   contributorId?: Contributor['id'];
   userId?: Contributor['userId'];
   organizationId?: Contributor['organizationId'];
+  role?: Contributor['role'];
 };
 
 export type UpdateContributorsSelections = {

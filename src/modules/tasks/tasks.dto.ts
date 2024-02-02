@@ -1,4 +1,6 @@
+import { TaskStatus } from '@prisma/client';
 import {
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -12,10 +14,6 @@ export class CreateOrUpdateTasksDto {
   @MaxLength(100)
   title: string;
 
-  @IsOptional()
-  @IsString()
-  userId: string;
-
   @IsNotEmpty()
   @IsString()
   description: string;
@@ -24,8 +22,14 @@ export class CreateOrUpdateTasksDto {
   @IsString()
   dueDate: Date;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(TaskStatus)
+  status: TaskStatus;
+
   @IsNotEmpty()
   @IsString()
   @IsUUID()
-  statusTaskId: string;
+  contributorId: string;
 }

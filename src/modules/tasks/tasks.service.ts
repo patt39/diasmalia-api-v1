@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateTasksOptions,
-  GetTasksSelections,
-  GetOneTasksSelections,
-  UpdateTasksOptions,
-  UpdateTasksSelections,
-  TaskSelect,
-} from './tasks.type';
+import { Prisma, Task } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Task, Prisma } from '@prisma/client';
+import {
+  CreateTasksOptions,
+  GetOneTasksSelections,
+  GetTasksSelections,
+  TaskSelect,
+  UpdateTasksOptions,
+  UpdateTasksSelections,
+} from './tasks.type';
 
 @Injectable()
 export class TasksService {
@@ -77,7 +77,7 @@ export class TasksService {
       title,
       description,
       dueDate,
-      statusTaskId,
+      status,
       contributorId,
       organizationId,
       userCreatedId,
@@ -87,8 +87,8 @@ export class TasksService {
       data: {
         title,
         description,
+        status,
         dueDate: new Date(dueDate),
-        statusTaskId,
         contributorId,
         organizationId,
         userCreatedId,
@@ -104,7 +104,8 @@ export class TasksService {
     options: UpdateTasksOptions,
   ): Promise<Task> {
     const { taskId } = selections;
-    const { title, description, dueDate, statusTaskId, deletedAt } = options;
+    const { title, description, dueDate, status, contributorId, deletedAt } =
+      options;
 
     const task = this.client.task.update({
       where: {
@@ -114,7 +115,8 @@ export class TasksService {
         title,
         description,
         dueDate: new Date(dueDate),
-        statusTaskId,
+        status,
+        contributorId,
         deletedAt,
       },
     });

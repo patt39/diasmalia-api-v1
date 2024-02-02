@@ -16,11 +16,11 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
   addPagination,
 } from '../../app/utils/pagination/with-pagination';
-import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 
 import {
@@ -64,7 +64,7 @@ export class ContributorsController {
     if (findOneContributor)
       throw new HttpException(
         `User already exists please change`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.OK,
       );
 
     await this.contributorsService.createOne({
@@ -185,6 +185,27 @@ export class ContributorsController {
     @Param('contributorId', ParseUUIDPipe) contributorId: string,
   ) {
     const fineOnecontributor = await this.contributorsService.findOneBy({
+      contributorId,
+    });
+
+    if (!fineOnecontributor) {
+      throw new HttpException(
+        `${contributorId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: fineOnecontributor });
+  }
+
+  /** Get all contributor created tasks */
+  @Get(`/:contributorId/tasks`)
+  // @UseGuards(JwtAuthGuard)
+  async findAllContributorTasks(
+    @Res() res,
+    @Param('contributorId', ParseUUIDPipe) contributorId: string,
+  ) {
+    const fineOnecontributor = await this.contributorsService.findAllTasks({
       contributorId,
     });
 

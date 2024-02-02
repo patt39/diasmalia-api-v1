@@ -46,7 +46,8 @@ model Contributor {
   organizationId String
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  task           Task[]
+  tasks          Task[]
+  assignTasks   AssignTask[]
 }
 
 enum RoleContributorRole {
@@ -98,6 +99,7 @@ model Organization {
   financialDetails FinancialDetail[]
   financialMgts    FinancialMgt[]
   locations        Location[]
+  assignTasks      AssignTask[]
   statusTask       StatusTask[]        
 }
 model ContactUs {
@@ -130,12 +132,32 @@ model Task {
   title          String
   description    String
   dueDate        DateTime
+  status         TaskStatus   @default(TODO)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contributorId  String
   contributor    Contributor  @relation(fields: [contributorId], references: [id], onDelete: Cascade)
-  statusTaskId   String
-  statusTask     StatusTask  @relation(fields: [statusTaskId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  assignTasks    AssignTask[]
+}
+
+enum TaskStatus {
+  TODO
+  INPROGRESS
+  DONE
+}
+
+model AssignTask {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  taskId          String
+  task           Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  contributorId  String
+  contributor    Contributor  @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
 }
 model StatusTask {
@@ -147,7 +169,6 @@ model StatusTask {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  tasks          Task []
 }
 model Location {
   createdAt   DateTime  @default(now())

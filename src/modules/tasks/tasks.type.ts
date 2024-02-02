@@ -25,21 +25,7 @@ export const TaskSelect = {
   id: true,
   title: true,
   description: true,
+  status: true,
   dueDate: true,
-  userId: true,
   organizationId: true,
-  user: {
-    select: {
-      id: true,
-      email: true,
-      profile: {
-        select: {
-          firstName: true,
-          lastName: true,
-          image: true,
-          color: true,
-        },
-      },
-    },
-  },
 };
