@@ -22,17 +22,17 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { ContributorsService } from '../contributors/contributors.service';
 import { TasksService } from '../tasks/tasks.service';
 import { JwtAuthGuard } from '../users/middleware';
 import { CreateOrUpdateAssignTasksDto } from './assigntasks.dto';
 import { AssignTasksService } from './assigntasks.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('assigned-tasks')
 export class AssignTasksController {
   constructor(
     private readonly assignTasksService: AssignTasksService,
-    private readonly contributorsService: ContributorsService,
+    private readonly usersService: UsersService,
     private readonly tasksService: TasksService,
   ) {}
 
@@ -69,21 +69,15 @@ export class AssignTasksController {
     @Body() body: CreateOrUpdateAssignTasksDto,
   ) {
     const { user } = req;
-    const { taskId, contributorId } = body;
+    const { taskId, userId } = body;
 
-    const findOneContributor = await this.contributorsService.findOneBy({
-      contributorId,
+    const findOneUser = await this.usersService.findOneBy({
+      userId,
       organizationId: user?.organizationId,
     });
-    if (!findOneContributor)
+    if (!findOneUser)
       throw new HttpException(
-        ` ${contributorId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneContributor.role !== 'ADMIN')
-      throw new HttpException(
-        ` ${contributorId} don't have the correct role please change`,
+        ` ${userId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -99,7 +93,7 @@ export class AssignTasksController {
 
     const task = await this.assignTasksService.createOne({
       taskId: findOneTask.id,
-      contributorId: findOneContributor.id,
+      userId: findOneUser.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -117,11 +111,11 @@ export class AssignTasksController {
     @Param('assignTaskId', ParseUUIDPipe) assignTaskId: string,
   ) {
     const { user } = req;
-    const { taskId, contributorId } = body;
+    const { taskId, userId } = body;
 
     const findOneAssignTask = await this.assignTasksService.findOneBy({
       assignTaskId,
-      contributorId,
+      userId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignTask) {
@@ -142,19 +136,13 @@ export class AssignTasksController {
       );
     }
 
-    const findOneContributor = await this.contributorsService.findOneBy({
-      contributorId,
+    const findOneUser = await this.usersService.findOneBy({
+      userId,
       organizationId: user?.organizationId,
     });
-    if (!findOneContributor)
+    if (!findOneUser)
       throw new HttpException(
-        ` ${contributorId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneContributor.role !== 'ADMIN')
-      throw new HttpException(
-        ` ${contributorId} don't have the correct role to assigne tasks please change`,
+        ` ${userId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -162,7 +150,7 @@ export class AssignTasksController {
       { assignTaskId: findOneTask?.id },
       {
         taskId: findOneTask.id,
-        contributorId: findOneContributor.id,
+        userId: findOneUser.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -195,24 +183,24 @@ export class AssignTasksController {
   }
 
   /** Get all contributor assigned tasks */
-  @Get(`/:contributorId`)
+  @Get(`/:userId`)
   // @UseGuards(JwtAuthGuard)
   async findAllContributorTasks(
     @Res() res,
-    @Param('contributorId', ParseUUIDPipe) contributorId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
   ) {
-    const fineOnecontributor = await this.assignTasksService.findAllTasks({
-      contributorId,
+    const fineOneUser = await this.assignTasksService.findAllTasks({
+      userId,
     });
 
-    if (!fineOnecontributor) {
+    if (!fineOneUser) {
       throw new HttpException(
-        `${contributorId} doesn't exists please change`,
+        `${userId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return reply({ res, results: fineOnecontributor });
+    return reply({ res, results: fineOneUser });
   }
 
   /** Delete one assignTask */

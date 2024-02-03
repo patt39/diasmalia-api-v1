@@ -8,8 +8,11 @@ export type GetAssignTasksSelections = {
 };
 
 export type GetOneAssignTaskSelections = {
+  search?: string;
+  pagination?: PaginationType;
   assignTaskId?: AssignTask['id'];
-  contributorId?: AssignTask['contributorId'];
+  userId?: AssignTask['userId'];
+  taskId?: AssignTask['taskId'];
   organizationId?: AssignTask['organizationId'];
 };
 
@@ -21,25 +24,45 @@ export type CreateAssignTasksOptions = Partial<AssignTask>;
 
 export type UpdateAssignTasksOptions = Partial<AssignTask>;
 
-export const AssignTaskSelect = {
+export const AllAssignedTaskSelect = {
   createdAt: true,
   id: true,
+  userId: true,
+  user: {
+    select: {
+      email: true,
+    },
+  },
   taskId: true,
   task: {
     select: {
       title: true,
       description: true,
       dueDate: true,
+      status: true,
     },
   },
-  contributorId: true,
-  contributor: {
+  organizationId: true,
+};
+
+export const AllUserAssignedTaskSelect = {
+  createdAt: true,
+  id: true,
+  profile: {
     select: {
-      role: true,
-      user: {
+      firstName: true,
+      lastName: true,
+    },
+  },
+  assignTasks: {
+    select: {
+      taskId: true,
+      task: {
         select: {
-          email: true,
-          username: true,
+          title: true,
+          description: true,
+          dueDate: true,
+          status: true,
         },
       },
     },

@@ -27,11 +27,6 @@ export const ContributorSelect = {
   id: true,
   role: true,
   userId: true,
-  user: {
-    select: {
-      email: true,
-    },
-  },
   organizationId: true,
   organization: {
     select: {

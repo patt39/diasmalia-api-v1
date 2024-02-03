@@ -6,7 +6,8 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import {
-  AssignTaskSelect,
+  AllAssignedTaskSelect,
+  AllUserAssignedTaskSelect,
   CreateAssignTasksOptions,
   GetAssignTasksSelections,
   GetOneAssignTaskSelections,
@@ -21,11 +22,11 @@ export class AssignTasksService {
   async findAll(
     selections: GetAssignTasksSelections,
   ): Promise<WithPaginationResponse | null> {
-    const prismaWhereTask = {} as Prisma.AssignTaskWhereInput;
+    const prismaWhereAssignTask = {} as Prisma.AssignTaskWhereInput;
     const { search, organizationId, pagination } = selections;
 
     if (search) {
-      Object.assign(prismaWhereTask, {
+      Object.assign(prismaWhereAssignTask, {
         OR: [
           {
             contributor: { contains: search, mode: 'insensitive' },
@@ -35,25 +36,25 @@ export class AssignTasksService {
     }
 
     if (organizationId) {
-      Object.assign(prismaWhereTask, { organizationId });
+      Object.assign(prismaWhereAssignTask, { organizationId });
     }
 
-    const tasks = await this.client.assignTask.findMany({
-      where: { ...prismaWhereTask, deletedAt: null },
+    const assignTask = await this.client.assignTask.findMany({
+      where: { ...prismaWhereAssignTask, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
-      select: AssignTaskSelect,
+      select: AllAssignedTaskSelect,
       orderBy: pagination.orderBy,
     });
 
     const rowCount = await this.client.assignTask.count({
-      where: { ...prismaWhereTask, deletedAt: null },
+      where: { ...prismaWhereAssignTask, deletedAt: null },
     });
 
     return withPagination({
       pagination,
       rowCount,
-      value: tasks,
+      value: assignTask,
     });
   }
 
@@ -61,14 +62,14 @@ export class AssignTasksService {
   async findOneBy(selections: GetOneAssignTaskSelections) {
     const prismaWhere = {} as Prisma.AssignTaskWhereInput;
 
-    const { assignTaskId, contributorId, organizationId } = selections;
+    const { assignTaskId, userId, organizationId } = selections;
 
     if (assignTaskId) {
       Object.assign(prismaWhere, { id: assignTaskId });
     }
 
-    if (contributorId) {
-      Object.assign(prismaWhere, { contributorId });
+    if (userId) {
+      Object.assign(prismaWhere, { userId });
     }
 
     if (organizationId) {
@@ -84,12 +85,12 @@ export class AssignTasksService {
 
   /** Create one Tasks to the database. */
   async createOne(options: CreateAssignTasksOptions): Promise<AssignTask> {
-    const { taskId, contributorId, organizationId, userCreatedId } = options;
+    const { taskId, userId, organizationId, userCreatedId } = options;
 
     const assignTask = this.client.assignTask.create({
       data: {
         taskId,
-        contributorId,
+        userId,
         organizationId,
         userCreatedId,
       },
@@ -104,7 +105,7 @@ export class AssignTasksService {
     options: UpdateAssignTasksOptions,
   ): Promise<AssignTask> {
     const { assignTaskId } = selections;
-    const { taskId, contributorId, deletedAt } = options;
+    const { taskId, userId, deletedAt } = options;
 
     const assignTask = this.client.assignTask.update({
       where: {
@@ -112,7 +113,7 @@ export class AssignTasksService {
       },
       data: {
         taskId,
-        contributorId,
+        userId,
         deletedAt,
       },
     });
@@ -121,21 +122,47 @@ export class AssignTasksService {
   }
 
   /** Find all contributor tasks in database. */
-  async findAllTasks(selections: GetOneAssignTaskSelections) {
-    const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
-    const { contributorId } = selections;
+  async findAllTasks(
+    selections: GetOneAssignTaskSelections,
+  ): Promise<WithPaginationResponse | null> {
+    const prismaWhereUser = {} as Prisma.UserWhereInput;
+    const { userId, taskId, search, organizationId, pagination } = selections;
 
-    if (contributorId) {
-      Object.assign(prismaWhereContributor, { id: contributorId });
+    if (search) {
+      Object.assign(prismaWhereUser, {
+        OR: [
+          {
+            title: { contains: search, mode: 'insensitive' },
+          },
+        ],
+      });
     }
 
-    const contributor = await this.client.contributor.findFirst({
-      where: { ...prismaWhereContributor, deletedAt: null },
-      include: {
-        assigneTasks: true,
-      },
+    if (organizationId) {
+      Object.assign(prismaWhereUser, { organizationId });
+    }
+
+    if (userId) {
+      Object.assign(prismaWhereUser, { id: userId });
+    }
+
+    if (taskId) {
+      Object.assign(prismaWhereUser, { taskId });
+    }
+
+    const user = await this.client.user.findFirst({
+      where: { ...prismaWhereUser, deletedAt: null },
+      select: AllUserAssignedTaskSelect,
     });
 
-    return contributor;
+    const rowCount = await this.client.user.count({
+      where: { ...prismaWhereUser, deletedAt: null },
+    });
+
+    return withPagination({
+      pagination,
+      rowCount,
+      value: user,
+    });
   }
 }

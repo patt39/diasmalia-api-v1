@@ -9,5 +9,5 @@ export class CreateOrUpdateAssignTasksDto {
   @IsNotEmpty()
   @IsString()
   @IsUUID()
-  contributorId: string;
+  userId: string;
 }

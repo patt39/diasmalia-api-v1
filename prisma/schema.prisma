@@ -33,6 +33,7 @@ model User {
   profile        Profile?
   organization   Organization?
   contributors   Contributor[]
+  assignTasks    AssignTask[]
   authProviders  AuthProvider[]
 }
 model Contributor {
@@ -47,7 +48,6 @@ model Contributor {
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
   tasks          Task[]
-  assignTasks   AssignTask[]
 }
 
 enum RoleContributorRole {
@@ -152,10 +152,10 @@ model AssignTask {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  taskId          String
+  taskId         String
   task           Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  contributorId  String
-  contributor    Contributor  @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -238,14 +238,14 @@ model Animal {
   organizationId  String
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
+  death           Death?
+  milking         Milking?
+  selling         Selling?
   treatments      Treatment[]
   farrowings      Farrowing[]
   weanings        Weaning[]
   gestations      Gestation[]
-  death           Death[]
-  milkings        Milking[]
   feedings        Feeding[]
-  selling         Selling[]
 }
 
 enum Gender {
@@ -415,7 +415,7 @@ model Death {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  animalId       String
+  animalId       String @unique
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 
@@ -438,7 +438,7 @@ model Milking {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  animalId       String
+  animalId       String @unique
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 enum MethodMilking {
@@ -485,7 +485,7 @@ model Selling {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  animalId       String
+  animalId       String @unique
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 

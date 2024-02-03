@@ -64,13 +64,7 @@ export class ContributorsService {
 
     const contributor = await this.client.contributor.findFirst({
       where: { ...prismaWhereContributor, deletedAt: null },
-      include: {
-        user: {
-          select: {
-            organization: true,
-          },
-        },
-      },
+      select: ContributorSelect,
     });
 
     return contributor;
@@ -119,9 +113,6 @@ export class ContributorsService {
 
     const contributor = await this.client.contributor.findFirst({
       where: { ...prismaWhereContributor, deletedAt: null },
-      include: {
-        tasks: true,
-      },
     });
 
     return contributor;
