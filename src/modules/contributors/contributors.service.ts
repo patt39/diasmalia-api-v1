@@ -44,7 +44,7 @@ export class ContributorsService {
   /** Find one Contributors to the database. */
   async findOneBy(selections: GetOneContributorsSelections) {
     const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
-    const { contributorId, userId, organizationId } = selections;
+    const { contributorId, userId, organizationId, role } = selections;
 
     if (userId) {
       Object.assign(prismaWhereContributor, { userId });
@@ -58,15 +58,13 @@ export class ContributorsService {
       Object.assign(prismaWhereContributor, { id: contributorId });
     }
 
+    if (role) {
+      Object.assign(prismaWhereContributor, { role });
+    }
+
     const contributor = await this.client.contributor.findFirst({
       where: { ...prismaWhereContributor, deletedAt: null },
-      include: {
-        user: {
-          select: {
-            organization: true,
-          },
-        },
-      },
+      select: ContributorSelect,
     });
 
     return contributor;
@@ -99,6 +97,22 @@ export class ContributorsService {
     const contributor = this.client.contributor.update({
       where: { id: contributorId },
       data: { role, deletedAt, updatedAt },
+    });
+
+    return contributor;
+  }
+
+  /** Find all contributor tasks in database. */
+  async findAllTasks(selections: GetOneContributorsSelections) {
+    const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
+    const { contributorId } = selections;
+
+    if (contributorId) {
+      Object.assign(prismaWhereContributor, { id: contributorId });
+    }
+
+    const contributor = await this.client.contributor.findFirst({
+      where: { ...prismaWhereContributor, deletedAt: null },
     });
 
     return contributor;

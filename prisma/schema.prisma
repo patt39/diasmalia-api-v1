@@ -33,6 +33,7 @@ model User {
   profile        Profile?
   organization   Organization?
   contributors   Contributor[]
+  assignTasks    AssignTask[]
   authProviders  AuthProvider[]
 }
 model Contributor {
@@ -46,7 +47,7 @@ model Contributor {
   organizationId String
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  task           Task[]
+  tasks          Task[]
 }
 
 enum RoleContributorRole {
@@ -98,6 +99,7 @@ model Organization {
   financialDetails FinancialDetail[]
   financialMgts    FinancialMgt[]
   locations        Location[]
+  assignTasks      AssignTask[]
   statusTask       StatusTask[]        
 }
 model ContactUs {
@@ -130,12 +132,32 @@ model Task {
   title          String
   description    String
   dueDate        DateTime
+  status         TaskStatus   @default(TODO)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contributorId  String
   contributor    Contributor  @relation(fields: [contributorId], references: [id], onDelete: Cascade)
-  statusTaskId   String
-  statusTask     StatusTask  @relation(fields: [statusTaskId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  assignTasks    AssignTask[]
+}
+
+enum TaskStatus {
+  TODO
+  INPROGRESS
+  DONE
+}
+
+model AssignTask {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  taskId         String
+  task           Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
 }
 model StatusTask {
@@ -147,7 +169,6 @@ model StatusTask {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  tasks          Task []
 }
 model Location {
   createdAt   DateTime  @default(now())
@@ -217,14 +238,14 @@ model Animal {
   organizationId  String
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
+  death           Death?
+  milking         Milking?
+  selling         Selling?
   treatments      Treatment[]
   farrowings      Farrowing[]
   weanings        Weaning[]
   gestations      Gestation[]
-  death           Death[]
-  milkings        Milking[]
   feedings        Feeding[]
-  selling         Selling[]
 }
 
 enum Gender {
@@ -394,7 +415,7 @@ model Death {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  animalId       String
+  animalId       String @unique
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 
@@ -417,7 +438,7 @@ model Milking {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  animalId       String
+  animalId       String @unique
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 enum MethodMilking {
@@ -464,7 +485,7 @@ model Selling {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  animalId       String
+  animalId       String @unique
   animal         Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 

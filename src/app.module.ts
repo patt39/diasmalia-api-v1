@@ -24,6 +24,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { TreatmentsModule } from './modules/treatments/treatments.module';
 import { UsersModule } from './modules/users/users.module';
 import { WeaningsModule } from './modules/weaning/weaning.module';
+import { AssignTasksModule } from './modules/assignTasks/assigntasks.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     LocationsModule,
     SellingsModule,
     FarrowingsModule,
+    AssignTasksModule,
     FinancialMgtModule,
     MedicationsModule,
     ContributorsModule,
