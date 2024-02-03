@@ -3,6 +3,8 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetAssignTasksSelections = {
   search?: string;
+  taskId?: AssignTask['taskId'];
+  userId?: AssignTask['userId'];
   organizationId: string;
   pagination?: PaginationType;
 };
@@ -31,6 +33,12 @@ export const AllAssignedTaskSelect = {
   user: {
     select: {
       email: true,
+      profile: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
     },
   },
   taskId: true,
