@@ -113,7 +113,7 @@ export class AssignTasksController {
           organizationId: findOneTask.organizationId,
           userCreatedId: user?.id,
         })
-      : findOneAssignedTask;
+      : 'Already Created';
 
     return reply({ res, results: task });
   }

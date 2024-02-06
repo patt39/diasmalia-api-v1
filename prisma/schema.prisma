@@ -171,17 +171,19 @@ model StatusTask {
   userCreatedId  String
 }
 model Location {
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-  id          String    @id @default(uuid())
-  squareMeter Int
-  manger      Int
-  through     Int
-  number      Int
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  animals     Animal[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  id              String    @id @default(uuid())
+  squareMeter     Int
+  manger          Int
+  through         Int
+  number          Int?
+  type            AnimalType
+  productionPhase ProductionPhase
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  animals         Animal[]
 }
 model Diagnosis {
   createdAt      DateTime     @default(now())
@@ -260,6 +262,7 @@ enum AnimalStatus {
 }
 
 enum AnimalType {
+  PIG
   BOVINE
   GOAT
   RABBIT
