@@ -1,4 +1,11 @@
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { AnimalType, ProductionPhase } from '@prisma/client';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateOrUpdateLocationsDto {
   @IsNotEmpty()
@@ -16,4 +23,15 @@ export class CreateOrUpdateLocationsDto {
   @IsNotEmpty()
   @IsInt()
   number: number;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(AnimalType)
+  type: AnimalType;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
 }

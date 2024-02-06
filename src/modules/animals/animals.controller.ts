@@ -102,13 +102,15 @@ export class AnimalsController {
       );
 
     const findOneLocation = await this.locationsService.findOneBy({
+      type,
       locationId,
+      productionPhase,
       organizationId: user?.organizationId,
     });
 
     if (!findOneLocation)
       throw new HttpException(
-        `Location ${locationId} doesn't exists please change`,
+        `Location ${locationId} doesn't exists or isn't the correct productionPhase or Type please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -235,6 +237,7 @@ export class AnimalsController {
       animalId,
       organizationId: user.organizationId,
     });
+
     if (!findOneAnimal) {
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
@@ -270,6 +273,6 @@ export class AnimalsController {
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: [HttpStatus.ACCEPTED] });
+    return reply({ res, results: [HttpStatus.ACCEPTED, findOneAnimal] });
   }
 }

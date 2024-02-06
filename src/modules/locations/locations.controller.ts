@@ -39,17 +39,19 @@ export class LocationsController {
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
   ) {
+    const { user } = req;
     const { search } = query;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
-    const Locations = await this.locationsService.findAll({
+    const locations = await this.locationsService.findAll({
       search,
       pagination,
+      organizationId: user?.organizationId,
     });
 
-    return reply({ res, results: Locations });
+    return reply({ res, results: locations });
   }
 
   /** Post one Location */
@@ -61,13 +63,28 @@ export class LocationsController {
     @Body() body: CreateOrUpdateLocationsDto,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, number } = body;
+    const { squareMeter, manger, through, number, type, productionPhase } =
+      body;
+
+    const findOneLocation = await this.locationsService.findOneBy({
+      type,
+      number,
+      organizationId: user?.organization,
+    });
+    if (findOneLocation) {
+      throw new HttpException(
+        `Location ${number} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const location = await this.locationsService.createOne({
       squareMeter,
       manger,
       through,
       number,
+      type,
+      productionPhase,
       organizationId: user.organizationId,
     });
 
@@ -84,10 +101,11 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, number } = body;
+    const { squareMeter, manger, through, number, type } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
-      locationId,
+      type,
+      number,
       organizationId: user?.organization,
     });
     if (!findOneLocation) {
@@ -129,12 +147,8 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
     }
-    const location = await this.locationsService.findOneBy({
-      locationId,
-      organizationId: user?.organization,
-    });
 
-    return reply({ res, results: location });
+    return reply({ res, results: findOneLocation });
   }
 
   /** Delete one Location */

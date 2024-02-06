@@ -13,6 +13,7 @@ export type GetOneAnimalsSelections = {
   gender?: Animal['gender'];
   electronicCode?: Animal['electronicCode'];
   type?: Animal['type'];
+  deletedAt?: Animal['deletedAt'];
   status?: Animal['status'];
   productionPhase?: Animal['productionPhase'];
   organizationId?: Animal['organizationId'];
