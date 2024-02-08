@@ -8,7 +8,8 @@ export type GetWeaningsSelections = {
 };
 
 export type GetOneWeaningSelections = {
-  weaningId: Weaning['id'];
+  weaningId?: Weaning['id'];
+  organizationId?: Weaning['id'];
 };
 
 export type UpdateWeaningsSelections = {
@@ -29,12 +30,12 @@ export const WeaningSelect = {
   animal: {
     select: {
       code: true,
-      productionPhase: true,
-      weight: true,
-      electronicCode: true,
+      type: true,
       status: true,
       gender: true,
-      type: true,
+      weight: true,
+      electronicCode: true,
+      productionPhase: true,
       location: {
         select: {
           number: true,

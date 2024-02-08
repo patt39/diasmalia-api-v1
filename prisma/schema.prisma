@@ -241,8 +241,8 @@ model Animal {
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   death           Death?
-  milking         Milking?
   selling         Selling?
+  milkings        Milking[]
   treatments      Treatment[]
   farrowings      Farrowing[]
   weanings        Weaning[]
@@ -314,8 +314,8 @@ model Breeding {
   id               String           @id @default(uuid())
   date             DateTime?
   note             String?
-  checkStatus      Boolean?         @default(false)
   method           MethodBreeding?
+  checkStatus      Boolean?         @default(false)
   animalFemaleId   String
   animalMaleId     String
   organizationId   String

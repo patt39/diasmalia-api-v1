@@ -28,7 +28,7 @@ export class WeaningsService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            weaning: { contains: search, mode: 'insensitive' },
+            code: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -56,15 +56,30 @@ export class WeaningsService {
       value: weanings,
     });
   }
-  /** Find one Animals to the database. */
+  /** Find one weaning in database. */
   async findOneBy(selections: GetOneWeaningSelections) {
-    const { weaningId } = selections;
-    const weaning = await this.client.weaning.findUnique({
+    const prismaWhere = {} as Prisma.WeaningWhereInput;
+    const { weaningId, organizationId } = selections;
+
+    if (weaningId) {
+      Object.assign(prismaWhere, { id: weaningId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const weaning = await this.client.weaning.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: WeaningSelect,
-      where: {
-        id: weaningId,
-      },
     });
+
+    // const weaning = await this.client.weaning.findUnique({
+    //   select: WeaningSelect,
+    //   where: {
+    //     id: weaningId,
+    //   },
+    // });
 
     return weaning;
   }
@@ -73,19 +88,19 @@ export class WeaningsService {
   async createOne(options: CreateWeaningsOptions): Promise<Weaning> {
     const {
       note,
-      litter,
       date,
-      organizationId,
-      userCreatedId,
+      litter,
       animalId,
       farrowingId,
+      organizationId,
+      userCreatedId,
     } = options;
 
     const weaning = this.client.weaning.create({
       data: {
         note,
-        litter,
         date,
+        litter,
         animalId,
         farrowingId,
         organizationId,
@@ -111,11 +126,11 @@ export class WeaningsService {
       },
       data: {
         note,
-        litter,
         date,
+        litter,
+        animalId,
         organizationId,
         userCreatedId,
-        animalId,
       },
     });
 

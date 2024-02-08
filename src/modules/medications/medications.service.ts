@@ -57,24 +57,32 @@ export class MedicationsService {
     });
   }
 
-  /** Find one Medications to the database. */
+  /** Find one medication in database. */
   async findOneBy(selections: GetOneMedicationsSelections) {
-    const { medicationId } = selections;
-    const medication = await this.client.medication.findUnique({
+    const prismaWhereMedication = {} as Prisma.MedicationWhereInput;
+    const { medicationId, organizationId } = selections;
+
+    if (medicationId) {
+      Object.assign(prismaWhereMedication, { id: medicationId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhereMedication, { organizationId });
+    }
+
+    const medication = await this.client.medication.findFirst({
+      where: { ...prismaWhereMedication, deletedAt: null },
       select: MedicationSelect,
-      where: {
-        id: medicationId,
-      },
     });
 
     return medication;
   }
 
-  /** Create one Medications to the database. */
+  /** Create one medications in database. */
   async createOne(options: CreateMedicationsOptions): Promise<Medication> {
     const { name, organizationId, userCreatedId } = options;
 
-    const Medication = this.client.medication.create({
+    const medication = this.client.medication.create({
       data: {
         name,
         organizationId,
@@ -82,10 +90,10 @@ export class MedicationsService {
       },
     });
 
-    return Medication;
+    return medication;
   }
 
-  /** Update one Medications to the database. */
+  /** Update one medication in database. */
   async updateOne(
     selections: UpdateMedicationsSelections,
     options: UpdateMedicationsOptions,
@@ -93,7 +101,7 @@ export class MedicationsService {
     const { medicationId } = selections;
     const { name, deletedAt } = options;
 
-    const Medication = this.client.medication.update({
+    const medication = this.client.medication.update({
       where: {
         id: medicationId,
       },
@@ -103,6 +111,6 @@ export class MedicationsService {
       },
     });
 
-    return Medication;
+    return medication;
   }
 }

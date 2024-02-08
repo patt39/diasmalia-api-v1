@@ -8,7 +8,9 @@ export type GetFarrowingsSelections = {
 };
 
 export type GetOneFarrowingsSelections = {
-  farrowingId: Farrowing['id'];
+  farrowingId?: Farrowing['id'];
+  litter?: Farrowing['litter'];
+  organizationId?: Farrowing['organizationId'];
 };
 
 export type UpdateFarrowingsSelections = {

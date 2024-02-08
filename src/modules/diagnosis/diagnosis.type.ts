@@ -8,7 +8,8 @@ export type GetDiagnosisSelections = {
 };
 
 export type GetOneDiagnosisSelections = {
-  diagnosisId: Diagnosis['id'];
+  diagnosisId?: Diagnosis['id'];
+  organizationId?: Diagnosis['organizationId'];
 };
 
 export type UpdateDiagnosisSelections = {
@@ -24,4 +25,14 @@ export const DiagnosisSelect = {
   id: true,
   name: true,
   organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
+  _count: {
+    select: {
+      treatments: true,
+    },
+  },
 };

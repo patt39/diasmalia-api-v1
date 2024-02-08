@@ -22,10 +22,10 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
 import { CreateOrUpdateMilkingsDto } from './milkings.dto';
 import { MilkingsService } from './milkings.service';
-import { AnimalsService } from '../animals/animals.service';
 
 @Controller('milkings')
 export class MilkingsController {
@@ -67,10 +67,10 @@ export class MilkingsController {
     @Body() body: CreateOrUpdateMilkingsDto,
   ) {
     const { user } = req;
-    const { note, date, quantity, method, animalId } = body;
+    const { note, date, quantity, method, femaleCode } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
-      animalId,
+      code: femaleCode,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
@@ -78,7 +78,7 @@ export class MilkingsController {
     });
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${findOneFemale.code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `Animal ${femaleCode} doesn't exists, isn't in LACTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -86,8 +86,8 @@ export class MilkingsController {
     const milking = await this.milkingsService.createOne({
       note,
       date,
-      quantity,
       method,
+      quantity,
       animalId: findOneFemale.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -106,10 +106,21 @@ export class MilkingsController {
     @Param('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
     const { user } = req;
-    const { note, date, quantity, method, animalId } = body;
+    const { note, date, quantity, method, femaleCode } = body;
+
+    const findOneMilking = await this.milkingsService.findOneBy({
+      milkingId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneMilking) {
+      throw new HttpException(
+        `${milkingId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const findOneFemale = await this.animalsService.findOneBy({
-      animalId,
+      code: femaleCode,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
@@ -117,7 +128,7 @@ export class MilkingsController {
     });
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${findOneFemale.code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `Animal ${femaleCode} doesn't exists, isn't in LACTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -127,8 +138,8 @@ export class MilkingsController {
       {
         note,
         date,
-        quantity,
         method,
+        quantity,
         animalId: findOneFemale.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
@@ -141,16 +152,19 @@ export class MilkingsController {
   /** Get one milking */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdMilking(
     @Res() res,
+    @Req() req,
     @Query('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
+    const { user } = req;
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
+      organizationId: user.organizationId,
     });
     if (!findOneMilking) {
       throw new HttpException(
-        `Animal ${milkingId} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `${milkingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -163,19 +177,26 @@ export class MilkingsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
-    const findOneMilking = await this.milkingsService.updateOne(
-      { milkingId },
-      { deletedAt: new Date() },
-    );
+    const { user } = req;
 
+    const findOneMilking = await this.milkingsService.findOneBy({
+      milkingId,
+      organizationId: user.organizationId,
+    });
     if (!findOneMilking) {
       throw new HttpException(
-        `Animal ${milkingId} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `${milkingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+
+    await this.milkingsService.updateOne(
+      { milkingId },
+      { deletedAt: new Date() },
+    );
 
     return reply({ res, results: findOneMilking });
   }

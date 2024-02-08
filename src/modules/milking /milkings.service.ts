@@ -21,11 +21,11 @@ export class MilkingsService {
   async findAll(
     selections: GetMilkingsSelections,
   ): Promise<WithPaginationResponse | null> {
-    const prismaWhereMedication = {} as Prisma.MilkingWhereInput;
+    const prismaWhere = {} as Prisma.MilkingWhereInput;
     const { search, organizationId, pagination } = selections;
 
     if (search) {
-      Object.assign(prismaWhereMedication, {
+      Object.assign(prismaWhere, {
         OR: [
           {
             code: { contains: search, mode: 'insensitive' },
@@ -35,11 +35,11 @@ export class MilkingsService {
     }
 
     if (organizationId) {
-      Object.assign(prismaWhereMedication, { organizationId });
+      Object.assign(prismaWhere, { organizationId });
     }
 
     const milkings = await this.client.milking.findMany({
-      where: { ...prismaWhereMedication, deletedAt: null },
+      where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
       select: MilkingSelect,
@@ -47,7 +47,7 @@ export class MilkingsService {
     });
 
     const rowCount = await this.client.milking.count({
-      where: { ...prismaWhereMedication, deletedAt: null },
+      where: { ...prismaWhere, deletedAt: null },
     });
 
     return withPagination({
@@ -57,26 +57,34 @@ export class MilkingsService {
     });
   }
 
-  /** Find one Milking in database. */
+  /** Find one milking in database. */
   async findOneBy(selections: GetOneMilkingsSelections) {
-    const { milkingId } = selections;
-    const milking = await this.client.milking.findUnique({
+    const prismaWhere = {} as Prisma.MilkingWhereInput;
+    const { milkingId, organizationId } = selections;
+
+    if (milkingId) {
+      Object.assign(prismaWhere, { id: milkingId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const milking = await this.client.milking.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: MilkingSelect,
-      where: {
-        id: milkingId,
-      },
     });
 
     return milking;
   }
 
-  /** Create one Milking in database. */
+  /** Create one milking in database. */
   async createOne(options: CreateMilkingsOptions): Promise<Milking> {
     const {
       note,
       date,
-      quantity,
       method,
+      quantity,
       animalId,
       organizationId,
       userCreatedId,
@@ -97,7 +105,7 @@ export class MilkingsService {
     return milking;
   }
 
-  /** Update one Milking in database. */
+  /** Update one milking in database. */
   async updateOne(
     selections: UpdateMilkingsSelections,
     options: UpdateMilkingsOptions,
@@ -106,8 +114,8 @@ export class MilkingsService {
     const {
       note,
       date,
-      quantity,
       method,
+      quantity,
       animalId,
       organizationId,
       userCreatedId,
@@ -121,8 +129,8 @@ export class MilkingsService {
       data: {
         note,
         date,
-        quantity,
         method,
+        quantity,
         animalId,
         organizationId,
         userCreatedId,

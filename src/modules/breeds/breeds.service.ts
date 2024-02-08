@@ -53,7 +53,7 @@ export class BreedsService {
     });
   }
 
-  /** Find one Breeds in database. */
+  /** Find one breed in database. */
   async findOneBy(selections: GetOneBreedsSelections) {
     const prismaWhere = {} as Prisma.BreedWhereInput;
 
@@ -74,7 +74,7 @@ export class BreedsService {
     return breed;
   }
 
-  /** Create one Breeds to the database. */
+  /** Create one breed in database. */
   async createOne(options: CreateBreedsOptions): Promise<Breed> {
     const { name, organizationId, userCreatedId } = options;
 
@@ -89,7 +89,7 @@ export class BreedsService {
     return breed;
   }
 
-  /** Update one Breedss to the database. */
+  /** Update one breed in database. */
   async updateOne(
     selections: UpdateBreedsSelections,
     options: UpdateBreedsOptions,

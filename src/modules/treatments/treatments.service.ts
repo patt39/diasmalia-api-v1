@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateTreatmentsOptions,
-  GetTreatmentsSelections,
-  GetOneTreatmentsSelections,
-  UpdateTreatmentsOptions,
-  UpdateTreatmentsSelections,
-  TreatmentSelect,
-} from './treatments.type';
+import { Prisma, Treatment } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Treatment, Prisma } from '@prisma/client';
+import {
+  CreateTreatmentsOptions,
+  GetOneTreatmentsSelections,
+  GetTreatmentsSelections,
+  TreatmentSelect,
+  UpdateTreatmentsOptions,
+  UpdateTreatmentsSelections,
+} from './treatments.type';
 
 @Injectable()
 export class TreatmentsService {
@@ -57,14 +57,22 @@ export class TreatmentsService {
     });
   }
 
-  /** Find one Treatments to the database. */
+  /** Find one treatment in database. */
   async findOneBy(selections: GetOneTreatmentsSelections) {
-    const { treatmentId } = selections;
-    const treatment = await this.client.treatment.findUnique({
+    const prismaWhereTreatment = {} as Prisma.TreatmentWhereInput;
+    const { treatmentId, organizationId } = selections;
+
+    if (treatmentId) {
+      Object.assign(prismaWhereTreatment, { id: treatmentId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhereTreatment, { organizationId });
+    }
+
+    const treatment = await this.client.treatment.findFirst({
+      where: { ...prismaWhereTreatment, deletedAt: null },
       select: TreatmentSelect,
-      where: {
-        id: treatmentId,
-      },
     });
 
     return treatment;
@@ -73,28 +81,28 @@ export class TreatmentsService {
   /** Create one Treatments to the database. */
   async createOne(options: CreateTreatmentsOptions): Promise<Treatment> {
     const {
+      note,
+      method,
+      animalId,
+      diagnosisId,
       numberOfDose,
       treatmentName,
       treatmentDate,
       medicationId,
-      method,
-      note,
-      diagnosisId,
-      animalId,
       organizationId,
       userCreatedId,
     } = options;
 
     const treatment = this.client.treatment.create({
       data: {
+        note,
+        method,
+        animalId,
+        diagnosisId,
         numberOfDose,
         treatmentName,
         treatmentDate,
         medicationId,
-        method,
-        note,
-        diagnosisId,
-        animalId,
         organizationId,
         userCreatedId,
       },
@@ -110,14 +118,14 @@ export class TreatmentsService {
   ): Promise<Treatment> {
     const { treatmentId } = selections;
     const {
+      note,
+      method,
+      animalId,
+      diagnosisId,
       numberOfDose,
       treatmentName,
       treatmentDate,
       medicationId,
-      method,
-      note,
-      diagnosisId,
-      animalId,
       deletedAt,
     } = options;
 
@@ -126,14 +134,14 @@ export class TreatmentsService {
         id: treatmentId,
       },
       data: {
+        note,
+        method,
+        animalId,
+        diagnosisId,
         numberOfDose,
         treatmentName,
         treatmentDate,
         medicationId,
-        method,
-        note,
-        diagnosisId,
-        animalId,
         deletedAt,
       },
     });

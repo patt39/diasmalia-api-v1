@@ -57,7 +57,7 @@ export class FeedingsController {
     return reply({ res, results: feedings });
   }
 
-  /** Post one Feeding */
+  /** Post one feeding */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -66,25 +66,25 @@ export class FeedingsController {
     @Body() body: CreateOrUpdateFeedingsDto,
   ) {
     const { user } = req;
-    const { date, quantity, type, animalId, note } = body;
+    const { date, quantity, type, productionPhase, code, note } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
+      code,
+      organizationId: user?.organizationId,
     });
-
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal doesn't exists please change`,
+        `Animal ${code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const feeding = await this.feedingsService.createOne({
       date,
-      quantity,
-      type,
       note,
+      type,
+      quantity,
+      productionPhase,
       animalId: findOneAnimal.id,
-      productionPhase: findOneAnimal.productionPhase,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -92,7 +92,7 @@ export class FeedingsController {
     return reply({ res, results: [HttpStatus.CREATED, feeding] });
   }
 
-  /** Update one Death */
+  /** Update one feeding */
   @Put(`/:feedingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -102,17 +102,27 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { date, quantity, type, animalId, note, productionPhase } = body;
+    const { date, quantity, type, code, note, productionPhase } = body;
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const death = await this.feedingsService.updateOne(
       { feedingId },
       {
         date,
-        quantity,
-        type,
-        animalId,
         note,
+        type,
+        quantity,
         productionPhase,
+        animalId: findOneAnimal.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -121,46 +131,47 @@ export class FeedingsController {
     return reply({ res, results: death });
   }
 
-  /** Get one Death */
+  /** Get one feeding */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdFeeding(
     @Res() res,
+    @Res() req,
     @Query('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
+    const { user } = req;
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
+      organizationId: user?.organizationId,
     });
-
     if (!findOneFeeding)
       throw new HttpException(
-        `Animal doesn't exists please change`,
+        `${feedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const death = await this.feedingsService.findOneBy({
-      feedingId,
-    });
-
-    return reply({ res, results: death });
+    return reply({ res, results: findOneFeeding });
   }
 
-  /** Delete one Death */
+  /** Delete one feeding */
   @Delete(`/delete/:feedingId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
+    const { user } = req;
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
+      organizationId: user?.organizationId,
     });
-
     if (!findOneFeeding)
       throw new HttpException(
-        `Animal doesn't exists please change`,
+        ` ${feedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
+
     const feeding = await this.feedingsService.updateOne(
       { feedingId },
       { deletedAt: new Date() },

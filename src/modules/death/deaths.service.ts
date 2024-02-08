@@ -57,20 +57,28 @@ export class DeathsService {
     });
   }
 
-  /** Find one Death to the database. */
+  /** Find one death in database. */
   async findOneBy(selections: GetOneDeathSelections) {
-    const { deathId } = selections;
-    const death = await this.client.death.findUnique({
+    const prismaWhere = {} as Prisma.DeathWhereInput;
+    const { deathId, organizationId } = selections;
+
+    if (deathId) {
+      Object.assign(prismaWhere, { id: deathId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const death = await this.client.death.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: DeathSelect,
-      where: {
-        id: deathId,
-      },
     });
 
     return death;
   }
 
-  /** Create one Death in the database. */
+  /** Create one death in database. */
   async createOne(options: CreateDeathsOptions): Promise<Death> {
     const {
       date,
@@ -97,7 +105,7 @@ export class DeathsService {
     return death;
   }
 
-  /** Update one Death in the database. */
+  /** Update one Death in database. */
   async updateOne(
     selections: UpdateDeathsSelections,
     options: UpdateDeathsOptions,

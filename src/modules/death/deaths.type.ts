@@ -9,6 +9,7 @@ export type GetDeathsSelections = {
 
 export type GetOneDeathSelections = {
   deathId: Death['id'];
+  organizationId: Death['organizationId'];
 };
 
 export type UpdateDeathsSelections = {

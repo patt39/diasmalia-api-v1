@@ -8,7 +8,8 @@ export type GetTreatmentsSelections = {
 };
 
 export type GetOneTreatmentsSelections = {
-  treatmentId: Treatment['id'];
+  treatmentId?: Treatment['id'];
+  organizationId?: Treatment['organizationId'];
 };
 
 export type UpdateTreatmentsSelections = {

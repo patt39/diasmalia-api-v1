@@ -70,17 +70,17 @@ export class AnimalsController {
     const { user } = req;
     const {
       code,
-      codeFather,
-      codeMother,
-      birthday,
+      type,
       weight,
       gender,
-      type,
-      productionPhase,
-      electronicCode,
       status,
-      locationId,
       breedId,
+      birthday,
+      locationId,
+      codeFather,
+      codeMother,
+      electronicCode,
+      productionPhase,
     } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
@@ -126,17 +126,17 @@ export class AnimalsController {
 
     const animal = await this.animalsService.createOne({
       code,
-      codeFather,
-      codeMother,
-      birthday,
+      type,
+      status,
       weight,
       gender,
-      type,
+      birthday,
+      codeFather,
+      codeMother,
       productionPhase,
       electronicCode,
-      status,
-      locationId: findOneLocation?.id,
-      breedId: findOneBreed?.id,
+      locationId: findOneLocation.id,
+      breedId: findOneBreed.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -156,17 +156,17 @@ export class AnimalsController {
     const { user } = req;
     const {
       code,
-      codeFather,
-      codeMother,
-      birthday,
+      type,
       weight,
       gender,
-      type,
-      productionPhase,
-      electronicCode,
       status,
-      locationId,
       breedId,
+      birthday,
+      codeFather,
+      codeMother,
+      locationId,
+      electronicCode,
+      productionPhase,
     } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
@@ -205,15 +205,15 @@ export class AnimalsController {
       { animalId: findOneAnimal?.id },
       {
         code,
-        codeFather,
-        codeMother,
-        birthday,
+        type,
+        status,
         weight,
         gender,
-        type,
+        birthday,
+        codeFather,
+        codeMother,
         productionPhase,
         electronicCode,
-        status,
         locationId: findOneLocation.id,
         breedId: findOneBreed.id,
         organizationId: user?.organizationId,
@@ -227,7 +227,7 @@ export class AnimalsController {
   /** Get one Animal */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdAnimal(
     @Res() res,
     @Req() req,
     @Query('animalId', ParseUUIDPipe) animalId: string,

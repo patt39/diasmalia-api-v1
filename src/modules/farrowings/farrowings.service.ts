@@ -28,7 +28,7 @@ export class FarrowingsService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            farrowing: { contains: search, mode: 'insensitive' },
+            codeFemale: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -59,12 +59,20 @@ export class FarrowingsService {
 
   /** Find one farrowing in database. */
   async findOneBy(selections: GetOneFarrowingsSelections) {
-    const { farrowingId } = selections;
-    const farrowing = await this.client.farrowing.findUnique({
+    const prismaWhere = {} as Prisma.FarrowingWhereInput;
+    const { farrowingId, litter } = selections;
+
+    if (farrowingId) {
+      Object.assign(prismaWhere, { id: farrowingId });
+    }
+
+    if (litter) {
+      Object.assign(prismaWhere, { litter });
+    }
+
+    const farrowing = await this.client.farrowing.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: FarrowingSelect,
-      where: {
-        id: farrowingId,
-      },
     });
 
     return farrowing;
@@ -78,11 +86,11 @@ export class FarrowingsService {
     const farrowing = this.client.farrowing.create({
       data: {
         note,
-        litter,
         date,
+        litter,
+        animalId,
         organizationId,
         userCreatedId,
-        animalId,
       },
     });
 
@@ -97,11 +105,11 @@ export class FarrowingsService {
     const { farrowingId } = selections;
     const {
       note,
-      litter,
       date,
+      litter,
+      animalId,
       organizationId,
       userCreatedId,
-      animalId,
       deletedAt,
     } = options;
 
@@ -111,11 +119,11 @@ export class FarrowingsService {
       },
       data: {
         note,
-        litter,
         date,
+        litter,
+        animalId,
         organizationId,
         userCreatedId,
-        animalId,
         deletedAt,
       },
     });

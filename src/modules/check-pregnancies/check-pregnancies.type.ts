@@ -9,8 +9,9 @@ export type GetCheckPregnanciesSelections = {
 
 export type GetOneCheckPregnanciesSelections = {
   checkPregnancyId?: CheckPregnancy['id'];
-  organizationId?: CheckPregnancy['organizationId'];
   result?: CheckPregnancy['result'];
+  farrowingDate?: CheckPregnancy['farrowingDate'];
+  organizationId?: CheckPregnancy['organizationId'];
 };
 
 export type UpdateCheckPregnanciesSelections = {

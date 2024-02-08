@@ -1,36 +1,36 @@
 import {
-  Controller,
-  Post,
   Body,
-  Param,
-  ParseUUIDPipe,
+  Controller,
   Delete,
-  Res,
-  Req,
   Get,
-  Query,
-  UseGuards,
-  Put,
   HttpException,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { BreedsService } from './breeds.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateBreedsDto } from './breeds.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateBreedsDto } from './breeds.dto';
+import { BreedsService } from './breeds.service';
 
 @Controller('breeds')
 export class BreedsController {
   constructor(private readonly breedsService: BreedsService) {}
 
-  /** Get all Breeds */
+  /** Get all breeds */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -52,7 +52,7 @@ export class BreedsController {
     return reply({ res, results: breeds });
   }
 
-  /** Post one Breed */
+  /** Post one breed */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -72,7 +72,7 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Update one Breed */
+  /** Update one breed */
   @Put(`/:breedId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -90,7 +90,7 @@ export class BreedsController {
 
     if (!findOneBreed) {
       throw new HttpException(
-        `${findOneBreed} doesn't exists please change`,
+        `${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -107,10 +107,10 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Get one Breed */
+  /** Get one breed */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdBreed(
     @Res() res,
     @Req() req,
     @Query('breedId', ParseUUIDPipe) breedId: string,
@@ -119,13 +119,13 @@ export class BreedsController {
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
     });
-
     if (!findOneBreed) {
       throw new HttpException(
         `${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+
     const breed = await this.breedsService.findOneBy({
       breedId,
       organizationId: user.organizationId,
@@ -134,7 +134,7 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Delete one Breed */
+  /** Delete one breed */
   @Delete(`/delete/:breedId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
@@ -144,13 +144,13 @@ export class BreedsController {
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
     });
-
     if (!findOneBreed) {
       throw new HttpException(
         `${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+
     const breed = await this.breedsService.updateOne(
       { breedId },
       { deletedAt: new Date() },

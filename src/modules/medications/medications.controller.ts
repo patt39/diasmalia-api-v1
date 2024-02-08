@@ -30,7 +30,7 @@ import { MedicationsService } from './medications.service';
 export class MedicationsController {
   constructor(private readonly medicationsService: MedicationsService) {}
 
-  /** Get all Medications */
+  /** Get all medications */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -54,7 +54,7 @@ export class MedicationsController {
     return reply({ res, results: medications });
   }
 
-  /** Post one Medication */
+  /** Post one medication */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -74,7 +74,7 @@ export class MedicationsController {
     return reply({ res, results: medication });
   }
 
-  /** Post one Medications */
+  /** Update one medication */
   @Put(`/:medicationId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -85,15 +85,11 @@ export class MedicationsController {
   ) {
     const { user } = req;
     const { name } = body;
-    const findOneMedication = await this.medicationsService.updateOne(
-      { medicationId },
-      {
-        name,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      },
-    );
 
+    const findOneMedication = await this.medicationsService.findOneBy({
+      medicationId,
+      organizationId: user?.organizationId,
+    });
     if (!findOneMedication) {
       throw new HttpException(
         ` ${medicationId} doesn't exists please change`,
@@ -101,19 +97,31 @@ export class MedicationsController {
       );
     }
 
-    return reply({ res, results: findOneMedication });
+    const medication = await this.medicationsService.updateOne(
+      { medicationId },
+      {
+        name,
+        userCreatedId: user?.id,
+        organizationId: user?.organizationId,
+      },
+    );
+
+    return reply({ res, results: medication });
   }
 
-  /** Get one Medication */
+  /** Get one medication */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdMedication(
     @Res() res,
     @Res() req,
     @Query('medicationId', ParseUUIDPipe) medicationId: string,
   ) {
+    const { user } = req;
+
     const findOneMedication = await this.medicationsService.findOneBy({
       medicationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneMedication) {
       throw new HttpException(
@@ -130,8 +138,21 @@ export class MedicationsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('medicationId', ParseUUIDPipe) medicationId: string,
   ) {
+    const { user } = req;
+
+    const findOneMedication = await this.medicationsService.findOneBy({
+      medicationId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneMedication) {
+      throw new HttpException(
+        ` ${medicationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const medication = await this.medicationsService.updateOne(
       { medicationId },
       { deletedAt: new Date() },

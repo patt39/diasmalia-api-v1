@@ -1,10 +1,9 @@
 import {
-  IsString,
   IsNotEmpty,
-  MaxLength,
-  IsOptional,
-  IsUUID,
   IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateFarrowingsDto {
@@ -23,6 +22,6 @@ export class CreateOrUpdateFarrowingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  animalId: string;
+  @MaxLength(100)
+  codeFemale: string;
 }

@@ -8,8 +8,8 @@ export type GetBreedingsSelections = {
 };
 
 export type GetOneBreedingsSelections = {
-  breedingId: Breeding['id'];
-  checkStatus: Breeding['checkStatus'];
+  breedingId?: Breeding['id'];
+  checkStatus?: Breeding['checkStatus'];
   organizationId?: Breeding['organizationId'];
 };
 

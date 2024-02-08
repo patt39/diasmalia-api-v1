@@ -28,7 +28,7 @@ export class CheckPregnanciesService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            note: { contains: search, mode: 'insensitive' },
+            codeFemale: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -61,7 +61,8 @@ export class CheckPregnanciesService {
   async findOneBy(selections: GetOneCheckPregnanciesSelections) {
     const prismaWhere = {} as Prisma.CheckPregnancyWhereInput;
 
-    const { checkPregnancyId, organizationId, result } = selections;
+    const { checkPregnancyId, farrowingDate, organizationId, result } =
+      selections;
 
     if (checkPregnancyId) {
       Object.assign(prismaWhere, { id: checkPregnancyId });
@@ -73,6 +74,10 @@ export class CheckPregnanciesService {
 
     if (result) {
       Object.assign(prismaWhere, { result });
+    }
+
+    if (farrowingDate) {
+      Object.assign(prismaWhere, { farrowingDate });
     }
 
     const checkPregnancy = await this.client.checkPregnancy.findFirst({

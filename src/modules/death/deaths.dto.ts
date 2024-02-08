@@ -1,11 +1,10 @@
 import { MethodDisposal } from '@prisma/client';
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
-  IsUUID,
   IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateDeathsDto {
@@ -25,8 +24,8 @@ export class CreateOrUpdateDeathsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  animalId: string;
+  @MaxLength(100)
+  codeAnimal: string;
 
   @IsNotEmpty()
   @IsString()
