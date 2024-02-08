@@ -57,20 +57,28 @@ export class FeedingsService {
     });
   }
 
-  /** Find one Feeding from database. */
+  /** Find one feeding in database. */
   async findOneBy(selections: GetOneFeedingSelections) {
-    const { feedingId } = selections;
-    const feeding = await this.client.feeding.findUnique({
+    const prismaWhere = {} as Prisma.FeedingWhereInput;
+    const { feedingId, organizationId } = selections;
+
+    if (feedingId) {
+      Object.assign(prismaWhere, { id: feedingId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const feeding = await this.client.feeding.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: FeedingSelect,
-      where: {
-        id: feedingId,
-      },
     });
 
     return feeding;
   }
 
-  /** Create one Feeding in database. */
+  /** Create one feeding in database. */
   async createOne(options: CreateFeedingsOptions): Promise<Feeding> {
     const {
       date,
@@ -99,7 +107,7 @@ export class FeedingsService {
     return feeding;
   }
 
-  /** Update one Death in the database. */
+  /** Update one feeding in database. */
   async updateOne(
     selections: UpdateFeedingsSelections,
     options: UpdateFeedingsOptions,

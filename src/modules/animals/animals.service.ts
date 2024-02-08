@@ -70,13 +70,13 @@ export class AnimalsService {
   async findOneBy(selections: GetOneAnimalsSelections) {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
     const {
-      animalId,
-      organizationId,
       code,
+      type,
       gender,
       status,
+      animalId,
+      organizationId,
       electronicCode,
-      type,
       productionPhase,
     } = selections;
 

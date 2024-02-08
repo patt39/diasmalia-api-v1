@@ -70,36 +70,36 @@ export class GestationsService {
     return gestation;
   }
 
-  /** Create one Gestation database. */
+  /** Create one Gestation in database. */
   async createOne(options: CreateGestationsOptions): Promise<Gestation> {
     const { animalId, organizationId, userCreatedId, checkPregnancyId, note } =
       options;
 
     const gestation = this.client.gestation.create({
       data: {
+        note,
         animalId,
         organizationId,
         checkPregnancyId,
         userCreatedId,
-        note,
       },
     });
 
     return gestation;
   }
 
-  /** Update one Gestation database. */
+  /** Update one Gestation in database. */
   async updateOne(
     selections: UpdateGestationsSelections,
     options: UpdateGestationsOptions,
   ): Promise<Gestation> {
     const { gestationId } = selections;
     const {
+      note,
       animalId,
       organizationId,
       userCreatedId,
       checkPregnancyId,
-      note,
       deletedAt,
     } = options;
 
@@ -108,11 +108,11 @@ export class GestationsService {
         id: gestationId,
       },
       data: {
+        note,
         animalId,
         organizationId,
         userCreatedId,
         checkPregnancyId,
-        note,
         deletedAt,
       },
     });

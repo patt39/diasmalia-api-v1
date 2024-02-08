@@ -28,7 +28,10 @@ export class BreedingsService {
       Object.assign(prismaWhereBreeding, {
         OR: [
           {
-            note: { contains: search, mode: 'insensitive' },
+            codeMale: { contains: search, mode: 'insensitive' },
+          },
+          {
+            codeFeMale: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -57,7 +60,7 @@ export class BreedingsService {
     });
   }
 
-  /** Find one Breeding in database. */
+  /** Find one breeding in database. */
   async findOneBy(selections: GetOneBreedingsSelections) {
     const prismaWhere = {} as Prisma.BreedingWhereInput;
 
@@ -82,7 +85,7 @@ export class BreedingsService {
     return breeding;
   }
 
-  /** Create one Breedings to the database. */
+  /** Create one breeding in database. */
   async createOne(options: CreateBreedingsOptions): Promise<Breeding> {
     const {
       date,
@@ -109,7 +112,7 @@ export class BreedingsService {
     return breeding;
   }
 
-  /** Update one Breedings to the database. */
+  /** Update one breeding in database. */
   async updateOne(
     selections: UpdateBreedingsSelections,
     options: UpdateBreedingsOptions,

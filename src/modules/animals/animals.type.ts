@@ -31,25 +31,36 @@ export const AnimalSelect = {
   createdAt: true,
   id: true,
   code: true,
-  codeFather: true,
-  codeMother: true,
-  birthday: true,
-  weight: true,
   type: true,
   gender: true,
+  weight: true,
+  status: true,
+  birthday: true,
+  codeFather: true,
+  codeMother: true,
   productionPhase: true,
   electronicCode: true,
-  status: true,
   locationId: true,
   location: {
     select: {
       number: true,
+      type: true,
+      productionPhase: true,
     },
   },
   breedId: true,
   breed: {
     select: {
       name: true,
+    },
+  },
+  _count: {
+    select: {
+      milkings: true,
+      weanings: true,
+      gestations: true,
+      farrowings: true,
+      treatments: true,
     },
   },
 };

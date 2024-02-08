@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   MaxLength,
   IsOptional,
-  IsUUID,
   IsEnum,
 } from 'class-validator';
 
@@ -25,8 +24,8 @@ export class CreateOrUpdateFeedingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  animalId: string;
+  @MaxLength(100)
+  code: string;
 
   @IsNotEmpty()
   @IsString()

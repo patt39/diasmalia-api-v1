@@ -59,7 +59,7 @@ export class WeaningsController {
     return reply({ res, results: weanings });
   }
 
-  /** Post one Weaning */
+  /** Post one weaning */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -68,35 +68,37 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, date, note, animalId, farrowingId } = body;
+    const { litter, date, note, codeFemale, farrowingId } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
-      animalId,
+      code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      productionPhase: 'LACTATION',
       organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${animalId} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `Female animal ${codeFemale} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
+      organizationId: user.organizationId,
     });
-    if (!findOneFemale) {
+    if (!findOneFarrowing) {
       throw new HttpException(
-        `Animal ${farrowingId} doesn't exists, please change`,
+        `${farrowingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     const weaning = await this.weaningsService.createOne({
-      litter,
       note,
       date,
+      litter,
       animalId: findOneFemale.id,
       farrowingId: findOneFarrowing.id,
       organizationId: user?.organizationId,
@@ -116,10 +118,21 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const { litter, date, note, animalId, farrowingId } = body;
+    const { litter, date, note, codeFemale, farrowingId } = body;
+
+    const findOneWeaning = await this.weaningsService.findOneBy({
+      weaningId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneWeaning) {
+      throw new HttpException(
+        `${weaningId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const findOneFemale = await this.animalsService.findOneBy({
-      animalId,
+      code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
@@ -127,15 +140,16 @@ export class WeaningsController {
     });
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${animalId} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
+        `Female animal ${codeFemale} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
+      organizationId: user.organizationId,
     });
-    if (!findOneFemale) {
+    if (!findOneFarrowing) {
       throw new HttpException(
         `${farrowingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
@@ -145,9 +159,9 @@ export class WeaningsController {
     const weaning = await this.weaningsService.updateOne(
       { weaningId },
       {
-        litter,
         note,
         date,
+        litter,
         animalId: findOneFemale.id,
         farrowingId: findOneFarrowing.id,
         organizationId: user?.organizationId,
@@ -162,15 +176,24 @@ export class WeaningsController {
   /** Get one Weaning */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdWeaning(
     @Res() res,
+    @Req() req,
     @Query('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
-    const weaning = await this.weaningsService.findOneBy({
+    const { user } = req;
+    const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
+      organizationId: user.organizationId,
     });
+    if (!findOneWeaning) {
+      throw new HttpException(
+        `${weaningId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-    return reply({ res, results: weaning });
+    return reply({ res, results: findOneWeaning });
   }
 
   /** Delete Weaning */
@@ -178,17 +201,21 @@ export class WeaningsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
-    const findOneFemale = await this.weaningsService.findOneBy({
+    const { user } = req;
+    const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
+      organizationId: user.organizationId,
     });
-    if (!findOneFemale) {
+    if (!findOneWeaning) {
       throw new HttpException(
         `${weaningId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+
     const weaning = await this.weaningsService.updateOne(
       { weaningId },
       { deletedAt: new Date() },

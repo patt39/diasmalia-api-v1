@@ -14,8 +14,11 @@ export class CreateOrUpdateGestationsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  animalId: string;
+  codeFemale: string;
+
+  @IsNotEmpty()
+  @IsString()
+  farrowingDate: Date;
 
   @IsNotEmpty()
   @IsString()

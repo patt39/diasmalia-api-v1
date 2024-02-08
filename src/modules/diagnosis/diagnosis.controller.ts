@@ -54,7 +54,7 @@ export class DiagnosisController {
     return reply({ res, results: Diagnosis });
   }
 
-  /** Post one Diagnosis */
+  /** Post one diagnosis */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -74,7 +74,7 @@ export class DiagnosisController {
     return reply({ res, results: medication });
   }
 
-  /** Update one Diagnosis */
+  /** Update one diagnosis */
   @Put(`/:diagnosisId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -88,8 +88,8 @@ export class DiagnosisController {
 
     const findOneDiagnosis = await this.diagnosisService.findOneBy({
       diagnosisId,
+      organizationId: user?.organizationId,
     });
-
     if (!diagnosisId) {
       throw new HttpException(
         `${diagnosisId} doesn't exists please change`,
@@ -109,17 +109,19 @@ export class DiagnosisController {
     return reply({ res, results: findOneDiagnosis });
   }
 
-  /** Get one Diagnosis */
+  /** Get one diagnosis */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdDiagnosis(
     @Res() res,
+    @Req() req,
     @Query('diagnosisId', ParseUUIDPipe) diagnosisId: string,
   ) {
+    const { user } = req;
     const findOneDiagnosis = await this.diagnosisService.findOneBy({
       diagnosisId,
+      organizationId: user?.organizationId,
     });
-
     if (!diagnosisId) {
       throw new HttpException(
         `${diagnosisId} doesn't exists please change`,
@@ -130,24 +132,30 @@ export class DiagnosisController {
     return reply({ res, results: findOneDiagnosis });
   }
 
-  /** Delete one Diagnosis */
+  /** Delete one diagnosis */
   @Delete(`/delete/:diagnosisId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('diagnosisId', ParseUUIDPipe) diagnosisId: string,
   ) {
-    const findOneDiagnosis = await this.diagnosisService.updateOne(
-      { diagnosisId },
-      { deletedAt: new Date() },
-    );
-
+    const { user } = req;
+    const findOneDiagnosis = await this.diagnosisService.findOneBy({
+      diagnosisId,
+      organizationId: user?.organizationId,
+    });
     if (!diagnosisId) {
       throw new HttpException(
         `${diagnosisId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+
+    await this.diagnosisService.updateOne(
+      { diagnosisId },
+      { deletedAt: new Date() },
+    );
 
     return reply({ res, results: findOneDiagnosis });
   }

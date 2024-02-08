@@ -8,7 +8,8 @@ export type GetMilkingsSelections = {
 };
 
 export type GetOneMilkingsSelections = {
-  milkingId: Milking['id'];
+  milkingId?: Milking['id'];
+  organizationId?: Milking['organizationId'];
 };
 
 export type UpdateMilkingsSelections = {

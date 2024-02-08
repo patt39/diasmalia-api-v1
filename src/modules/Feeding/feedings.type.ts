@@ -8,7 +8,8 @@ export type GetFeedingsSelections = {
 };
 
 export type GetOneFeedingSelections = {
-  feedingId: Feeding['id'];
+  feedingId?: Feeding['id'];
+  organizationId?: Feeding['organizationId'];
 };
 
 export type UpdateFeedingsSelections = {

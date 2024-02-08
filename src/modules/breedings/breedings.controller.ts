@@ -34,7 +34,7 @@ export class BreedingsController {
     private readonly animalsService: AnimalsService,
   ) {}
 
-  /** Get all Breedings */
+  /** Get all breedings */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -58,7 +58,7 @@ export class BreedingsController {
     return reply({ res, results: breedings });
   }
 
-  /** Post one Breeding */
+  /** Post one breeding */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -148,7 +148,7 @@ export class BreedingsController {
     });
   }
 
-  /** Update one Breeding */
+  /** Update one breeding */
   @Put(`/:breedingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -250,10 +250,10 @@ export class BreedingsController {
     });
   }
 
-  /** Get one Breedings */
+  /** Get one breeding */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdBreeding(
     @Res() res,
     @Req() req,
     @Query('breedingId', ParseUUIDPipe) breedingId: string,
@@ -275,7 +275,7 @@ export class BreedingsController {
     return reply({ res, results: findOnebreeding });
   }
 
-  /** Delete one Breedings */
+  /** Delete one breeding */
   @Delete(`/delete/:breedingId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(

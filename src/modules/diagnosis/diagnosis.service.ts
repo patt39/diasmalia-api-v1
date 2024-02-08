@@ -59,12 +59,21 @@ export class DiagnosisService {
 
   /** Find one Diagnosis to the database. */
   async findOneBy(selections: GetOneDiagnosisSelections) {
-    const { diagnosisId } = selections;
-    const diagnosis = await this.client.diagnosis.findUnique({
+    const prismaWhere = {} as Prisma.DiagnosisWhereInput;
+
+    const { diagnosisId, organizationId } = selections;
+
+    if (diagnosisId) {
+      Object.assign(prismaWhere, { id: diagnosisId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const diagnosis = await this.client.diagnosis.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: DiagnosisSelect,
-      where: {
-        id: diagnosisId,
-      },
     });
 
     return diagnosis;

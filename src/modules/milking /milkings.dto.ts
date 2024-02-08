@@ -6,7 +6,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -26,8 +25,8 @@ export class CreateOrUpdateMilkingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  animalId: string;
+  @MaxLength(100)
+  femaleCode: string;
 
   @IsNotEmpty()
   @IsString()

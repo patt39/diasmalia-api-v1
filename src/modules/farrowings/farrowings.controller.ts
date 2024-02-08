@@ -58,7 +58,7 @@ export class FarrowingsController {
     return reply({ res, results: farrowings });
   }
 
-  /** Post one Farrowing */
+  /** Post one farrowing */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -67,10 +67,10 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, date, animalId } = body;
+    const { litter, note, date, codeFemale } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
-      animalId,
+      code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
@@ -85,9 +85,9 @@ export class FarrowingsController {
     }
 
     const farrowing = await this.farrowingsService.createOne({
-      litter,
-      note,
       date,
+      note,
+      litter,
       animalId: findOneFemale?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -104,7 +104,7 @@ export class FarrowingsController {
     });
   }
 
-  /** Update one Farrowing */
+  /** Update one farrowing */
   @Put(`/:farrowingId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -114,7 +114,7 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, date, animalId } = body;
+    const { litter, note, date, codeFemale } = body;
 
     if (!farrowingId) {
       throw new HttpException(
@@ -124,7 +124,7 @@ export class FarrowingsController {
     }
 
     const findOneFemale = await this.animalsService.findOneBy({
-      animalId,
+      code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
@@ -141,9 +141,9 @@ export class FarrowingsController {
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId },
       {
-        litter,
         note,
         date,
+        litter,
         animalId: findOneFemale?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
@@ -159,17 +159,19 @@ export class FarrowingsController {
     });
   }
 
-  /** Get one Farrowing */
+  /** Get one farrowing */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
+  async getOneByIdFarrowing(
     @Res() res,
+    @Req() req,
     @Query('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
+    const { user } = req;
     const farrowing = await this.farrowingsService.findOneBy({
       farrowingId,
+      organizationId: user?.organizationId,
     });
-
     if (!farrowingId) {
       throw new HttpException(
         `${farrowingId} doesn't exists please change`,
@@ -180,14 +182,20 @@ export class FarrowingsController {
     return reply({ res, results: farrowing });
   }
 
-  /** Delete one Farrowing */
+  /** Delete one farrowing */
   @Delete(`/delete/:farrowingId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
-    if (!farrowingId) {
+    const { user } = req;
+    const findOneFarrowing = await this.farrowingsService.findOneBy({
+      farrowingId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFarrowing) {
       throw new HttpException(
         `${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,

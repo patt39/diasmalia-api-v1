@@ -8,7 +8,8 @@ export type GetMedicationsSelections = {
 };
 
 export type GetOneMedicationsSelections = {
-  medicationId: Medication['id'];
+  medicationId?: Medication['id'];
+  organizationId?: Medication['organizationId'];
 };
 
 export type UpdateMedicationsSelections = {
@@ -28,6 +29,11 @@ export const MedicationSelect = {
   organization: {
     select: {
       name: true,
+    },
+  },
+  _count: {
+    select: {
+      treatments: true,
     },
   },
 };
