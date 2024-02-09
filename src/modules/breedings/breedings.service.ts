@@ -5,6 +5,8 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { AnimalsService } from '../animals/animals.service';
+import { AnimalSelect } from '../animals/animals.type';
 import {
   BreedingSelect,
   CreateBreedingsOptions,
@@ -16,22 +18,25 @@ import {
 
 @Injectable()
 export class BreedingsService {
-  constructor(private readonly client: DatabaseService) {}
+  constructor(
+    private readonly client: DatabaseService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   async findAll(
     selections: GetBreedingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, organizationId, pagination, animalId, gender } = selections;
 
     if (search) {
       Object.assign(prismaWhereBreeding, {
         OR: [
           {
-            codeMale: { contains: search, mode: 'insensitive' },
+            animalFemaleId: { contains: search, mode: 'insensitive' },
           },
           {
-            codeFeMale: { contains: search, mode: 'insensitive' },
+            animalMaleId: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -41,25 +46,68 @@ export class BreedingsService {
       Object.assign(prismaWhereBreeding, { organizationId });
     }
 
+    if (animalId && gender === 'MALE') {
+      Object.assign(prismaWhereBreeding, { animalMaleId: animalId });
+    }
+
+    if (animalId && gender === 'FEMALE') {
+      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
+    }
+
     const breedings = await this.client.breeding.findMany({
-      where: { ...prismaWhereBreeding, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
       select: BreedingSelect,
       orderBy: pagination.orderBy,
+      where: { ...prismaWhereBreeding, deletedAt: null },
     });
 
     const rowCount = await this.client.breeding.count({
       where: { ...prismaWhereBreeding, deletedAt: null },
     });
 
+    const newBreedingArray: any = [];
+    for (const breeding of breedings) {
+      const findOneAnimal =
+        gender === 'MALE'
+          ? await this.animalsService.findOneBy({
+              animalId: breeding?.animalFemaleId,
+            })
+          : await this.animalsService.findOneBy({
+              animalId: breeding?.animalMaleId,
+            });
+      newBreedingArray.push({
+        ...breeding,
+        animal: findOneAnimal,
+      });
+    }
+
     return withPagination({
       pagination,
       rowCount,
-      value: breedings,
+      value: newBreedingArray,
     });
   }
 
+  async findBreedingBy(selections: GetOneBreedingsSelections): Promise<any> {
+    const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
+    const { animalId, gender, organizationId } = selections;
+
+    if (animalId && gender === 'MALE') {
+      Object.assign(prismaWhereBreeding, { animalMaleId: animalId });
+    }
+
+    if (animalId && gender === 'FEMALE') {
+      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
+    }
+
+    const breedings = await this.client.breeding.groupBy({
+      by: ['animalMaleId', 'animalFemaleId'],
+      where: { ...prismaWhereBreeding, deletedAt: null, organizationId },
+    });
+
+    return breedings;
+  }
   /** Find one breeding in database. */
   async findOneBy(selections: GetOneBreedingsSelections) {
     const prismaWhere = {} as Prisma.BreedingWhereInput;
@@ -85,6 +133,38 @@ export class BreedingsService {
     return breeding;
   }
 
+  /** Find one breeding in database. */
+  async findOneBredingBy(selections: GetOneBreedingsSelections): Promise<any> {
+    const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
+    const prismaWhereAnimal = {} as Prisma.AnimalWhereInput;
+
+    const { animalId, gender, organizationId } = selections;
+
+    if (animalId) {
+      Object.assign(prismaWhereAnimal, { id: animalId });
+    }
+
+    if (animalId && gender === 'MALE') {
+      Object.assign(prismaWhereBreeding, { animalMaleId: animalId });
+    }
+
+    if (animalId && gender === 'FEMALE') {
+      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
+    }
+    const breedingCount = await this.client.breeding.count({
+      where: { ...prismaWhereBreeding, deletedAt: null, organizationId },
+    });
+    const animal = await this.client.animal.findFirst({
+      where: {
+        ...prismaWhereAnimal,
+        deletedAt: null,
+        organizationId,
+      },
+      select: AnimalSelect,
+    });
+
+    return { breedingCount, ...animal };
+  }
   /** Create one breeding in database. */
   async createOne(options: CreateBreedingsOptions): Promise<Breeding> {
     const {

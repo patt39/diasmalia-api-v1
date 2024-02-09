@@ -35,7 +35,7 @@ export class AnimalsController {
     private readonly breedsService: BreedsService,
   ) {}
 
-  /** Get all Animals */
+  /** Get all animals */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -59,7 +59,7 @@ export class AnimalsController {
     return reply({ res, results: animals });
   }
 
-  /** Post one Animal */
+  /** Post one animal */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -73,7 +73,6 @@ export class AnimalsController {
       type,
       weight,
       gender,
-      status,
       breedId,
       birthday,
       locationId,
@@ -102,15 +101,18 @@ export class AnimalsController {
       );
 
     const findOneLocation = await this.locationsService.findOneBy({
-      type,
       locationId,
-      productionPhase,
       organizationId: user?.organizationId,
     });
-
     if (!findOneLocation)
       throw new HttpException(
         `Location ${locationId} doesn't exists or isn't the correct productionPhase or Type please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneLocation.productionPhase !== productionPhase)
+      throw new HttpException(
+        `Animal can't be placed in this location ${findOneLocation.number} please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -127,7 +129,6 @@ export class AnimalsController {
     const animal = await this.animalsService.createOne({
       code,
       type,
-      status,
       weight,
       gender,
       birthday,
@@ -141,10 +142,17 @@ export class AnimalsController {
       userCreatedId: user?.id,
     });
 
-    return reply({ res, results: animal });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: animal,
+        message: `Animal Created Successfully`,
+      },
+    });
   }
 
-  /** Update one Animals */
+  /** Update one animal */
   @Put(`/:animalId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
@@ -159,7 +167,6 @@ export class AnimalsController {
       type,
       weight,
       gender,
-      status,
       breedId,
       birthday,
       codeFather,
@@ -173,7 +180,6 @@ export class AnimalsController {
       animalId,
       organizationId: user.organizationId,
     });
-
     if (!findOneAnimal)
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
@@ -188,6 +194,12 @@ export class AnimalsController {
     if (!findOneLocation)
       throw new HttpException(
         `Location ${locationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneLocation.productionPhase !== productionPhase)
+      throw new HttpException(
+        `Animal can't be placed in this location ${findOneLocation.number} please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -206,25 +218,32 @@ export class AnimalsController {
       {
         code,
         type,
-        status,
         weight,
         gender,
         birthday,
         codeFather,
         codeMother,
-        productionPhase,
         electronicCode,
+        productionPhase,
         locationId: findOneLocation.id,
         breedId: findOneBreed.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
+        updatedAt: new Date(),
       },
     );
 
-    return reply({ res, results: animal });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: animal,
+        message: `Animal Updated Successfully`,
+      },
+    });
   }
 
-  /** Get one Animal */
+  /** Get one animal */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdAnimal(
@@ -248,7 +267,7 @@ export class AnimalsController {
     return reply({ res, results: findOneAnimal });
   }
 
-  /** Delete one Animal */
+  /** Delete one animal */
   @Delete(`/delete/:animalId`)
   @UseGuards(JwtAuthGuard)
   async deleteOne(

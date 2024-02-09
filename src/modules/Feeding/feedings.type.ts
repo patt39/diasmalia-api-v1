@@ -25,10 +25,30 @@ export const FeedingSelect = {
   id: true,
   quantity: true,
   date: true,
-  type: true,
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
+      weight: true,
+      productionPhase: true,
+      gender: true,
+      type: true,
+      locationId: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+    },
+  },
+  feedTypeId: true,
+  feedType: {
+    select: {
+      name: true,
+    },
+  },
   productionPhase: true,
   organizationId: true,
   userCreatedId: true,
-  animalId: true,
   note: true,
 };

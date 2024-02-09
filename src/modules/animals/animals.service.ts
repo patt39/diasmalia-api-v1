@@ -22,7 +22,7 @@ export class AnimalsService {
     selections: GetAnimalsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, organizationId, pagination, animalIds } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -41,6 +41,10 @@ export class AnimalsService {
           },
         ],
       });
+    }
+
+    if (animalIds) {
+      Object.assign(prismaWhere, { id: { in: animalIds } });
     }
 
     if (organizationId) {
@@ -124,17 +128,17 @@ export class AnimalsService {
   async createOne(options: CreateAnimalsOptions): Promise<Animal> {
     const {
       code,
-      codeFather,
-      codeMother,
-      birthday,
+      type,
+      status,
       weight,
       gender,
-      type,
+      birthday,
+      breedId,
+      locationId,
+      codeFather,
+      codeMother,
       productionPhase,
       electronicCode,
-      status,
-      locationId,
-      breedId,
       organizationId,
       userCreatedId,
     } = options;
@@ -142,17 +146,17 @@ export class AnimalsService {
     const animal = this.client.animal.create({
       data: {
         code,
-        codeFather,
-        codeMother,
-        birthday,
+        type,
+        status,
         weight,
         gender,
-        type,
+        birthday,
+        breedId,
+        locationId,
+        codeFather,
+        codeMother,
         productionPhase,
         electronicCode,
-        status,
-        locationId,
-        breedId,
         organizationId,
         userCreatedId,
       },
@@ -169,17 +173,17 @@ export class AnimalsService {
     const { animalId } = selections;
     const {
       code,
-      codeFather,
-      codeMother,
-      birthday,
+      type,
       weight,
       gender,
+      status,
+      breedId,
+      birthday,
+      codeFather,
+      codeMother,
       productionPhase,
       electronicCode,
-      status,
       locationId,
-      type,
-      breedId,
       deletedAt,
     } = options;
 
@@ -189,17 +193,17 @@ export class AnimalsService {
       },
       data: {
         code,
-        codeFather,
-        codeMother,
-        birthday,
+        type,
         weight,
         gender,
+        status,
+        breedId,
+        birthday,
+        codeFather,
+        codeMother,
         productionPhase,
         electronicCode,
-        status,
         locationId,
-        type,
-        breedId,
         deletedAt,
       },
     });

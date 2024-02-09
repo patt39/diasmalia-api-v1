@@ -49,6 +49,7 @@ export const GestationSelect = {
   checkPregnancy: {
     select: {
       farrowingDate: true,
+      result: true,
     },
   },
   organizationId: true,

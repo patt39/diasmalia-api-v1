@@ -13,8 +13,6 @@ export type GetOneAssignTaskSelections = {
   search?: string;
   pagination?: PaginationType;
   assignTaskId?: AssignTask['id'];
-  userId?: AssignTask['userId'];
-  taskId?: AssignTask['taskId'];
   organizationId?: AssignTask['organizationId'];
 };
 

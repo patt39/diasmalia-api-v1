@@ -1,9 +1,4 @@
-import {
-  AnimalStatus,
-  AnimalType,
-  Gender,
-  ProductionPhase,
-} from '@prisma/client';
+import { AnimalType, Gender, ProductionPhase } from '@prisma/client';
 import {
   IsEnum,
   IsInt,
@@ -58,11 +53,6 @@ export class CreateOrUpdateAnimalsDto {
   @IsString()
   @MaxLength(100)
   electronicCode: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(AnimalStatus)
-  status: AnimalStatus;
 
   @IsNotEmpty()
   @IsString()
