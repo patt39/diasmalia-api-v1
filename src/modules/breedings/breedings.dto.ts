@@ -30,3 +30,9 @@ export class CreateOrUpdateBreedingsDto {
   @IsEnum(MethodBreeding)
   method: MethodBreeding;
 }
+
+export class GetAnimalBreedingsDto {
+  @IsOptional()
+  @IsString()
+  animalId: string;
+}

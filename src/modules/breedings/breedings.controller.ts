@@ -24,7 +24,10 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateBreedingsDto } from './breedings.dto';
+import {
+  CreateOrUpdateBreedingsDto,
+  GetAnimalBreedingsDto,
+} from './breedings.dto';
 import { BreedingsService } from './breedings.service';
 
 @Controller('breedings')
@@ -56,6 +59,44 @@ export class BreedingsController {
     });
 
     return reply({ res, results: breedings });
+  }
+
+  /** Get all breedings */
+  @Get(`/animals`)
+  @UseGuards(JwtAuthGuard)
+  async findAnimalAll(
+    @Res() res,
+    @Req() req,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+    @Query() queryBreeding: GetAnimalBreedingsDto,
+  ) {
+    const { animalId } = queryBreeding;
+    const { user } = req;
+    const { search } = query;
+    const { take, page, sort } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({ page, take, sort });
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${animalId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const animals = await this.breedingsService.findAll({
+      search,
+      pagination,
+      gender: findOneAnimal?.gender,
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: animals });
   }
 
   /** Post one breeding */
@@ -237,6 +278,7 @@ export class BreedingsController {
         animalFemaleId: findOneFemale?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
+        updatedAt: new Date(),
       },
     );
 
@@ -256,18 +298,29 @@ export class BreedingsController {
   async getOneByIdBreeding(
     @Res() res,
     @Req() req,
-    @Query('breedingId', ParseUUIDPipe) breedingId: string,
+    @Query('animalId', ParseUUIDPipe) animalId: string,
   ) {
     const { user } = req;
-    const findOnebreeding = await this.breedingsService.findOneBy({
-      breedingId,
-      checkStatus: false,
-      organizationId: user?.organization,
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${animalId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const findOnebreeding = await this.breedingsService.findOneBredingBy({
+      animalId,
+      gender: findOneAnimal?.gender,
+      organizationId: user?.organizationId,
     });
 
     if (!findOnebreeding) {
       throw new HttpException(
-        `${breedingId} doesn't exists please change`,
+        `${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

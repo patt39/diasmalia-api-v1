@@ -1,10 +1,17 @@
 import { Module } from '@nestjs/common';
+import { AnimalsService } from '../animals/animals.service';
+import { BreedingsService } from '../breedings/breedings.service';
+import { FeedTypeService } from '../feedType/feedType.service';
 import { FeedingsController } from './feedings.controller';
 import { FeedingsService } from './feedings.service';
-import { AnimalsService } from '../animals/animals.service';
 
 @Module({
   controllers: [FeedingsController],
-  providers: [FeedingsService, AnimalsService],
+  providers: [
+    FeedingsService,
+    AnimalsService,
+    FeedTypeService,
+    BreedingsService,
+  ],
 })
 export class FeedingsModule {}

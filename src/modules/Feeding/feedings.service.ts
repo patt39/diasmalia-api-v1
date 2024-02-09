@@ -83,7 +83,7 @@ export class FeedingsService {
     const {
       date,
       quantity,
-      type,
+      feedTypeId,
       animalId,
       productionPhase,
       organizationId,
@@ -95,7 +95,7 @@ export class FeedingsService {
       data: {
         date,
         quantity,
-        type,
+        feedTypeId,
         productionPhase,
         animalId,
         organizationId,
@@ -115,13 +115,13 @@ export class FeedingsService {
     const { feedingId } = selections;
     const {
       date,
-      quantity,
-      type,
-      productionPhase,
-      animalId,
-      organizationId,
-      userCreatedId,
       note,
+      quantity,
+      feedTypeId,
+      productionPhase,
+      organizationId,
+      animalId,
+      userCreatedId,
       deletedAt,
     } = options;
 
@@ -131,13 +131,13 @@ export class FeedingsService {
       },
       data: {
         date,
+        note,
         quantity,
-        type,
+        feedTypeId,
         productionPhase,
         animalId,
         organizationId,
         userCreatedId,
-        note,
         deletedAt,
       },
     });

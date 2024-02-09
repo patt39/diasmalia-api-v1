@@ -65,20 +65,15 @@ export class AssignTasksService {
     });
   }
 
-  /** Find one Tasks to the database. */
+  /** Find one assignedTask in database. */
   async findOneBy(selections: GetOneAssignTaskSelections) {
     const prismaWhere = {} as Prisma.AssignTaskWhereInput;
 
-    const { assignTaskId, userId, organizationId } = selections;
+    const { assignTaskId, organizationId } = selections;
 
     if (assignTaskId) {
       Object.assign(prismaWhere, { id: assignTaskId });
     }
-
-    if (userId) {
-      Object.assign(prismaWhere, { userId });
-    }
-
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
     }
@@ -90,7 +85,7 @@ export class AssignTasksService {
     return assignTask;
   }
 
-  /** Create one Tasks to the database. */
+  /** Create one assignedTask in database. */
   async createOne(options: CreateAssignTasksOptions): Promise<AssignTask> {
     const { taskId, userId, organizationId, userCreatedId } = options;
 
@@ -106,7 +101,7 @@ export class AssignTasksService {
     return assignTask;
   }
 
-  /** Update one Tasks to the database. */
+  /** Update one assignedTask in database. */
   async updateOne(
     selections: UpdateAssignTasksSelections,
     options: UpdateAssignTasksOptions,

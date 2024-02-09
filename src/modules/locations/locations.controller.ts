@@ -30,7 +30,7 @@ import { LocationsService } from './locations.service';
 export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
-  /** Get all Locations */
+  /** Get all locations */
   @Get(`/`)
   @UseGuards(JwtAuthGuard)
   async findAll(
@@ -54,7 +54,7 @@ export class LocationsController {
     return reply({ res, results: locations });
   }
 
-  /** Post one Location */
+  /** Post one location */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
   async createOne(
@@ -69,7 +69,7 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       type,
       number,
-      organizationId: user?.organization,
+      organizationId: user?.organizationId,
     });
     if (findOneLocation) {
       throw new HttpException(
@@ -79,16 +79,23 @@ export class LocationsController {
     }
 
     const location = await this.locationsService.createOne({
-      squareMeter,
+      type,
+      number,
       manger,
       through,
-      number,
-      type,
+      squareMeter,
       productionPhase,
       organizationId: user.organizationId,
     });
 
-    return reply({ res, results: location });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: location,
+        message: `Location Created Successfully`,
+      },
+    });
   }
 
   /** Update one location */
@@ -106,29 +113,38 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       type,
       number,
-      organizationId: user?.organization,
+      locationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneLocation) {
       throw new HttpException(
-        `Location ${locationId} doesn't exists please change`,
+        `Location ${number} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
     const location = await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       {
-        squareMeter,
         manger,
-        through,
         number,
+        through,
+        squareMeter,
         organizationId: user.organizationId,
+        updatedAt: new Date(),
       },
     );
 
-    return reply({ res, results: location });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: location,
+        message: `Location Updated Successfully`,
+      },
+    });
   }
 
-  /** Get one Location */
+  /** Get one location */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
@@ -139,7 +155,7 @@ export class LocationsController {
     const { user } = req;
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user?.organization,
+      organizationId: user?.organizationId,
     });
     if (!findOneLocation) {
       throw new HttpException(
@@ -162,7 +178,7 @@ export class LocationsController {
     const { user } = req;
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user?.organization,
+      organizationId: user?.organizationId,
     });
     if (!findOneLocation) {
       throw new HttpException(
@@ -170,8 +186,9 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
     }
+
     const location = await this.locationsService.updateOne(
-      { locationId },
+      { locationId: findOneLocation?.id },
       { deletedAt: new Date() },
     );
 

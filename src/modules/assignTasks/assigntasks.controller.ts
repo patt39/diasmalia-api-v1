@@ -101,12 +101,10 @@ export class AssignTasksController {
       );
 
     const findOneAssignedTask = await this.assignTasksService.findOneBy({
-      userId,
-      taskId,
       organizationId: user?.organizationId,
     });
 
-    const task = !findOneAssignedTask
+    const assignTask = !findOneAssignedTask
       ? await this.assignTasksService.createOne({
           taskId: findOneTask.id,
           userId: findOneContributor.userId,
@@ -115,7 +113,14 @@ export class AssignTasksController {
         })
       : 'Already Created';
 
-    return reply({ res, results: task });
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: assignTask,
+        message: `Assigned Created Successfully`,
+      },
+    });
   }
 
   /** Delete one assignTask */

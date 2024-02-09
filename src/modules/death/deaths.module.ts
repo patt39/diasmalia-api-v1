@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { AnimalsService } from '../animals/animals.service';
 import { DeathsController } from './deaths.controller';
 import { DeathsService } from './deaths.service';
-import { AnimalsService } from '../animals/animals.service';
 
 @Module({
   controllers: [DeathsController],

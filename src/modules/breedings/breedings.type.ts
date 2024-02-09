@@ -1,15 +1,19 @@
-import { Breeding } from '@prisma/client';
+import { Animal, Breeding } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetBreedingsSelections = {
   search?: string;
-  organizationId: string;
+  organizationId?: string;
   pagination?: PaginationType;
+  animalId?: string;
+  gender?: Animal['gender'];
 };
 
 export type GetOneBreedingsSelections = {
   breedingId?: Breeding['id'];
   checkStatus?: Breeding['checkStatus'];
+  animalId?: Animal['id'];
+  gender?: Animal['gender'];
   organizationId?: Breeding['organizationId'];
 };
 

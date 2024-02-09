@@ -3,8 +3,9 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetAnimalsSelections = {
   search?: string;
-  organizationId: string;
+  organizationId?: string;
   pagination?: PaginationType;
+  animalIds?: string[];
 };
 
 export type GetOneAnimalsSelections = {
@@ -17,6 +18,7 @@ export type GetOneAnimalsSelections = {
   status?: Animal['status'];
   productionPhase?: Animal['productionPhase'];
   organizationId?: Animal['organizationId'];
+  animalIds?: string[];
 };
 
 export type UpdateAnimalsSelections = {
@@ -41,6 +43,7 @@ export const AnimalSelect = {
   productionPhase: true,
   electronicCode: true,
   locationId: true,
+  organizationId: true,
   location: {
     select: {
       number: true,
