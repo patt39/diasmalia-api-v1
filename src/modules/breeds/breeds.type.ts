@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetBreedsSelections = {
   search?: string;
+  organizationId?: string;
   pagination?: PaginationType;
 };
 

@@ -66,7 +66,6 @@ export class BreedsService {
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
     }
-
     const breed = await this.client.breed.findFirst({
       where: { ...prismaWhere, deletedAt: null },
     });
