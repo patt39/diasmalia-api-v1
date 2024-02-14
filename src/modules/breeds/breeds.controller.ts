@@ -37,18 +37,15 @@ export class BreedsController {
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
-    //@Query() queryTypes: GetBreedTypesDto,
     @Query() query: SearchQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
-    //const { type } = queryTypes;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const breeds = await this.breedsService.findAll({
-      // type,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -66,11 +63,10 @@ export class BreedsController {
     @Body() body: CreateOrUpdateBreedsDto,
   ) {
     const { user } = req;
-    const { name, type } = body;
+    const { name } = body;
 
     const breed = await this.breedsService.createOne({
       name,
-      type,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -88,7 +84,7 @@ export class BreedsController {
     @Param('breedId', ParseUUIDPipe) breedId: string,
   ) {
     const { user } = req;
-    const { name, type } = body;
+    const { name } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
@@ -105,7 +101,6 @@ export class BreedsController {
       { breedId },
       {
         name,
-        type,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
         updatedAt: new Date(),

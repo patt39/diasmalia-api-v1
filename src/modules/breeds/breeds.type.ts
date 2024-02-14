@@ -3,14 +3,12 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetBreedsSelections = {
   search?: string;
-  type?: Breed['type'];
   organizationId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneBreedsSelections = {
   breedId?: Breed['id'];
-  type?: Breed['type'];
   organizationId?: Breed['organizationId'];
 };
 

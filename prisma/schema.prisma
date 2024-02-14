@@ -214,7 +214,6 @@ model Breed {
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   name           String
-  type           AnimalType
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
