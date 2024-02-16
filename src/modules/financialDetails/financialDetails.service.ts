@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateFinancialDetailsOptions,
-  GetFinancialDetailsSelections,
-  GetOneFinancialDetailsSelections,
-  UpdateFinancialDetailsOptions,
-  UpdateFinancialDetailsSelections,
-  FinancialDetailsSelect,
-} from './financialDetails.type';
+import { FinancialDetail, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Prisma, FinancialDetail } from '@prisma/client';
+import {
+  CreateFinancialDetailsOptions,
+  FinancialDetailsSelect,
+  GetFinancialDetailsSelections,
+  GetOneFinancialDetailsSelections,
+  UpdateFinancialDetailsOptions,
+  UpdateFinancialDetailsSelections,
+} from './financialDetails.type';
 
 @Injectable()
 export class FinancialDetailService {
@@ -59,12 +59,20 @@ export class FinancialDetailService {
 
   /** Find one financialDetail database. */
   async findOneBy(selections: GetOneFinancialDetailsSelections) {
-    const { financialDetailId } = selections;
-    const financialDetail = await this.client.financialDetail.findUnique({
+    const prismaWhere = {} as Prisma.FinancialDetailWhereInput;
+    const { name, financialDetailId } = selections;
+
+    if (name) {
+      Object.assign(prismaWhere, { name });
+    }
+
+    if (financialDetailId) {
+      Object.assign(prismaWhere, { id: financialDetailId });
+    }
+
+    const financialDetail = await this.client.financialDetail.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: FinancialDetailsSelect,
-      where: {
-        id: financialDetailId,
-      },
     });
 
     return financialDetail;

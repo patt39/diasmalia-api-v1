@@ -8,7 +8,9 @@ export type GetFinancialDetailsSelections = {
 };
 
 export type GetOneFinancialDetailsSelections = {
-  financialDetailId: FinancialDetail['id'];
+  name?: FinancialDetail['name'];
+  financialDetailId?: FinancialDetail['id'];
+  organizationId?: FinancialDetail['organizationId'];
 };
 
 export type UpdateFinancialDetailsSelections = {

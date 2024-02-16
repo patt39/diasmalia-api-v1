@@ -64,6 +64,16 @@ export class FeedTypeController {
     const { user } = req;
     const { name } = body;
 
+    const findOneFeedType = await this.feedTypeService.findOneBy({
+      name,
+      organizationId: user?.organizationId,
+    });
+    if (findOneFeedType)
+      throw new HttpException(
+        `FeedType ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const feedType = await this.feedTypeService.createOne({
       name,
       organizationId: user?.organizationId,
@@ -96,7 +106,7 @@ export class FeedTypeController {
       );
 
     const feedType = await this.feedTypeService.updateOne(
-      { feedTypeId },
+      { feedTypeId: findOneFeeding?.id },
       {
         name,
         organizationId: user?.organizationId,

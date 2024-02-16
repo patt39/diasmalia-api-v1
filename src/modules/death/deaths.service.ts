@@ -1,22 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateDeathsOptions,
-  GetDeathsSelections,
-  GetOneDeathSelections,
-  UpdateDeathsOptions,
-  UpdateDeathsSelections,
-  DeathSelect,
-} from './deaths.type';
+import { Death, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Prisma, Death } from '@prisma/client';
+import { AnimalsService } from '../animals/animals.service';
+import {
+  CreateDeathsOptions,
+  DeathSelect,
+  GetDeathsSelections,
+  GetOneDeathSelections,
+  UpdateDeathsOptions,
+  UpdateDeathsSelections,
+} from './deaths.type';
 
 @Injectable()
 export class DeathsService {
-  constructor(private readonly client: DatabaseService) {}
+  constructor(
+    private readonly client: DatabaseService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   async findAll(
     selections: GetDeathsSelections,
@@ -38,7 +42,7 @@ export class DeathsService {
       Object.assign(prismaWhere, { organizationId });
     }
 
-    const death = await this.client.death.findMany({
+    const deaths = await this.client.death.findMany({
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
@@ -53,7 +57,7 @@ export class DeathsService {
     return withPagination({
       pagination,
       rowCount,
-      value: death,
+      value: deaths,
     });
   }
 
@@ -80,25 +84,15 @@ export class DeathsService {
 
   /** Create one death in database. */
   async createOne(options: CreateDeathsOptions): Promise<Death> {
-    const {
-      date,
-      cause,
-      method,
-      animalId,
-      organizationId,
-      userCreatedId,
-      note,
-    } = options;
+    const { date, animalId, organizationId, userCreatedId, note } = options;
 
     const death = this.client.death.create({
       data: {
         date,
-        cause,
-        method,
+        note,
         animalId,
         organizationId,
         userCreatedId,
-        note,
       },
     });
 
@@ -111,16 +105,8 @@ export class DeathsService {
     options: UpdateDeathsOptions,
   ): Promise<Death> {
     const { deathId } = selections;
-    const {
-      date,
-      cause,
-      method,
-      animalId,
-      organizationId,
-      userCreatedId,
-      note,
-      deletedAt,
-    } = options;
+    const { date, animalId, organizationId, userCreatedId, note, deletedAt } =
+      options;
 
     const death = this.client.death.update({
       where: {
@@ -128,12 +114,10 @@ export class DeathsService {
       },
       data: {
         date,
-        cause,
-        method,
+        note,
         animalId,
         organizationId,
         userCreatedId,
-        note,
         deletedAt,
       },
     });

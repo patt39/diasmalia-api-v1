@@ -8,7 +8,8 @@ export type GetFinancialMgtSelections = {
 };
 
 export type GetOneFinancialMgtSelections = {
-  financialMgtId: FinancialMgt['id'];
+  financialMgtId?: FinancialMgt['id'];
+  organizationId?: FinancialMgt['organizationId'];
 };
 
 export type UpdateFinancialMgtSelections = {

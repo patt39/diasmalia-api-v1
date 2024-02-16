@@ -6,6 +6,11 @@ export type GetAnimalsSelections = {
   organizationId?: string;
   pagination?: PaginationType;
   animalIds?: string[];
+  code?: Animal['code'];
+  status?: Animal['status'];
+  type?: Animal['type'];
+  gender?: Animal['gender'];
+  productionPhase?: Animal['productionPhase'];
 };
 
 export type GetOneAnimalsSelections = {
@@ -19,6 +24,7 @@ export type GetOneAnimalsSelections = {
   productionPhase?: Animal['productionPhase'];
   organizationId?: Animal['organizationId'];
   animalIds?: string[];
+  pagination?: PaginationType;
 };
 
 export type UpdateAnimalsSelections = {

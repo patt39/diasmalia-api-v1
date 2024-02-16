@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { AnimalType } from '@prisma/client';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -63,10 +64,22 @@ export class BreedsController {
     @Body() body: CreateOrUpdateBreedsDto,
   ) {
     const { user } = req;
-    const { name } = body;
+    const { name, type } = body;
+
+    const findOneBreed = await this.breedsService.findOneBy({
+      name,
+      organizationId: user?.organizationId,
+    });
+    if (findOneBreed) {
+      throw new HttpException(
+        `Breed ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const breed = await this.breedsService.createOne({
       name,
+      type,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -84,12 +97,11 @@ export class BreedsController {
     @Param('breedId', ParseUUIDPipe) breedId: string,
   ) {
     const { user } = req;
-    const { name } = body;
+    const { name, type } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
     });
-
     if (!findOneBreed) {
       throw new HttpException(
         `${breedId} doesn't exists please change`,
@@ -98,9 +110,10 @@ export class BreedsController {
     }
 
     const breed = await this.breedsService.updateOne(
-      { breedId },
+      { breedId: findOneBreed?.id },
       {
         name,
+        type,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
         updatedAt: new Date(),
@@ -110,31 +123,31 @@ export class BreedsController {
     return reply({ res, results: breed });
   }
 
-  /** Get one breed */
+  /** Get one breed by type */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdBreed(
     @Res() res,
     @Req() req,
-    @Query('breedId', ParseUUIDPipe) breedId: string,
+    @Query('type') type: AnimalType,
+    @Query() requestPaginationDto: RequestPaginationDto,
   ) {
     const { user } = req;
-    const findOneBreed = await this.breedsService.findOneBy({
-      breedId,
+    const { take, page, sort } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({ page, take, sort });
+    const findOneBreed = await this.breedsService.findOneTypeBreeds({
+      type,
+      pagination,
+      organizationId: user.organizationId,
     });
     if (!findOneBreed) {
       throw new HttpException(
-        `${breedId} doesn't exists please change`,
+        `Type ${type} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    const breed = await this.breedsService.findOneBy({
-      breedId,
-      organizationId: user.organizationId,
-    });
-
-    return reply({ res, results: breed });
+    return reply({ res, results: findOneBreed });
   }
 
   /** Delete one breed */

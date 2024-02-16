@@ -18,10 +18,6 @@ export class CreateOrUpdateGestationsDto {
 
   @IsNotEmpty()
   @IsString()
-  farrowingDate: Date;
-
-  @IsNotEmpty()
-  @IsString()
   @IsUUID()
   checkPregnancyId: string;
 }

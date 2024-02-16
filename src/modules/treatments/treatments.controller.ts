@@ -149,7 +149,6 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      organizationId: user.organizationId,
     });
     if (!findOneTreatement) {
       throw new HttpException(
@@ -160,7 +159,7 @@ export class TreatmentsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -170,7 +169,7 @@ export class TreatmentsController {
 
     const findOneDiagnosis = await this.diagnosisService.findOneBy({
       diagnosisId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneDiagnosis) {
       throw new HttpException(
@@ -181,7 +180,7 @@ export class TreatmentsController {
 
     const findOneMedication = await this.medicationsService.findOneBy({
       medicationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneMedication) {
       throw new HttpException(
@@ -191,7 +190,7 @@ export class TreatmentsController {
     }
 
     const treatment = await this.treatmentsService.updateOne(
-      { treatmentId },
+      { treatmentId: findOneTreatement.id },
       {
         note,
         numberOfDose,
@@ -221,7 +220,7 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTreatement) {
       throw new HttpException(
@@ -230,12 +229,7 @@ export class TreatmentsController {
       );
     }
 
-    const treatment = await this.treatmentsService.findOneBy({
-      treatmentId,
-      organizationId: user.organizationId,
-    });
-
-    return reply({ res, results: treatment });
+    return reply({ res, results: findOneTreatement });
   }
 
   /** Delete one treatment */
@@ -254,13 +248,13 @@ export class TreatmentsController {
     });
     if (!findOneTreatement) {
       throw new HttpException(
-        ` ${treatmentId} doesn't exists please change`,
+        `${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     const treatment = await this.treatmentsService.updateOne(
-      { treatmentId },
+      { treatmentId: findOneTreatement?.id },
       { deletedAt: new Date() },
     );
 

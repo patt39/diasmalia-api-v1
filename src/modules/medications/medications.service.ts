@@ -60,7 +60,7 @@ export class MedicationsService {
   /** Find one medication in database. */
   async findOneBy(selections: GetOneMedicationsSelections) {
     const prismaWhereMedication = {} as Prisma.MedicationWhereInput;
-    const { medicationId, organizationId } = selections;
+    const { name, medicationId, organizationId } = selections;
 
     if (medicationId) {
       Object.assign(prismaWhereMedication, { id: medicationId });
@@ -68,6 +68,10 @@ export class MedicationsService {
 
     if (organizationId) {
       Object.assign(prismaWhereMedication, { organizationId });
+    }
+
+    if (name) {
+      Object.assign(prismaWhereMedication, { name });
     }
 
     const medication = await this.client.medication.findFirst({

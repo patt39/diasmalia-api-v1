@@ -57,6 +57,7 @@ export const WeaningSelect = {
   organizationId: true,
   organization: {
     select: {
+      date: true,
       name: true,
     },
   },

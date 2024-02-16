@@ -25,7 +25,11 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
 import { BreedingsService } from '../breedings/breedings.service';
 import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateCheckPregnanciesDto } from './check-pregnancies.dto';
+import {
+  checkPregancyMethodDto,
+  checkPregancyResultDto,
+  CreateOrUpdateCheckPregnanciesDto,
+} from './check-pregnancies.dto';
 import { CheckPregnanciesService } from './check-pregnancies.service';
 
 @Controller('check-pregnancies')
@@ -44,14 +48,20 @@ export class CheckPregnanciesController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryMethod: checkPregancyMethodDto,
+    @Query() queryResult: checkPregancyResultDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { method } = queryMethod;
+    const { result } = queryResult;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const CheckPregnancies = await this.checkPregnanciesService.findAll({
+      method,
+      result,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -69,9 +79,18 @@ export class CheckPregnanciesController {
     @Body() body: CreateOrUpdateCheckPregnanciesDto,
   ) {
     const { user } = req;
-    const { date, note, result, method, codeFemale, farrowingDate } = body;
+    const {
+      date,
+      note,
+      result,
+      method,
+      codeFemale,
+      breedingId,
+      farrowingDate,
+    } = body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
+      breedingId,
       checkStatus: false,
       organizationId: user.organizationId,
     });
@@ -90,13 +109,6 @@ export class CheckPregnanciesController {
       );
     }
 
-    if (findOneBreeding.checkStatus == true) {
-      throw new HttpException(
-        `Animal ${codeFemale} can't be checked already done please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
     const checkPregnancy = await this.checkPregnanciesService.createOne({
       date,
       note,
@@ -108,6 +120,13 @@ export class CheckPregnanciesController {
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+
+    await this.breedingsService.updateOne(
+      { breedingId: findOneBreeding.id },
+      {
+        checkStatus: !findOneBreeding.checkStatus,
+      },
+    );
 
     return reply({ res, results: checkPregnancy });
   }
@@ -126,7 +145,6 @@ export class CheckPregnanciesController {
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
-      organizationId: user.organizationId,
     });
     if (!findOnecheckPregnancy) {
       throw new HttpException(
@@ -161,7 +179,7 @@ export class CheckPregnanciesController {
     }
 
     const checkPregnancy = await this.checkPregnanciesService.updateOne(
-      { checkPregnancyId },
+      { checkPregnancyId: findOnecheckPregnancy?.id },
       {
         date,
         note,

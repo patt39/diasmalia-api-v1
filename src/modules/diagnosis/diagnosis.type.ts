@@ -9,6 +9,7 @@ export type GetDiagnosisSelections = {
 
 export type GetOneDiagnosisSelections = {
   diagnosisId?: Diagnosis['id'];
+  name?: Diagnosis['name'];
   organizationId?: Diagnosis['organizationId'];
 };
 

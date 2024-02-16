@@ -7,6 +7,8 @@ export type GetBreedingsSelections = {
   pagination?: PaginationType;
   animalId?: string;
   gender?: Animal['gender'];
+  method?: Breeding['method'];
+  checkStatus?: Breeding['checkStatus'];
 };
 
 export type GetOneBreedingsSelections = {

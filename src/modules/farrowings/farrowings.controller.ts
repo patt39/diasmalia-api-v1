@@ -76,7 +76,6 @@ export class FarrowingsController {
       productionPhase: 'GESTATION',
       organizationId: user.organizationId,
     });
-
     if (!findOneFemale) {
       throw new HttpException(
         `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
@@ -116,7 +115,10 @@ export class FarrowingsController {
     const { user } = req;
     const { litter, note, date, codeFemale } = body;
 
-    if (!farrowingId) {
+    const findOneFarrowing = await this.farrowingsService.findOneBy({
+      farrowingId,
+    });
+    if (!findOneFarrowing) {
       throw new HttpException(
         `${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
@@ -130,7 +132,6 @@ export class FarrowingsController {
       productionPhase: 'GESTATION',
       organizationId: user?.organizationId,
     });
-
     if (!findOneFemale) {
       throw new HttpException(
         `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
@@ -139,7 +140,7 @@ export class FarrowingsController {
     }
 
     const farrowing = await this.farrowingsService.updateOne(
-      { farrowingId },
+      { farrowingId: findOneFarrowing?.id },
       {
         note,
         date,
@@ -203,7 +204,7 @@ export class FarrowingsController {
     }
 
     const farrowing = await this.farrowingsService.updateOne(
-      { farrowingId },
+      { farrowingId: findOneFarrowing.id },
       { deletedAt: new Date() },
     );
 

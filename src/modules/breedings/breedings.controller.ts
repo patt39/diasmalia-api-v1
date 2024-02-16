@@ -26,6 +26,8 @@ import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateBreedingsDto,
+  GetAnimalBreedingsByCheckDto,
+  GetAnimalBreedingsByMethodDto,
   GetAnimalBreedingsDto,
 } from './breedings.dto';
 import { BreedingsService } from './breedings.service';
@@ -45,16 +47,22 @@ export class BreedingsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryStatus: GetAnimalBreedingsByCheckDto,
+    @Query() queryMethod: GetAnimalBreedingsByMethodDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { checkStatus } = queryStatus;
+    const { method } = queryMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const breedings = await this.breedingsService.findAll({
+      method,
       search,
       pagination,
+      checkStatus,
       organizationId: user?.organizationId,
     });
 

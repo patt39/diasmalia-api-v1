@@ -1,6 +1,5 @@
-import { MethodDisposal } from '@prisma/client';
 import {
-  IsEnum,
+  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -20,16 +19,20 @@ export class CreateOrUpdateDeathsDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
-  cause: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
   codeAnimal: string;
+}
+
+export class BulkDeathsDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  note: string;
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
-  @IsEnum(MethodDisposal)
-  method: MethodDisposal;
+  date: Date;
+
+  @IsNotEmpty()
+  @IsArray()
+  animals: any;
 }

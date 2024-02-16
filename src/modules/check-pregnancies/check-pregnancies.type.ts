@@ -5,6 +5,8 @@ export type GetCheckPregnanciesSelections = {
   search?: string;
   organizationId: string;
   pagination?: PaginationType;
+  method?: CheckPregnancy['method'];
+  result?: CheckPregnancy['result'];
 };
 
 export type GetOneCheckPregnanciesSelections = {

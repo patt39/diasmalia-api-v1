@@ -122,7 +122,6 @@ export class WeaningsController {
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      organizationId: user.organizationId,
     });
     if (!findOneWeaning) {
       throw new HttpException(
@@ -157,7 +156,7 @@ export class WeaningsController {
     }
 
     const weaning = await this.weaningsService.updateOne(
-      { weaningId },
+      { weaningId: findOneWeaning?.id },
       {
         note,
         date,
@@ -217,7 +216,7 @@ export class WeaningsController {
     }
 
     const weaning = await this.weaningsService.updateOne(
-      { weaningId },
+      { weaningId: findOneWeaning.id },
       { deletedAt: new Date() },
     );
 

@@ -60,7 +60,7 @@ export class FeedTypeService {
   /** Find one feedType in database. */
   async findOneBy(selections: GetOneFeedTypeSelections) {
     const prismaWhere = {} as Prisma.FeedTypeWhereInput;
-    const { feedTypeId, organizationId } = selections;
+    const { name, feedTypeId, organizationId } = selections;
 
     if (feedTypeId) {
       Object.assign(prismaWhere, { id: feedTypeId });
@@ -68,6 +68,10 @@ export class FeedTypeService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (name) {
+      Object.assign(prismaWhere, { name });
     }
 
     const feedType = await this.client.feedType.findFirst({

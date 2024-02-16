@@ -61,7 +61,7 @@ export class DiagnosisService {
   async findOneBy(selections: GetOneDiagnosisSelections) {
     const prismaWhere = {} as Prisma.DiagnosisWhereInput;
 
-    const { diagnosisId, organizationId } = selections;
+    const { name, diagnosisId, organizationId } = selections;
 
     if (diagnosisId) {
       Object.assign(prismaWhere, { id: diagnosisId });
@@ -69,6 +69,10 @@ export class DiagnosisService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (name) {
+      Object.assign(prismaWhere, { name });
     }
 
     const diagnosis = await this.client.diagnosis.findFirst({

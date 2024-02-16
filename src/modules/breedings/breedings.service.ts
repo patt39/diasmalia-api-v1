@@ -27,7 +27,15 @@ export class BreedingsService {
     selections: GetBreedingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
-    const { search, organizationId, pagination, animalId, gender } = selections;
+    const {
+      search,
+      gender,
+      method,
+      animalId,
+      checkStatus,
+      pagination,
+      organizationId,
+    } = selections;
 
     if (search) {
       Object.assign(prismaWhereBreeding, {
@@ -44,6 +52,14 @@ export class BreedingsService {
 
     if (organizationId) {
       Object.assign(prismaWhereBreeding, { organizationId });
+    }
+
+    if (checkStatus) {
+      Object.assign(prismaWhereBreeding, { checkStatus });
+    }
+
+    if (method) {
+      Object.assign(prismaWhereBreeding, { method });
     }
 
     if (animalId && gender === 'MALE') {
@@ -198,8 +214,15 @@ export class BreedingsService {
     options: UpdateBreedingsOptions,
   ): Promise<Breeding> {
     const { breedingId } = selections;
-    const { date, note, method, animalFemaleId, animalMaleId, deletedAt } =
-      options;
+    const {
+      date,
+      note,
+      method,
+      checkStatus,
+      animalFemaleId,
+      animalMaleId,
+      deletedAt,
+    } = options;
 
     const breeding = this.client.breeding.update({
       where: {
@@ -209,6 +232,7 @@ export class BreedingsService {
         date,
         note,
         method,
+        checkStatus,
         animalFemaleId,
         animalMaleId,
         deletedAt,

@@ -24,7 +24,13 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { BreedsService } from '../breeds/breeds.service';
 import { LocationsService } from '../locations/locations.service';
 import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateAnimalsDto } from './animals.dto';
+import {
+  CreateOrUpdateAnimalsDto,
+  GetAnimalsByGender,
+  GetAnimalsByProductionPhase,
+  GetAnimalsByStatus,
+  GetAnimalsByType,
+} from './animals.dto';
 import { AnimalsService } from './animals.service';
 
 @Controller('animals')
@@ -43,16 +49,28 @@ export class AnimalsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryStatus: GetAnimalsByStatus,
+    @Query() queryType: GetAnimalsByType,
+    @Query() queryGender: GetAnimalsByGender,
+    @Query() queryPhase: GetAnimalsByProductionPhase,
   ) {
     const { user } = req;
     const { search } = query;
+    const { status } = queryStatus;
+    const { type } = queryType;
+    const { gender } = queryGender;
+    const { productionPhase } = queryPhase;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const animals = await this.animalsService.findAll({
+      type,
+      gender,
+      status,
       search,
       pagination,
+      productionPhase,
       organizationId: user?.organizationId,
     });
 
@@ -113,6 +131,12 @@ export class AnimalsController {
     if (findOneLocation.productionPhase !== productionPhase)
       throw new HttpException(
         `Animal can't be placed in this location ${findOneLocation.number} please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneLocation.type !== type)
+      throw new HttpException(
+        `Animal location ${findOneLocation.type} isn't valid please change`,
         HttpStatus.NOT_FOUND,
       );
 

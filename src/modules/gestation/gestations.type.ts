@@ -8,8 +8,8 @@ export type GetGestationsSelections = {
 };
 
 export type GetOneGestationSelections = {
-  gestationId: Gestation['id'];
-  organizationId: Gestation['id'];
+  gestationId?: Gestation['id'];
+  organizationId?: Gestation['id'];
 };
 
 export type UpdateGestationsSelections = {
