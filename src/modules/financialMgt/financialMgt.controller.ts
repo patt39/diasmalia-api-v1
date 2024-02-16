@@ -1,32 +1,38 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { FinancialMgtService } from './financialMgt.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateFinancialMgtDto } from './financialMgt.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { FinancialDetailService } from '../financialDetails/financialDetails.service';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateFinancialMgtDto } from './financialMgt.dto';
+import { FinancialMgtService } from './financialMgt.service';
 
 @Controller('financialMgt')
 export class FinancialMgtController {
-  constructor(private readonly financialMgtService: FinancialMgtService) {}
+  constructor(
+    private readonly financialMgtService: FinancialMgtService,
+    private readonly financialDetailService: FinancialDetailService,
+  ) {}
 
   /** Get all financialMgt */
   @Get(`/`)
@@ -63,12 +69,22 @@ export class FinancialMgtController {
     const { user } = req;
     const { date, note, amount, type, financialDetailId } = body;
 
+    const findOneFinancialDetail = await this.financialDetailService.findOneBy({
+      financialDetailId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinancialDetail)
+      throw new HttpException(
+        `${financialDetailId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const financialMgt = await this.financialMgtService.createOne({
       date,
+      type,
       note,
       amount,
-      type,
-      financialDetailId,
+      financialDetailId: findOneFinancialDetail.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -83,19 +99,39 @@ export class FinancialMgtController {
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateFinancialMgtDto,
-    @Param('financialDetailId', ParseUUIDPipe) financialMgtId: string,
+    @Param('financialMgtId', ParseUUIDPipe) financialMgtId: string,
   ) {
     const { user } = req;
     const { date, note, amount, type, financialDetailId } = body;
 
+    const findOneFinancialMgt = await this.financialMgtService.findOneBy({
+      financialMgtId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinancialMgt)
+      throw new HttpException(
+        `${financialMgtId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneFinancialDetail = await this.financialDetailService.findOneBy({
+      financialDetailId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinancialDetail)
+      throw new HttpException(
+        `${financialDetailId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const financialMgt = await this.financialMgtService.updateOne(
-      { financialMgtId },
+      { financialMgtId: findOneFinancialMgt?.id },
       {
         date,
         note,
-        amount,
         type,
-        financialDetailId,
+        amount,
+        financialDetailId: findOneFinancialDetail.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -109,13 +145,22 @@ export class FinancialMgtController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('financialMgtId', ParseUUIDPipe) financialMgtId: string,
   ) {
-    const financialMgt = await this.financialMgtService.findOneBy({
-      financialMgtId,
-    });
+    const { user } = req;
 
-    return reply({ res, results: financialMgt });
+    const findOneFinancialMgt = await this.financialMgtService.findOneBy({
+      financialMgtId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinancialMgt)
+      throw new HttpException(
+        `${financialMgtId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneFinancialMgt });
   }
 
   /** Delete one financialMgt */
@@ -123,10 +168,23 @@ export class FinancialMgtController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('financialMgtId', ParseUUIDPipe) financialMgtId: string,
   ) {
+    const { user } = req;
+
+    const findOneFinancialMgt = await this.financialMgtService.findOneBy({
+      financialMgtId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinancialMgt)
+      throw new HttpException(
+        `${financialMgtId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const financialMgt = await this.financialMgtService.updateOne(
-      { financialMgtId },
+      { financialMgtId: findOneFinancialMgt.id },
       { deletedAt: new Date() },
     );
 

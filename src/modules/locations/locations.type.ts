@@ -5,6 +5,8 @@ export type GetLocationsSelections = {
   search?: string;
   locationId?: Location['id'];
   pagination?: PaginationType;
+  type?: Location['type'];
+  productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
 };
 
@@ -13,7 +15,7 @@ export type GetOneLocationsSelections = {
   number?: Location['number'];
   type?: Location['type'];
   productionPhase?: Location['productionPhase'];
-  organizationId: Location['organizationId'];
+  organizationId?: Location['organizationId'];
 };
 
 export type UpdateLocationsSelections = {

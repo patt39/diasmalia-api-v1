@@ -23,7 +23,11 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateLocationsDto } from './locations.dto';
+import {
+  CreateOrUpdateLocationsDto,
+  GetLocationsByPhase,
+  GetLocationsByType,
+} from './locations.dto';
 import { LocationsService } from './locations.service';
 
 @Controller('locations')
@@ -38,16 +42,22 @@ export class LocationsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryTypes: GetLocationsByType,
+    @Query() queryPhase: GetLocationsByPhase,
   ) {
     const { user } = req;
     const { search } = query;
+    const { type } = queryTypes;
+    const { productionPhase } = queryPhase;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const locations = await this.locationsService.findAll({
+      type,
       search,
       pagination,
+      productionPhase,
       organizationId: user?.organizationId,
     });
 
@@ -69,7 +79,6 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       type,
       number,
-      organizationId: user?.organizationId,
     });
     if (findOneLocation) {
       throw new HttpException(
@@ -85,7 +94,7 @@ export class LocationsController {
       through,
       squareMeter,
       productionPhase,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({
@@ -114,7 +123,6 @@ export class LocationsController {
       type,
       number,
       locationId,
-      organizationId: user?.organizationId,
     });
     if (!findOneLocation) {
       throw new HttpException(

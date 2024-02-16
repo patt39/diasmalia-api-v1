@@ -9,6 +9,7 @@ export type GetFeedTypesSelections = {
 
 export type GetOneFeedTypeSelections = {
   feedTypeId?: FeedType['id'];
+  name?: FeedType['name'];
   organizationId?: FeedType['organizationId'];
 };
 

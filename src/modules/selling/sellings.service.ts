@@ -22,7 +22,7 @@ export class SellingsService {
     selections: GetSellingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.SellingWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, method, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +36,10 @@ export class SellingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (method) {
+      Object.assign(prismaWhere, { method });
     }
 
     const sellings = await this.client.selling.findMany({
@@ -74,6 +78,7 @@ export class SellingsService {
   async createOne(options: CreateSellingsOptions): Promise<Selling> {
     const {
       date,
+      note,
       price,
       soldTo,
       method,
@@ -81,12 +86,12 @@ export class SellingsService {
       animalId,
       organizationId,
       userCreatedId,
-      note,
     } = options;
 
     const selling = this.client.selling.create({
       data: {
         date,
+        note,
         price,
         soldTo,
         method,
@@ -94,7 +99,6 @@ export class SellingsService {
         animalId,
         organizationId,
         userCreatedId,
-        note,
       },
     });
 
@@ -109,6 +113,7 @@ export class SellingsService {
     const { sellingId } = selections;
     const {
       date,
+      note,
       price,
       soldTo,
       method,
@@ -116,7 +121,6 @@ export class SellingsService {
       animalId,
       organizationId,
       userCreatedId,
-      note,
       deletedAt,
     } = options;
 
@@ -126,6 +130,7 @@ export class SellingsService {
       },
       data: {
         date,
+        note,
         price,
         soldTo,
         method,
@@ -133,7 +138,6 @@ export class SellingsService {
         animalId,
         organizationId,
         userCreatedId,
-        note,
         deletedAt,
       },
     });

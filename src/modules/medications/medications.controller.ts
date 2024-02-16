@@ -65,6 +65,17 @@ export class MedicationsController {
     const { user } = req;
     const { name } = body;
 
+    const findOneMedication = await this.medicationsService.findOneBy({
+      name,
+      organizationId: user?.organizationId,
+    });
+    if (findOneMedication) {
+      throw new HttpException(
+        `Medication ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const medication = await this.medicationsService.createOne({
       name,
       organizationId: user?.organizationId,
@@ -88,17 +99,16 @@ export class MedicationsController {
 
     const findOneMedication = await this.medicationsService.findOneBy({
       medicationId,
-      organizationId: user?.organizationId,
     });
     if (!findOneMedication) {
       throw new HttpException(
-        ` ${medicationId} doesn't exists please change`,
+        `${medicationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     const medication = await this.medicationsService.updateOne(
-      { medicationId },
+      { medicationId: findOneMedication?.id },
       {
         name,
         userCreatedId: user?.id,

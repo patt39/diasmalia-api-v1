@@ -1,12 +1,11 @@
 import { financialType } from '@prisma/client';
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsUUID,
   IsEnum,
   IsInt,
-  IsDate,
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateFinancialMgtDto {
@@ -17,12 +16,10 @@ export class CreateOrUpdateFinancialMgtDto {
 
   @IsNotEmpty()
   @IsInt()
-  @MaxLength(100)
   amount: number;
 
   @IsNotEmpty()
-  @IsDate()
-  @MaxLength(100)
+  @IsString()
   date: Date;
 
   @IsNotEmpty()
@@ -33,6 +30,7 @@ export class CreateOrUpdateFinancialMgtDto {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(100)
   @IsUUID()
   financialDetailId: string;
 }

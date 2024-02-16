@@ -65,6 +65,17 @@ export class DiagnosisController {
     const { user } = req;
     const { name } = body;
 
+    const findOneDiagnosis = await this.diagnosisService.findOneBy({
+      name,
+      organizationId: user?.organizationId,
+    });
+    if (findOneDiagnosis) {
+      throw new HttpException(
+        `Diagnosis ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const diagnosis = await this.diagnosisService.createOne({
       name,
       organizationId: user?.organizationId,
@@ -98,7 +109,7 @@ export class DiagnosisController {
     }
 
     await this.diagnosisService.updateOne(
-      { diagnosisId },
+      { diagnosisId: findOneDiagnosis?.id },
       {
         name,
         organizationId: user?.organizationId,
@@ -153,7 +164,7 @@ export class DiagnosisController {
     }
 
     await this.diagnosisService.updateOne(
-      { diagnosisId },
+      { diagnosisId: findOneDiagnosis.id },
       { deletedAt: new Date() },
     );
 

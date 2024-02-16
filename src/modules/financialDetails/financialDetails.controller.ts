@@ -1,28 +1,30 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { FinancialDetailService } from './financialDetails.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateFinancialDetailDto } from './financialDetails.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { JwtAuthGuard } from '../users/middleware';
+import { CreateOrUpdateFinancialDetailDto } from './financialDetails.dto';
+import { FinancialDetailService } from './financialDetails.service';
 
 @Controller('financialDetails')
 export class FinancialDetailController {
@@ -65,6 +67,16 @@ export class FinancialDetailController {
     const { user } = req;
     const { name } = body;
 
+    const findOneFinancialDetail = await this.financialDetailService.findOneBy({
+      name,
+      organizationId: user?.organizationId,
+    });
+    if (findOneFinancialDetail)
+      throw new HttpException(
+        `Detail ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const medication = await this.financialDetailService.createOne({
       name,
       organizationId: user?.organizationId,
@@ -86,8 +98,17 @@ export class FinancialDetailController {
     const { user } = req;
     const { name } = body;
 
+    const findOneFinancialDetail = await this.financialDetailService.findOneBy({
+      financialDetailId,
+    });
+    if (!findOneFinancialDetail)
+      throw new HttpException(
+        `${financialDetailId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const financialDetail = await this.financialDetailService.updateOne(
-      { financialDetailId },
+      { financialDetailId: findOneFinancialDetail?.id },
       {
         name,
         organizationId: user?.organizationId,
@@ -103,13 +124,21 @@ export class FinancialDetailController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('financialDetailId', ParseUUIDPipe) financialDetailId: string,
   ) {
-    const financialDetail = await this.financialDetailService.findOneBy({
+    const { user } = req;
+    const findOneFinancialDetail = await this.financialDetailService.findOneBy({
       financialDetailId,
+      organizationId: user?.organizationId,
     });
+    if (!findOneFinancialDetail)
+      throw new HttpException(
+        `${financialDetailId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
-    return reply({ res, results: financialDetail });
+    return reply({ res, results: findOneFinancialDetail });
   }
 
   /** Delete one financialDetail */
@@ -117,10 +146,22 @@ export class FinancialDetailController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('financialDetailId', ParseUUIDPipe) financialDetailId: string,
   ) {
+    const { user } = req;
+
+    const findOneFinancialDetail = await this.financialDetailService.findOneBy({
+      financialDetailId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinancialDetail)
+      throw new HttpException(
+        `${financialDetailId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
     const financialDetail = await this.financialDetailService.updateOne(
-      { financialDetailId },
+      { financialDetailId: findOneFinancialDetail.id },
       { deletedAt: new Date() },
     );
 

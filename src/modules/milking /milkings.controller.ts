@@ -110,7 +110,6 @@ export class MilkingsController {
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user.organizationId,
     });
     if (!findOneMilking) {
       throw new HttpException(
@@ -134,7 +133,7 @@ export class MilkingsController {
     }
 
     const milking = await this.milkingsService.updateOne(
-      { milkingId },
+      { milkingId: findOneMilking?.id },
       {
         note,
         date,
@@ -194,7 +193,7 @@ export class MilkingsController {
     }
 
     await this.milkingsService.updateOne(
-      { milkingId },
+      { milkingId: findOneMilking?.id },
       { deletedAt: new Date() },
     );
 

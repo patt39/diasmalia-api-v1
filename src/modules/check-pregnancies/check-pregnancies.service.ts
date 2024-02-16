@@ -22,7 +22,7 @@ export class CheckPregnanciesService {
     selections: GetCheckPregnanciesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.CheckPregnancyWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, method, result, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +36,14 @@ export class CheckPregnanciesService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (method) {
+      Object.assign(prismaWhere, { method });
+    }
+
+    if (result) {
+      Object.assign(prismaWhere, { result });
     }
 
     const checkPregnancies = await this.client.checkPregnancy.findMany({

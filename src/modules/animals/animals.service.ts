@@ -22,7 +22,16 @@ export class AnimalsService {
     selections: GetAnimalsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
-    const { search, organizationId, pagination, animalIds } = selections;
+    const {
+      type,
+      search,
+      status,
+      gender,
+      productionPhase,
+      organizationId,
+      pagination,
+      animalIds,
+    } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -49,6 +58,22 @@ export class AnimalsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
+    }
+
+    if (gender) {
+      Object.assign(prismaWhere, { gender });
+    }
+
+    if (productionPhase) {
+      Object.assign(prismaWhere, { productionPhase });
     }
 
     const animals = await this.client.animal.findMany({

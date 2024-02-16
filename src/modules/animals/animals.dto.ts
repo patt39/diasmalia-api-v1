@@ -1,4 +1,9 @@
-import { AnimalType, Gender, ProductionPhase } from '@prisma/client';
+import {
+  AnimalStatus,
+  AnimalType,
+  Gender,
+  ProductionPhase,
+} from '@prisma/client';
 import {
   IsEnum,
   IsInt,
@@ -63,4 +68,29 @@ export class CreateOrUpdateAnimalsDto {
   @IsString()
   @IsUUID()
   breedId: string;
+}
+export class GetAnimalsByStatus {
+  @IsOptional()
+  @IsString()
+  @IsEnum(AnimalStatus)
+  status: AnimalStatus;
+}
+export class GetAnimalsByType {
+  @IsOptional()
+  @IsString()
+  @IsEnum(AnimalType)
+  type: AnimalType;
+}
+export class GetAnimalsByGender {
+  @IsOptional()
+  @IsString()
+  @IsEnum(Gender)
+  gender: Gender;
+}
+export class GetAnimalsByProductionPhase {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
 }

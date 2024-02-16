@@ -147,7 +147,7 @@ export class FeedingsController {
       );
 
     const death = await this.feedingsService.updateOne(
-      { feedingId },
+      { feedingId: findOneFeeding?.id },
       {
         date,
         note,
@@ -205,7 +205,7 @@ export class FeedingsController {
       );
 
     const feeding = await this.feedingsService.updateOne(
-      { feedingId },
+      { feedingId: findOneFeeding.id },
       { deletedAt: new Date() },
     );
 

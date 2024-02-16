@@ -3,8 +3,8 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateLocationsDto {
@@ -31,7 +31,18 @@ export class CreateOrUpdateLocationsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
+}
+export class GetLocationsByType {
+  @IsOptional()
+  @IsString()
+  @IsEnum(AnimalType)
+  type: AnimalType;
+}
+export class GetLocationsByPhase {
+  @IsOptional()
+  @IsString()
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 }

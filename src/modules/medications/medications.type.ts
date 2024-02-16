@@ -8,6 +8,7 @@ export type GetMedicationsSelections = {
 };
 
 export type GetOneMedicationsSelections = {
+  name?: Medication['name'];
   medicationId?: Medication['id'];
   organizationId?: Medication['organizationId'];
 };

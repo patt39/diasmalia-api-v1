@@ -22,7 +22,7 @@ export class LocationsService {
     selections: GetLocationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.LocationWhereInput;
-    const { search, pagination } = selections;
+    const { search, type, productionPhase, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -35,6 +35,14 @@ export class LocationsService {
           },
         ],
       });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
+    }
+
+    if (productionPhase) {
+      Object.assign(prismaWhere, { productionPhase });
     }
 
     const locations = await this.client.location.findMany({

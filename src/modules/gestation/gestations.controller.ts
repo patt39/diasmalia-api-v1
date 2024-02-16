@@ -124,17 +124,28 @@ export class GestationsController {
   ) {
     const { user } = req;
     const { note, codeFemale, checkPregnancyId } = body;
+
+    const findOneGestation = await this.gestationsService.findOneBy({
+      gestationId,
+    });
+    if (!findOneGestation) {
+      throw new HttpException(
+        `${gestationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const findOneCheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
       organizationId: user?.organization,
     });
-
     if (!findOneCheckPregnancy) {
       throw new HttpException(
         `${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
+
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
@@ -150,7 +161,7 @@ export class GestationsController {
     }
 
     const gestation = await this.gestationsService.updateOne(
-      { gestationId },
+      { gestationId: findOneGestation?.id },
       {
         note,
         animalId: findOneFemale.id,

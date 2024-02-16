@@ -5,10 +5,12 @@ export type GetSellingsSelections = {
   search?: string;
   organizationId: string;
   pagination?: PaginationType;
+  method: Selling['method'];
 };
 
 export type GetOneSellingSelections = {
   sellingId: Selling['id'];
+  organizationId?: Selling['organizationId'];
 };
 
 export type UpdateSellingsSelections = {

@@ -1,31 +1,41 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
-  Delete,
-  Res,
-  Req,
-  Get,
-  Query,
-  UseGuards,
+  Post,
   Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { reply } from '../../app/utils/reply';
-import { SellingsService } from './sellings.service';
-import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { CreateOrUpdateSellingsDto } from './sellings.dto';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
-  addPagination,
   PaginationType,
+  addPagination,
 } from '../../app/utils/pagination/with-pagination';
+import { reply } from '../../app/utils/reply';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
 import { JwtAuthGuard } from '../users/middleware';
+import {
+  BulkSalesDto,
+  CreateOrUpdateSellingsDto,
+  SaleMethodDto,
+} from './sellings.dto';
+import { SellingsService } from './sellings.service';
 
-@Controller('gestations')
+@Controller('sellings')
 export class SellingsController {
-  constructor(private readonly sellingsService: SellingsService) {}
+  constructor(
+    private readonly sellingsService: SellingsService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   /** Get all Selling */
   @Get(`/`)
@@ -35,14 +45,17 @@ export class SellingsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() querySaleMethod: SaleMethodDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { method } = querySaleMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const sellings = await this.sellingsService.findAll({
+      method,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -60,13 +73,26 @@ export class SellingsController {
     @Body() body: CreateOrUpdateSellingsDto,
   ) {
     const { user } = req;
-    const { note, price, date, animalId, method } = body;
+    const { note, price, date, code, method, soldTo, phone } = body;
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${findOneAnimal.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const selling = await this.sellingsService.createOne({
       note,
-      price,
       date,
-      animalId,
+      phone,
+      price,
+      soldTo,
       method,
+      animalId: findOneAnimal.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -84,16 +110,29 @@ export class SellingsController {
     @Param('sellingId', ParseUUIDPipe) sellingId: string,
   ) {
     const { user } = req;
-    const { note, price, date, animalId, method } = body;
+    const { note, price, date, code, method, soldTo, phone } = body;
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${findOneAnimal.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const selling = await this.sellingsService.updateOne(
       { sellingId },
       {
         note,
-        price,
         date,
-        animalId,
+        price,
+        phone,
         method,
+        soldTo,
+        animalId: findOneAnimal.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -102,18 +141,64 @@ export class SellingsController {
     return reply({ res, results: selling });
   }
 
+  /** Post one Bulk sale */
+  @Post(`/bulk`)
+  @UseGuards(JwtAuthGuard)
+  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkSalesDto) {
+    const { user } = req;
+    const { date, animals, note, price, method, soldTo, phone } = body;
+
+    for (const animal of animals) {
+      const findOneAnimal = await this.animalsService.findOneBy({
+        status: 'ACTIVE',
+        code: animal?.code,
+        organizationId: user.organizationId,
+      });
+      if (!findOneAnimal) {
+        throw new HttpException(
+          `Animal ${findOneAnimal.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const sell = await this.sellingsService.createOne({
+        note,
+        date,
+        price,
+        phone,
+        method,
+        soldTo,
+        animalId: findOneAnimal?.id,
+        organizationId: findOneAnimal?.organizationId,
+        userCreatedId: user?.id,
+      });
+
+      await this.animalsService.updateOne(
+        { animalId: sell.animalId },
+        {
+          status: 'SOLD',
+        },
+      );
+    }
+
+    return reply({ res, results: 'Saved' });
+  }
+
   /** Get one Selling */
   @Get(`/view`)
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('sellingId', ParseUUIDPipe) sellingId: string,
   ) {
-    const selling = await this.sellingsService.findOneBy({
+    const { user } = req;
+    const findOneSelling = await this.sellingsService.findOneBy({
       sellingId,
+      organizationId: user.organizationId,
     });
 
-    return reply({ res, results: selling });
+    return reply({ res, results: findOneSelling });
   }
 
   /** Delete one Selling */
@@ -121,10 +206,16 @@ export class SellingsController {
   @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('sellingId', ParseUUIDPipe) sellingId: string,
   ) {
+    const { user } = req;
+    const findOneSelling = await this.sellingsService.findOneBy({
+      sellingId,
+      organizationId: user.organizationId,
+    });
     const selling = await this.sellingsService.updateOne(
-      { sellingId },
+      { sellingId: findOneSelling.id },
       { deletedAt: new Date() },
     );
 

@@ -87,8 +87,8 @@ export class TasksController {
 
     const task = await this.tasksService.createOne({
       title,
-      dueDate,
       status,
+      dueDate,
       description,
       contributorId: findOneContributor.id,
       organizationId: user?.organizationId,
@@ -112,7 +112,6 @@ export class TasksController {
 
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
-      organizationId: user.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -141,8 +140,8 @@ export class TasksController {
       { taskId: findOneTask?.id },
       {
         title,
-        dueDate,
         status,
+        dueDate,
         description,
         contributorId: findOneContributor.id,
         organizationId: user?.organizationId,
@@ -158,9 +157,14 @@ export class TasksController {
   @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Query('taskId', ParseUUIDPipe) taskId: string,
   ) {
-    const findOneTask = await this.tasksService.findOneBy({ taskId });
+    const { user } = req;
+    const findOneTask = await this.tasksService.findOneBy({
+      taskId,
+      organizationId: user?.organizationId,
+    });
     if (!findOneTask) {
       throw new HttpException(
         `Task ${taskId} doesn't exists please change`,
@@ -174,9 +178,15 @@ export class TasksController {
   /** Delete one Task */
   @Delete(`/delete/:taskId`)
   @UseGuards(JwtAuthGuard)
-  async deleteOne(@Res() res, @Param('taskId', ParseUUIDPipe) taskId: string) {
+  async deleteOne(
+    @Res() res,
+    @Req() req,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+  ) {
+    const { user } = req;
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -185,7 +195,7 @@ export class TasksController {
       );
     }
     const task = await this.tasksService.updateOne(
-      { taskId },
+      { taskId: findOneTask?.id },
       { deletedAt: new Date() },
     );
 
