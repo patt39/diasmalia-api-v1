@@ -75,8 +75,9 @@ export class FinancialMgtService {
     const {
       date,
       note,
-      amount,
       type,
+      amount,
+      financialAccountId,
       financialDetailId,
       organizationId,
       userCreatedId,
@@ -86,8 +87,9 @@ export class FinancialMgtService {
       data: {
         date,
         note,
-        amount,
         type,
+        amount,
+        financialAccountId,
         financialDetailId,
         organizationId,
         userCreatedId,
@@ -106,8 +108,9 @@ export class FinancialMgtService {
     const {
       date,
       note,
-      amount,
       type,
+      amount,
+      financialAccountId,
       financialDetailId,
       organizationId,
       userCreatedId,
@@ -121,8 +124,9 @@ export class FinancialMgtService {
       data: {
         date,
         note,
-        amount,
         type,
+        amount,
+        financialAccountId,
         financialDetailId,
         organizationId,
         userCreatedId,

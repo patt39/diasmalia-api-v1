@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { FinancialAccountService } from '../financialAccount/financialAccount.service';
 import { FinancialDetailService } from '../financialDetails/financialDetails.service';
 import { JwtAuthGuard } from '../users/middleware';
 import { CreateOrUpdateFinancialMgtDto } from './financialMgt.dto';
@@ -32,6 +33,7 @@ export class FinancialMgtController {
   constructor(
     private readonly financialMgtService: FinancialMgtService,
     private readonly financialDetailService: FinancialDetailService,
+    private readonly financialAccountService: FinancialAccountService,
   ) {}
 
   /** Get all financialMgt */
@@ -58,6 +60,20 @@ export class FinancialMgtController {
     return reply({ res, results: financialDetail });
   }
 
+  /** Create Account */
+  @Post(`/account`)
+  @UseGuards(JwtAuthGuard)
+  async createOneAccount(@Res() res, @Req() req) {
+    const { user } = req;
+
+    const financialAccount = await this.financialAccountService.createOne({
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
+    });
+
+    return reply({ res, results: financialAccount });
+  }
+
   /** Post one FinancialMgt */
   @Post(`/`)
   @UseGuards(JwtAuthGuard)
@@ -79,15 +95,41 @@ export class FinancialMgtController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findAccount = await this.financialAccountService.findOneBy({
+      organizationId: user?.organizationId,
+    });
+    if (!findAccount)
+      throw new HttpException(
+        `Account doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const financialMgt = await this.financialMgtService.createOne({
       date,
       type,
       note,
       amount,
+      financialAccountId: findAccount.id,
       financialDetailId: findOneFinancialDetail.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+
+    if (financialMgt.type === 'EXPENSE')
+      await this.financialAccountService.updateOne(
+        { financialAccountId: findAccount.id },
+        {
+          expenditureAmount: financialMgt.amount,
+        },
+      );
+
+    if (financialMgt.type === 'INCOME')
+      await this.financialAccountService.updateOne(
+        { financialAccountId: findAccount.id },
+        {
+          incomeAmount: financialMgt.amount,
+        },
+      );
 
     return reply({ res, results: financialMgt });
   }
@@ -131,6 +173,7 @@ export class FinancialMgtController {
         note,
         type,
         amount,
+        //financialAccountId,
         financialDetailId: findOneFinancialDetail.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
