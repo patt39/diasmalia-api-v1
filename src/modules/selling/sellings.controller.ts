@@ -195,7 +195,7 @@ export class SellingsController {
     const { user } = req;
     const findOneSelling = await this.sellingsService.findOneBy({
       sellingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: findOneSelling });
@@ -212,10 +212,10 @@ export class SellingsController {
     const { user } = req;
     const findOneSelling = await this.sellingsService.findOneBy({
       sellingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     const selling = await this.sellingsService.updateOne(
-      { sellingId: findOneSelling.id },
+      { sellingId: findOneSelling?.id },
       { deletedAt: new Date() },
     );
 

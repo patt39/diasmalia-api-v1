@@ -120,7 +120,7 @@ export class FarrowingsController {
     });
     if (!findOneFarrowing) {
       throw new HttpException(
-        `${farrowingId} doesn't exists please change`,
+        `FarrowingId: ${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -175,7 +175,7 @@ export class FarrowingsController {
     });
     if (!farrowingId) {
       throw new HttpException(
-        `${farrowingId} doesn't exists please change`,
+        `FarrowingId: ${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -204,7 +204,7 @@ export class FarrowingsController {
     }
 
     const farrowing = await this.farrowingsService.updateOne(
-      { farrowingId: findOneFarrowing.id },
+      { farrowingId: findOneFarrowing?.id },
       { deletedAt: new Date() },
     );
 

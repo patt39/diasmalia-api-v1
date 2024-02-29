@@ -286,7 +286,6 @@ export class BreedingsController {
         animalFemaleId: findOneFemale?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
-        updatedAt: new Date(),
       },
     );
 

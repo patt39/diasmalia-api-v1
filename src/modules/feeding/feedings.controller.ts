@@ -142,11 +142,11 @@ export class FeedingsController {
     });
     if (!findOneFeeding)
       throw new HttpException(
-        `${feedingId} doesn't exists please change`,
+        `FeedingId: ${feedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const death = await this.feedingsService.updateOne(
+    const feed = await this.feedingsService.updateOne(
       { feedingId: findOneFeeding?.id },
       {
         date,
@@ -160,7 +160,7 @@ export class FeedingsController {
       },
     );
 
-    return reply({ res, results: death });
+    return reply({ res, results: feed });
   }
 
   /** Get one feeding */
@@ -200,7 +200,7 @@ export class FeedingsController {
     });
     if (!findOneFeeding)
       throw new HttpException(
-        ` ${feedingId} doesn't exists please change`,
+        `FeedingId: ${feedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 

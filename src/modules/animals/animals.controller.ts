@@ -253,7 +253,6 @@ export class AnimalsController {
         breedId: findOneBreed.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
-        updatedAt: new Date(),
       },
     );
 

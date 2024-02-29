@@ -122,9 +122,9 @@ export class CheckPregnanciesController {
     });
 
     await this.breedingsService.updateOne(
-      { breedingId: findOneBreeding.id },
+      { breedingId: findOneBreeding?.id },
       {
-        checkStatus: !findOneBreeding.checkStatus,
+        checkStatus: !findOneBreeding?.checkStatus,
       },
     );
 
@@ -148,7 +148,7 @@ export class CheckPregnanciesController {
     });
     if (!findOnecheckPregnancy) {
       throw new HttpException(
-        `${checkPregnancyId} doesn't exists please change`,
+        `CheckPregnancyId: ${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -169,7 +169,7 @@ export class CheckPregnanciesController {
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'REPRODUCTION',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -186,7 +186,7 @@ export class CheckPregnanciesController {
         method,
         result,
         farrowingDate,
-        breedingId: findOneBreeding.id,
+        breedingId: findOneBreeding?.id,
         animalFemaleId: findOneFemale?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
@@ -208,11 +208,11 @@ export class CheckPregnanciesController {
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!checkPregnancyId) {
       throw new HttpException(
-        `${checkPregnancyId} doesn't exists please change`,
+        `CheckpregnancyId: ${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -232,11 +232,11 @@ export class CheckPregnanciesController {
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!checkPregnancyId) {
       throw new HttpException(
-        `${checkPregnancyId} doesn't exists please change`,
+        `checkPregnancyId: ${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
