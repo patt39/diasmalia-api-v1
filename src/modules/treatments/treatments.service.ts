@@ -82,13 +82,12 @@ export class TreatmentsService {
   async createOne(options: CreateTreatmentsOptions): Promise<Treatment> {
     const {
       note,
+      name,
+      dose,
+      date,
       method,
+      diagnosis,
       animalId,
-      diagnosisId,
-      numberOfDose,
-      treatmentName,
-      treatmentDate,
-      medicationId,
       organizationId,
       userCreatedId,
     } = options;
@@ -96,13 +95,12 @@ export class TreatmentsService {
     const treatment = this.client.treatment.create({
       data: {
         note,
+        name,
+        dose,
+        date,
         method,
         animalId,
-        diagnosisId,
-        numberOfDose,
-        treatmentName,
-        treatmentDate,
-        medicationId,
+        diagnosis,
         organizationId,
         userCreatedId,
       },
@@ -119,13 +117,13 @@ export class TreatmentsService {
     const { treatmentId } = selections;
     const {
       note,
+      name,
+      dose,
+      date,
       method,
       animalId,
-      diagnosisId,
-      numberOfDose,
-      treatmentName,
-      treatmentDate,
-      medicationId,
+      diagnosis,
+      organizationId,
       deletedAt,
     } = options;
 
@@ -135,13 +133,13 @@ export class TreatmentsService {
       },
       data: {
         note,
+        name,
+        dose,
+        date,
         method,
         animalId,
-        diagnosisId,
-        numberOfDose,
-        treatmentName,
-        treatmentDate,
-        medicationId,
+        diagnosis,
+        organizationId,
         deletedAt,
       },
     });

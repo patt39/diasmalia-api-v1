@@ -22,7 +22,6 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { FeedTypeService } from '../feedType/feedType.service';
 import { JwtAuthGuard } from '../users/middleware';
 import { CreateOrUpdateFeedingsDto } from './feedings.dto';
 import { FeedingsService } from './feedings.service';
@@ -31,7 +30,6 @@ import { FeedingsService } from './feedings.service';
 export class FeedingsController {
   constructor(
     private readonly feedingsService: FeedingsService,
-    private readonly feedTypeService: FeedTypeService,
     private readonly animalsService: AnimalsService,
   ) {}
 
@@ -68,7 +66,7 @@ export class FeedingsController {
     @Body() body: CreateOrUpdateFeedingsDto,
   ) {
     const { user } = req;
-    const { date, quantity, feedTypeId, productionPhase, code, note } = body;
+    const { date, quantity, feedType, productionPhase, code, note } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
@@ -80,23 +78,13 @@ export class FeedingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneFeedType = await this.feedTypeService.findOneBy({
-      feedTypeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneFeedType)
-      throw new HttpException(
-        `Animal ${feedTypeId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const feeding = await this.feedingsService.createOne({
       date,
       note,
       quantity,
+      feedType,
       productionPhase,
       animalId: findOneAnimal.id,
-      feedTypeId: findOneFeedType.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -114,7 +102,7 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { date, quantity, feedTypeId, code, note, productionPhase } = body;
+    const { date, quantity, feedType, code, note, productionPhase } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
@@ -123,16 +111,6 @@ export class FeedingsController {
     if (!findOneAnimal)
       throw new HttpException(
         `Animal ${code} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneFeedType = await this.feedTypeService.findOneBy({
-      feedTypeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneFeedType)
-      throw new HttpException(
-        `Animal ${feedTypeId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -152,9 +130,9 @@ export class FeedingsController {
         date,
         note,
         quantity,
+        feedType,
         productionPhase,
         animalId: findOneAnimal.id,
-        feedTypeId: findOneFeedType.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },

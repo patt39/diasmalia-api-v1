@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateFeedingsOptions,
-  GetFeedingsSelections,
-  GetOneFeedingSelections,
-  UpdateFeedingsOptions,
-  UpdateFeedingsSelections,
-  FeedingSelect,
-} from './feedings.type';
+import { Feeding, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Prisma, Feeding } from '@prisma/client';
+import {
+  CreateFeedingsOptions,
+  FeedingSelect,
+  GetFeedingsSelections,
+  GetOneFeedingSelections,
+  UpdateFeedingsOptions,
+  UpdateFeedingsSelections,
+} from './feedings.type';
 
 @Injectable()
 export class FeedingsService {
@@ -83,7 +83,7 @@ export class FeedingsService {
     const {
       date,
       quantity,
-      feedTypeId,
+      feedType,
       animalId,
       productionPhase,
       organizationId,
@@ -95,7 +95,7 @@ export class FeedingsService {
       data: {
         date,
         quantity,
-        feedTypeId,
+        feedType,
         productionPhase,
         animalId,
         organizationId,
@@ -117,7 +117,7 @@ export class FeedingsService {
       date,
       note,
       quantity,
-      feedTypeId,
+      feedType,
       productionPhase,
       organizationId,
       animalId,
@@ -133,7 +133,7 @@ export class FeedingsService {
         date,
         note,
         quantity,
-        feedTypeId,
+        feedType,
         productionPhase,
         animalId,
         organizationId,

@@ -25,6 +25,7 @@ export const FeedingSelect = {
   id: true,
   quantity: true,
   date: true,
+  feedType: true,
   animalId: true,
   animal: {
     select: {
@@ -39,12 +40,6 @@ export const FeedingSelect = {
           number: true,
         },
       },
-    },
-  },
-  feedTypeId: true,
-  feedType: {
-    select: {
-      name: true,
     },
   },
   productionPhase: true,

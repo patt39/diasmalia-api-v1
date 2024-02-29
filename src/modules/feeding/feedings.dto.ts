@@ -1,11 +1,10 @@
-import { ProductionPhase } from '@prisma/client';
+import { FeedType, ProductionPhase } from '@prisma/client';
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
   IsEnum,
-  IsUUID,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateFeedingsDto {
@@ -28,8 +27,8 @@ export class CreateOrUpdateFeedingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  feedTypeId: string;
+  @IsEnum(FeedType)
+  feedType: FeedType;
 
   @IsNotEmpty()
   @IsString()

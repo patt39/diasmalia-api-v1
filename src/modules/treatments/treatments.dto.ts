@@ -1,37 +1,33 @@
-import { MethodTreatment } from '@prisma/client';
+import { MedicationTypes, MethodTreatment } from '@prisma/client';
 
 import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsUUID,
-  IsInt,
-  IsOptional,
+  IsDate,
   IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateTreatmentsDto {
   @IsNotEmpty()
   @IsInt()
-  numberOfDose: number;
+  dose: number;
 
   @IsNotEmpty()
   @IsString()
-  treatmentName: string;
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  diagnosis: string;
 
   @IsNotEmpty()
   @IsString()
-  treatmentDate: Date;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  medicationId: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  diagnosisId: string;
+  @IsDate()
+  date: Date;
 
   @IsNotEmpty()
   @IsString()
@@ -47,4 +43,10 @@ export class CreateOrUpdateTreatmentsDto {
   @MaxLength(100)
   @IsEnum(MethodTreatment)
   method: MethodTreatment;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(MedicationTypes)
+  medication: MedicationTypes;
 }
