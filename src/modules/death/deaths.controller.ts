@@ -8,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -70,7 +71,7 @@ export class DeathsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeAnimal,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal) {
       throw new HttpException(
@@ -112,7 +113,7 @@ export class DeathsController {
       });
       if (!findOneAnimal) {
         throw new HttpException(
-          `Animal ${findOneAnimal.code} doesn't exists please change`,
+          `Animal ${findOneAnimal?.code} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
       }
@@ -126,7 +127,7 @@ export class DeathsController {
       });
 
       await this.animalsService.updateOne(
-        { animalId: death.animalId },
+        { animalId: death?.animalId },
         {
           status: 'DEAD',
         },
@@ -151,12 +152,118 @@ export class DeathsController {
     });
     if (!findOneDeadAnimal) {
       throw new HttpException(
-        `${deathId} doesn't exists please change`,
+        `DeathId: ${deathId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     return reply({ res, results: findOneDeadAnimal });
+  }
+
+  /** Update one breed */
+  @Put(`/:deathId`)
+  @UseGuards(JwtAuthGuard)
+  async updateOne(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateDeathsDto,
+    @Param('deathId', ParseUUIDPipe) deathId: string,
+  ) {
+    const { user } = req;
+    const { date, codeAnimal, note } = body;
+
+    const findOneDeath = await this.deathsService.findOneBy({
+      deathId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneDeath) {
+      throw new HttpException(
+        `DeathId: ${deathId} please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code: codeAnimal,
+      status: 'ACTIVE',
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${findOneAnimal.code} doesn't exists, isn't ACTIVE, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const death = await this.deathsService.createOne({
+      date,
+      note,
+      animalId: findOneAnimal?.id,
+      organizationId: findOneAnimal?.organizationId,
+      userCreatedId: user?.id,
+    });
+
+    await this.animalsService.updateOne(
+      { animalId: death.animalId },
+      {
+        status: 'DEAD',
+      },
+    );
+
+    return reply({ res, results: death });
+  }
+
+  /** Update one breed */
+  @Put(`/:deathId`)
+  @UseGuards(JwtAuthGuard)
+  async updateOneBulk(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateDeathsDto,
+    @Param('deathId', ParseUUIDPipe) deathId: string,
+  ) {
+    const { user } = req;
+    const { date, codeAnimal, note } = body;
+
+    const findOneDeath = await this.deathsService.findOneBy({
+      deathId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneDeath) {
+      throw new HttpException(
+        `DeathId: ${deathId} please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code: codeAnimal,
+      status: 'ACTIVE',
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal) {
+      throw new HttpException(
+        `Animal ${findOneAnimal.code} doesn't exists, isn't ACTIVE, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const death = await this.deathsService.createOne({
+      date,
+      note,
+      animalId: findOneAnimal?.id,
+      organizationId: findOneAnimal?.organizationId,
+      userCreatedId: user?.id,
+    });
+
+    await this.animalsService.updateOne(
+      { animalId: death.animalId },
+      {
+        status: 'DEAD',
+      },
+    );
+
+    return reply({ res, results: death });
   }
 
   /** Delete one Death */
@@ -174,12 +281,12 @@ export class DeathsController {
     });
     if (!findOneDeadAnimal) {
       throw new HttpException(
-        `${deathId} doesn't exists please change`,
+        `DeathId: ${deathId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
     const death = await this.deathsService.updateOne(
-      { deathId: findOneDeadAnimal.id },
+      { deathId: findOneDeadAnimal?.id },
       { deletedAt: new Date() },
     );
 

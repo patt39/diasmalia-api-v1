@@ -43,4 +43,19 @@ export class CreateOneContributorUserDto {
   @IsString()
   @MaxLength(50)
   phone: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(50)
+  address: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(50)
+  companyName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(50)
+  occupation: string;
 }

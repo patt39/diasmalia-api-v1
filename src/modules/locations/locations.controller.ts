@@ -138,7 +138,6 @@ export class LocationsController {
         through,
         squareMeter,
         organizationId: user.organizationId,
-        updatedAt: new Date(),
       },
     );
 
@@ -167,7 +166,7 @@ export class LocationsController {
     });
     if (!findOneLocation) {
       throw new HttpException(
-        `Location ${locationId} doesn't exists please change`,
+        `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -190,7 +189,7 @@ export class LocationsController {
     });
     if (!findOneLocation) {
       throw new HttpException(
-        `Location ${locationId} doesn't exists please change`,
+        `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

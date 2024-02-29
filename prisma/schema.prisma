@@ -61,13 +61,15 @@ model Profile {
   lastName    String?
   address     String?
   phone       String?
+  photo       String?
+  companyName String?
+  occupation  String?
   color       String?
   url         String?
-  description String?
+  description String?   @db.Text
   birthday    DateTime?
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  image       Image?
 }
 
 model Organization {
@@ -76,7 +78,9 @@ model Organization {
   deletedAt        DateTime?
   id               String            @id @default(uuid())
   name             String?
-  description      String?
+  image            String?
+  logo             String?
+  description      String?           @db.Text
   userId           String            @unique
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   contributors     Contributor[]
@@ -101,7 +105,6 @@ model Organization {
   assignTasks      AssignTask[]
   feedTypes        FeedType[]
   statusTask       StatusTask[]
-  image            Image?
   financialAccount FinancialAccount?
 }
 
@@ -115,23 +118,6 @@ model ContactUs {
   phone       String?
   subject     String?
   description String?
-}
-
-model Image {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  url            String?
-  name           String
-  status         String
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  animalId       String       @unique
-  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  profileId      String       @unique
-  profile        Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  userCreatedId  String
 }
 
 model AuthProvider {
@@ -154,7 +140,7 @@ model Task {
   title          String
   dueDate        DateTime
   status         TaskStatus   @default(TODO)
-  description    String
+  description    String       @db.Text
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contributorId  String
@@ -257,6 +243,9 @@ model Animal {
   codeMother      String?
   birthday        DateTime?
   weight          Int?
+  photo           String?
+  castrated       Boolean?        @default(false)
+  isolated        Boolean?        @default(false)
   gender          Gender
   type            AnimalType
   productionPhase ProductionPhase
@@ -271,7 +260,6 @@ model Animal {
   userCreatedId   String
   death           Death?
   selling         Selling?
-  image           Image?
   milkings        Milking[]
   treatments      Treatment[]
   farrowings      Farrowing[]
@@ -296,8 +284,6 @@ enum AnimalType {
   BOVINE
   GOAT
   RABBIT
-  POULTRY
-  PISCICULTURE
 }
 
 enum ProductionPhase {
@@ -319,7 +305,7 @@ model Treatment {
   treatmentName  String?
   treatmentDate  DateTime?
   medicationId   String?
-  note           String?
+  note           String?          @db.Text
   method         MethodTreatment?
   medications    Medication?      @relation(fields: [medicationId], references: [id], onDelete: Cascade)
   diagnosisId    String?
@@ -345,7 +331,7 @@ model Breeding {
   deletedAt      DateTime?
   id             String           @id @default(uuid())
   date           DateTime?
-  note           String?
+  note           String?          @db.Text
   method         MethodBreeding?
   checkStatus    Boolean?         @default(false)
   animalFemaleId String
@@ -367,7 +353,7 @@ model CheckPregnancy {
   deletedAt      DateTime?
   id             String                @id @default(uuid())
   date           DateTime?
-  note           String?
+  note           String?               @db.Text
   method         MethodCheckPregnancy?
   result         ResultCheckPregnancy?
   animalFemaleId String?
@@ -398,7 +384,7 @@ model Farrowing {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  note           String?
+  note           String?      @db.Text
   date           DateTime?
   litter         Int?
   organizationId String
@@ -414,7 +400,7 @@ model Weaning {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  note           String?
+  note           String?      @db.Text
   litter         Int?
   date           DateTime?
   organizationId String
@@ -438,7 +424,7 @@ model Gestation {
   animal           Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
   checkPregnancyId String
   checkPregnancy   CheckPregnancy @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
-  note             String?
+  note             String?        @db.Text
 }
 
 model Death {
@@ -447,7 +433,7 @@ model Death {
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   date           DateTime?
-  note           String?
+  note           String?      @db.Text
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -461,7 +447,7 @@ model Milking {
   deletedAt      DateTime?
   id             String         @id @default(uuid())
   date           DateTime?
-  note           String?
+  note           String?        @db.Text
   method         MethodMilking?
   quantity       Int?
   organizationId String
@@ -482,7 +468,7 @@ model Feeding {
   deletedAt       DateTime?
   id              String           @id @default(uuid())
   date            DateTime?
-  note            String?
+  note            String?          @db.Text
   quantity        Int?
   productionPhase ProductionPhase?
   organizationId  String
@@ -514,7 +500,7 @@ model Selling {
   date           DateTime?
   price          Int?
   method         sellingMethod?
-  note           String?
+  note           String?        @db.Text
   soldTo         String?
   phone          String?
   organizationId String
@@ -551,7 +537,7 @@ model FinancialMgt {
   deletedAt          DateTime?
   id                 String           @id @default(uuid())
   date               DateTime?
-  note               String?
+  note               String?          @db.Text
   type               financialType?
   amount             Int?
   organizationId     String

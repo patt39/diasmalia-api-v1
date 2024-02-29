@@ -86,7 +86,6 @@ export class WeaningsController {
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
-      organizationId: user.organizationId,
     });
     if (!findOneFarrowing) {
       throw new HttpException(
@@ -125,7 +124,7 @@ export class WeaningsController {
     });
     if (!findOneWeaning) {
       throw new HttpException(
-        `${weaningId} doesn't exists, please change`,
+        `WeaningId: ${weaningId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -150,7 +149,7 @@ export class WeaningsController {
     });
     if (!findOneFarrowing) {
       throw new HttpException(
-        `${farrowingId} doesn't exists, please change`,
+        `FarrowingId: ${farrowingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -161,11 +160,10 @@ export class WeaningsController {
         note,
         date,
         litter,
-        animalId: findOneFemale.id,
-        farrowingId: findOneFarrowing.id,
+        animalId: findOneFemale?.id,
+        farrowingId: findOneFarrowing?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
-        updatedAt: new Date(),
       },
     );
 

@@ -86,7 +86,15 @@ export class ContributorsController {
     @Body() body: CreateOneContributorUserDto,
   ) {
     const { user } = req;
-    const { email, lastName, firstName, phone } = body;
+    const {
+      email,
+      lastName,
+      firstName,
+      phone,
+      address,
+      occupation,
+      companyName,
+    } = body;
 
     const findOneUser = await this.usersService.findOneBy({ email });
     if (findOneUser)
@@ -105,6 +113,9 @@ export class ContributorsController {
       firstName,
       lastName,
       phone,
+      address,
+      occupation,
+      companyName,
       userId: newUser.id,
     });
 
@@ -136,7 +147,7 @@ export class ContributorsController {
 
     if (!fineOnecontributor) {
       throw new HttpException(
-        `${contributorId} doesn't exists please change`,
+        `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -179,34 +190,17 @@ export class ContributorsController {
 
   /** Get one contributor */
   @Get(`/show/:contributorId`)
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async getOneByIdUser(
     @Res() res,
+    @Req() req,
     @Param('contributorId', ParseUUIDPipe) contributorId: string,
   ) {
+    const { user } = req;
+
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-    });
-
-    if (!fineOnecontributor) {
-      throw new HttpException(
-        `${contributorId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return reply({ res, results: fineOnecontributor });
-  }
-
-  /** Get all contributor created tasks */
-  @Get(`/:contributorId/tasks`)
-  // @UseGuards(JwtAuthGuard)
-  async findAllContributorTasks(
-    @Res() res,
-    @Param('contributorId', ParseUUIDPipe) contributorId: string,
-  ) {
-    const fineOnecontributor = await this.contributorsService.findAllTasks({
-      contributorId,
+      organizationId: user.organizationId,
     });
 
     if (!fineOnecontributor) {
@@ -221,23 +215,26 @@ export class ContributorsController {
 
   /** Delete one contributor */
   @Delete(`/delete/:contributorId`)
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('contributorId', ParseUUIDPipe) contributorId: string,
   ) {
+    const { user } = req;
+
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
+      organizationId: user?.organizationId,
     });
-
     if (!fineOnecontributor) {
       throw new HttpException(
-        `${contributorId} doesn't exists please change`,
+        `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
     const contributor = await this.contributorsService.updateOne(
-      { contributorId },
+      { contributorId: fineOnecontributor?.id },
       { deletedAt: new Date() },
     );
 

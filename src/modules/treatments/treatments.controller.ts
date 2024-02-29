@@ -201,7 +201,6 @@ export class TreatmentsController {
         medicationId: findOneMedication.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
-        updatedAt: new Date(),
       },
     );
 

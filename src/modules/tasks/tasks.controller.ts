@@ -167,7 +167,7 @@ export class TasksController {
     });
     if (!findOneTask) {
       throw new HttpException(
-        `Task ${taskId} doesn't exists please change`,
+        `TaskId: ${taskId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -190,7 +190,7 @@ export class TasksController {
     });
     if (!findOneTask) {
       throw new HttpException(
-        `Task ${taskId} doesn't exists please change`,
+        `TaskId: ${taskId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

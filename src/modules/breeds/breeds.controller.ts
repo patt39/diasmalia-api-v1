@@ -104,7 +104,7 @@ export class BreedsController {
     });
     if (!findOneBreed) {
       throw new HttpException(
-        `${breedId} doesn't exists please change`,
+        `BreedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -116,7 +116,6 @@ export class BreedsController {
         type,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
-        updatedAt: new Date(),
       },
     );
 
@@ -162,7 +161,7 @@ export class BreedsController {
     });
     if (!findOneBreed) {
       throw new HttpException(
-        `${breedId} doesn't exists please change`,
+        `BreedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
