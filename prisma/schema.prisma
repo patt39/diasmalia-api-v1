@@ -73,20 +73,18 @@ model Profile {
 }
 
 model Organization {
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   deletedAt        DateTime?
-  id               String            @id @default(uuid())
+  id               String           @id @default(uuid())
   name             String?
   image            String?
   logo             String?
-  description      String?           @db.Text
-  userId           String            @unique
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description      String?          @db.Text
+  userId           String           @unique
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   contributors     Contributor[]
   tasks            Task[]
-  diagnosis        Diagnosis[]
-  medications      Medication[]
   animals          Animal[]
   breeds           Breed[]
   treatments       Treatment[]
@@ -99,13 +97,12 @@ model Organization {
   milkings         Milking[]
   feedings         Feeding[]
   sellings         Selling[]
-  financialDetails FinancialDetail[]
-  financialMgts    FinancialMgt[]
+  finances         Finance[]
   locations        Location[]
   assignTasks      AssignTask[]
-  feedTypes        FeedType[]
-  statusTask       StatusTask[]
-  financialAccount FinancialAccount?
+  account          Account?
+  isolations       Isolation[]
+  castrations      Castration[]
 }
 
 model ContactUs {
@@ -169,55 +166,20 @@ model AssignTask {
   userCreatedId  String
 }
 
-model StatusTask {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  name           String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId  String
-}
-
 model Location {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   deletedAt       DateTime?
   id              String          @id @default(uuid())
-  squareMeter     Int
   manger          Int
   through         Int
-  number          Int?
+  number          Int
   type            AnimalType
+  squareMeter     Int
   productionPhase ProductionPhase
   organizationId  String
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   animals         Animal[]
-}
-
-model Diagnosis {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  name           String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId  String
-  treatments     Treatment[]
-}
-
-model Medication {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  name           String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId  String
-  treatments     Treatment[]
 }
 
 model Breed {
@@ -266,6 +228,8 @@ model Animal {
   weanings        Weaning[]
   gestations      Gestation[]
   feedings        Feeding[]
+  isolations      Isolation[]
+  castration      Castration?
 }
 
 enum Gender {
@@ -301,15 +265,12 @@ model Treatment {
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
   id             String           @id @default(uuid())
-  numberOfDose   Int?
-  treatmentName  String?
-  treatmentDate  DateTime?
-  medicationId   String?
-  note           String?          @db.Text
+  name           String?
+  date           DateTime?
+  note           String?
+  dose           Int?
+  medication     MedicationTypes?
   method         MethodTreatment?
-  medications    Medication?      @relation(fields: [medicationId], references: [id], onDelete: Cascade)
-  diagnosisId    String?
-  diagnosis      Diagnosis?       @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
   animalId       String?
   animal         Animal?          @relation(fields: [animalId], references: [id], onDelete: Cascade)
   organizationId String
@@ -323,6 +284,24 @@ enum MethodTreatment {
   NASAL
   FEEDANDWATER
   EYE
+}
+
+enum MedicationTypes {
+  ANTIBIOTICS
+  ANTIPARASITICS
+  ANTIFUNGALS
+  ANTIVIRALS
+  ANTHALMITICS
+  COCCIDIOSTATS
+  VACCINS
+  ANALGESICS
+  CORTICOSTEROIDS
+  BRONCODILATORS
+  PROBIOTICS
+  MINERALVITAMINS
+  GROWTHPROMOTER
+  TROPICALTREATMENTS
+  OTHERS
 }
 
 model Breeding {
@@ -470,26 +449,28 @@ model Feeding {
   date            DateTime?
   note            String?          @db.Text
   quantity        Int?
+  feedType        FeedType
   productionPhase ProductionPhase?
   organizationId  String
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   animalId        String
   animal          Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  feedTypeId      String
-  feedType        FeedType         @relation(fields: [feedTypeId], references: [id], onDelete: Cascade)
 }
 
-model FeedType {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  name           String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId  String
-  feedings       Feeding[]
+enum FeedType {
+  FORAGES
+  CONCENTRATES
+  ROUGHAGES
+  PROTEINS
+  MINERALSALTS
+  VITAMINS
+  COMPLETEFEED
+  FIBERS
+  ENERGYSUPPLIMENTS
+  BYPRODUCTS
+  SYNTHETICADICTIVES
+  OTHERS
 }
 
 model Selling {
@@ -519,50 +500,76 @@ enum sellingMethod {
   OTHER
 }
 
-model FinancialDetail {
+model Finance {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
   id             String         @id @default(uuid())
-  name           String
+  date           DateTime?
+  note           String?        @db.Text
+  details        String?
+  type           financialType?
+  amount         Int?
   organizationId String
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  financialMgts  FinancialMgt[]
 }
 
-model FinancialMgt {
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  deletedAt          DateTime?
-  id                 String           @id @default(uuid())
-  date               DateTime?
-  note               String?          @db.Text
-  type               financialType?
-  amount             Int?
-  organizationId     String
-  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  financialDetailId  String
-  financialDetail    FinancialDetail  @relation(fields: [financialDetailId], references: [id], onDelete: Cascade)
-  financialAccountId String
-  financialAccount   FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
-  userCreatedId      String
-}
-
-model FinancialAccount {
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+model Account {
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
   deletedAt         DateTime?
-  id                String         @id @default(uuid())
-  incomeAmount      Int?           @unique @default(0)
-  expenditureAmount Int?           @unique @default(0)
-  organizationId    String         @unique
-  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                String       @id @default(uuid())
+  incomeAmount      Int?
+  expenditureAmount Int?
+  organizationId    String       @unique
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId     String
-  financialMgts     FinancialMgt[]
+  financialMgts     Finance[]
 }
 
 enum financialType {
   INCOME
   EXPENSE
+}
+
+model Isolation {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  note           String?      @db.Text
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String       @unique
+  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+
+model Castration {
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+  id             String           @id @default(uuid())
+  date           DateTime?
+  note           String?          @db.Text
+  method         CastrationMethod
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  animalId       String           @unique
+  animal         Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+}
+
+enum CastrationMethod {
+  SURGICAL
+  BANDING
+  BURDIZZO
+  CHEMICAL
+  ELECTROCAUTARY
+  LASER
+  OTHER
 }

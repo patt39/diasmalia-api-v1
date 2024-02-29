@@ -3,16 +3,22 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   MaxLength,
 } from 'class-validator';
 
-export class CreateOrUpdateFinancialMgtDto {
+export class CreateOrUpdateFinancesDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
   note: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  details: string;
 
   @IsNotEmpty()
   @IsInt()

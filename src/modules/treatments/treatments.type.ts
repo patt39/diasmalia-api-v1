@@ -26,20 +26,9 @@ export const TreatmentSelect = {
   method: true,
   note: true,
   numberOfDose: true,
-  treatmentName: true,
-  treatmentDate: true,
-  medicationId: true,
-  medications: {
-    select: {
-      name: true,
-    },
-  },
-  diagnosisId: true,
-  diagnosis: {
-    select: {
-      name: true,
-    },
-  },
+  name: true,
+  date: true,
+  diagnosis: true,
   animalId: true,
   animal: {
     select: {

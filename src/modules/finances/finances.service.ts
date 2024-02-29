@@ -1,27 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateFinancialMgtOptions,
-  GetFinancialMgtSelections,
-  GetOneFinancialMgtSelections,
-  UpdateFinancialMgtOptions,
-  UpdateFinancialMgtSelections,
-  FinancialMgtSelect,
-} from './financialMgt.type';
+import { Finance, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { FinancialMgt, Prisma } from '@prisma/client';
+import {
+  CreateFinanceOptions,
+  FinancesSelect,
+  GetFinancesSelections,
+  GetOneFinanceSelections,
+  UpdateFinancesOptions,
+  UpdateFinancesSelections,
+} from './finances.type';
 
 @Injectable()
-export class FinancialMgtService {
+export class FinancesService {
   constructor(private readonly client: DatabaseService) {}
 
   async findAll(
-    selections: GetFinancialMgtSelections,
+    selections: GetFinancesSelections,
   ): Promise<WithPaginationResponse | null> {
-    const prismaWhere = {} as Prisma.FinancialMgtWhereInput;
+    const prismaWhere = {} as Prisma.FinanceWhereInput;
     const { search, organizationId, pagination } = selections;
 
     if (search) {
@@ -38,59 +38,59 @@ export class FinancialMgtService {
       Object.assign(prismaWhere, { organizationId });
     }
 
-    const financialMgt = await this.client.financialMgt.findMany({
+    const finances = await this.client.finance.findMany({
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
-      select: FinancialMgtSelect,
+      select: FinancesSelect,
       orderBy: pagination.orderBy,
     });
 
-    const rowCount = await this.client.financialMgt.count({
+    const rowCount = await this.client.finance.count({
       where: { ...prismaWhere, deletedAt: null },
     });
 
     return withPagination({
       pagination,
       rowCount,
-      value: financialMgt,
+      value: finances,
     });
   }
 
-  /** Find one financialMgt database. */
-  async findOneBy(selections: GetOneFinancialMgtSelections) {
-    const { financialMgtId } = selections;
-    const financialMgt = await this.client.financialMgt.findUnique({
-      select: FinancialMgtSelect,
+  /** Find one finance from database. */
+  async findOneBy(selections: GetOneFinanceSelections) {
+    const { financeId } = selections;
+    const finance = await this.client.finance.findUnique({
+      select: FinancesSelect,
       where: {
-        id: financialMgtId,
+        id: financeId,
       },
     });
 
-    return financialMgt;
+    return finance;
   }
 
-  /** Create one financialMgt database. */
-  async createOne(options: CreateFinancialMgtOptions): Promise<FinancialMgt> {
+  /** Create one finance in database. */
+  async createOne(options: CreateFinanceOptions): Promise<Finance> {
     const {
       date,
       note,
       type,
       amount,
-      financialAccountId,
-      financialDetailId,
+      accountId,
+      details,
       organizationId,
       userCreatedId,
     } = options;
 
-    const financialMgt = this.client.financialMgt.create({
+    const financialMgt = this.client.finance.create({
       data: {
         date,
         note,
         type,
         amount,
-        financialAccountId,
-        financialDetailId,
+        accountId,
+        details,
         organizationId,
         userCreatedId,
       },
@@ -99,41 +99,41 @@ export class FinancialMgtService {
     return financialMgt;
   }
 
-  /** Update one financialMgt in database. */
+  /** Update one finance in database. */
   async updateOne(
-    selections: UpdateFinancialMgtSelections,
-    options: UpdateFinancialMgtOptions,
-  ): Promise<FinancialMgt> {
-    const { financialMgtId } = selections;
+    selections: UpdateFinancesSelections,
+    options: UpdateFinancesOptions,
+  ): Promise<Finance> {
+    const { financeId } = selections;
     const {
       date,
       note,
       type,
       amount,
-      financialAccountId,
-      financialDetailId,
+      details,
+      accountId,
       organizationId,
       userCreatedId,
       deletedAt,
     } = options;
 
-    const financialMgt = this.client.financialMgt.update({
+    const finance = this.client.finance.update({
       where: {
-        id: financialMgtId,
+        id: financeId,
       },
       data: {
         date,
         note,
         type,
         amount,
-        financialAccountId,
-        financialDetailId,
+        details,
+        accountId,
         organizationId,
         userCreatedId,
         deletedAt,
       },
     });
 
-    return financialMgt;
+    return finance;
   }
 }
