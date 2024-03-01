@@ -28,8 +28,8 @@ import { UsersService } from '../users/users.service';
 import {
   CreateOrUpdateAssignTasksDto,
   GetAssignTasksDto,
-} from './assigntasks.dto';
-import { AssignTasksService } from './assigntasks.service';
+} from './assigne-tasks.dto';
+import { AssignTasksService } from './assigne-tasks.service';
 
 @Controller('assigned-tasks')
 export class AssignTasksController {

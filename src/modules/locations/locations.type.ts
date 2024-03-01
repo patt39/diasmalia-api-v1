@@ -34,6 +34,7 @@ export const LocationsSelect = {
   through: true,
   manger: true,
   type: true,
+  userCreatedId: true,
   productionPhase: true,
   organizationId: true,
   organization: {
@@ -41,6 +42,7 @@ export const LocationsSelect = {
       name: true,
     },
   },
+  animals: true,
   _count: {
     select: {
       animals: {

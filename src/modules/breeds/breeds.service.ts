@@ -7,7 +7,6 @@ import {
 } from '../../app/utils/pagination';
 import {
   BreedsSelect,
-  BreedsTypeSelect,
   CreateBreedsOptions,
   GetBreedsSelections,
   GetOneBreedsSelections,
@@ -23,7 +22,7 @@ export class BreedsService {
     selections: GetBreedsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.BreedWhereInput;
-    const { search, pagination } = selections;
+    const { search, type, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -33,6 +32,10 @@ export class BreedsService {
           },
         ],
       });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
     }
 
     const breeds = await this.client.breed.findMany({
@@ -77,61 +80,6 @@ export class BreedsService {
     });
 
     return breed;
-  }
-
-  /** Find one breed in database. */
-  async findOneTypeBreeds(selections: GetOneBreedsSelections) {
-    const prismaWhere = {} as Prisma.BreedWhereInput;
-
-    const { breedId, type, organizationId, pagination } = selections;
-
-    if (breedId) {
-      Object.assign(prismaWhere, { id: breedId });
-    }
-
-    if (organizationId) {
-      Object.assign(prismaWhere, { organizationId });
-    }
-
-    if (type) {
-      Object.assign(prismaWhere, { type });
-    }
-
-    const breeds = await this.client.breed.findMany({
-      where: { ...prismaWhere, deletedAt: null },
-      take: pagination.take,
-      skip: pagination.skip,
-      select: BreedsTypeSelect,
-      orderBy: pagination.orderBy,
-    });
-
-    const breedsCount = await this.client.breed.count({
-      where: { ...prismaWhere, deletedAt: null, organizationId },
-    });
-
-    const rowCount = await this.client.breed.count({
-      where: { ...prismaWhere, deletedAt: null },
-    });
-
-    return withPagination({
-      pagination,
-      rowCount,
-      value: [breedsCount, breeds],
-    });
-
-    // const breedCount = await this.client.breed.count({
-    //   where: { ...prismaWhere, deletedAt: null, organizationId },
-    // });
-    // const breeds = await this.client.breed.findMany({
-    //   where: {
-    //     ...prismaWhere,
-    //     deletedAt: null,
-    //     organizationId,
-    //   },
-    //   select: BreedsTypeSelect,
-    // });
-
-    // return { breedCount, ...breeds };
   }
 
   /** Create one breed in database. */

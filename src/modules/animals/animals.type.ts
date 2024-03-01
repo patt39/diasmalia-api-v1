@@ -19,6 +19,8 @@ export type GetOneAnimalsSelections = {
   gender?: Animal['gender'];
   electronicCode?: Animal['electronicCode'];
   type?: Animal['type'];
+  isCastrated?: 'TRUE' | 'FALSE';
+  isIsolated?: 'TRUE' | 'FALSE';
   deletedAt?: Animal['deletedAt'];
   status?: Animal['status'];
   productionPhase?: Animal['productionPhase'];
@@ -49,6 +51,8 @@ export const AnimalSelect = {
   productionPhase: true,
   electronicCode: true,
   locationId: true,
+  castration: true,
+  isolations: true,
   organizationId: true,
   location: {
     select: {

@@ -22,6 +22,8 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { BreedsService } from '../breeds/breeds.service';
+import { CastrationsService } from '../castrations/castrations.service';
+import { IsolationsService } from '../isolations/isolations.service';
 import { LocationsService } from '../locations/locations.service';
 import { JwtAuthGuard } from '../users/middleware';
 import {
@@ -39,6 +41,8 @@ export class AnimalsController {
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
     private readonly breedsService: BreedsService,
+    private readonly isolationsService: IsolationsService,
+    private readonly castrationsService: CastrationsService,
   ) {}
 
   /** Get all animals */
@@ -105,7 +109,6 @@ export class AnimalsController {
       electronicCode,
       organizationId: user?.organizationId,
     });
-
     if (findOneAnimal)
       throw new HttpException(
         `Animal code: ${code} already exists please change`,
@@ -124,7 +127,7 @@ export class AnimalsController {
     });
     if (!findOneLocation)
       throw new HttpException(
-        `Location ${locationId} doesn't exists or isn't the correct productionPhase or Type please change`,
+        `LocationId: ${locationId} doesn't exists or isn't the correct productionPhase or Type please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -146,7 +149,7 @@ export class AnimalsController {
     });
     if (!findOneBreed)
       throw new HttpException(
-        `breedId ${breedId} doesn't exists please change`,
+        `breedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -177,7 +180,7 @@ export class AnimalsController {
   }
 
   /** Update one animal */
-  @Put(`/:animalId`)
+  @Put(`/update/:animalId`)
   @UseGuards(JwtAuthGuard)
   async updateOne(
     @Res() res,
@@ -217,7 +220,7 @@ export class AnimalsController {
 
     if (!findOneLocation)
       throw new HttpException(
-        `Location ${locationId} doesn't exists please change`,
+        `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -233,7 +236,7 @@ export class AnimalsController {
     });
     if (!findOneBreed)
       throw new HttpException(
-        `breedId ${breedId} doesn't exists please change`,
+        `breedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 

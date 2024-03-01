@@ -102,24 +102,26 @@ export class LocationsService {
   /** Create one location in database. */
   async createOne(options: CreateLocationsOptions): Promise<Location> {
     const {
-      squareMeter,
+      type,
+      number,
       manger,
       through,
-      number,
-      type,
+      squareMeter,
       productionPhase,
       organizationId,
+      userCreatedId,
     } = options;
 
     const location = this.client.location.create({
       data: {
-        squareMeter,
+        type,
+        number,
         manger,
         through,
-        number,
-        type,
+        squareMeter,
         productionPhase,
         organizationId,
+        userCreatedId,
       },
     });
 
@@ -132,18 +134,28 @@ export class LocationsService {
     options: UpdateLocationsOptions,
   ): Promise<Location> {
     const { locationId } = selections;
-    const { squareMeter, manger, through, number, organizationId, deletedAt } =
-      options;
+    const {
+      type,
+      number,
+      manger,
+      through,
+      squareMeter,
+      productionPhase,
+      organizationId,
+      deletedAt,
+    } = options;
 
     const location = this.client.location.update({
       where: {
         id: locationId,
       },
       data: {
-        squareMeter,
+        type,
+        number,
         manger,
         through,
-        number,
+        squareMeter,
+        productionPhase,
         organizationId,
         deletedAt,
       },
