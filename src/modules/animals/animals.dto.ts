@@ -5,6 +5,7 @@ import {
   ProductionPhase,
 } from '@prisma/client';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -68,6 +69,14 @@ export class CreateOrUpdateAnimalsDto {
   @IsString()
   @IsUUID()
   breedId: string;
+
+  @IsOptional()
+  @IsBoolean()
+  castrated: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isolated: boolean;
 }
 export class GetAnimalsByStatus {
   @IsOptional()

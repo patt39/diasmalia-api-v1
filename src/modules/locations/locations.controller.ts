@@ -79,6 +79,7 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       type,
       number,
+      organizationId: user?.organizationId,
     });
     if (findOneLocation) {
       throw new HttpException(
@@ -95,6 +96,7 @@ export class LocationsController {
       squareMeter,
       productionPhase,
       organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     return reply({

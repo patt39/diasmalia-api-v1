@@ -122,27 +122,28 @@ export class BreedingsController {
       code: codeMale,
       gender: 'MALE',
       status: 'ACTIVE',
+      isCastrated: 'FALSE',
+      isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
       organizationId: user.organizationId,
     });
-    if (!findOneMale) {
+    if (!findOneMale)
       throw new HttpException(
-        `Animal ${codeMale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `Animal ${codeMale} doesn't exists, isn't in REPRODUCTION phase, isCastrated or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
       organizationId: user.organizationId,
     });
-
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase, is Isolated or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -155,22 +156,22 @@ export class BreedingsController {
       );
     }
 
-    if (findOneMale.code == findOneFemale.codeFather) {
+    if (findOneMale?.code == findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale.codeMother == findOneFemale.code) {
+    } else if (findOneMale?.codeMother == findOneFemale?.code) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale.codeMother == findOneFemale.codeMother) {
+    } else if (findOneMale?.codeMother == findOneFemale?.codeMother) {
       throw new HttpException(
         `Unable to perform breeding animals have same mother`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale.codeFather == findOneFemale.codeFather) {
+    } else if (findOneMale?.codeFather == findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same father`,
         HttpStatus.BAD_REQUEST,
@@ -215,7 +216,7 @@ export class BreedingsController {
     });
     if (!findOneBreeding) {
       throw new HttpException(
-        `${breedingId} doesn't exists please change`,
+        `BreedingId: ${breedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -254,22 +255,22 @@ export class BreedingsController {
       );
     }
 
-    if (findOneMale.code == findOneFemale.codeFather) {
+    if (findOneMale?.code === findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale.codeMother == findOneFemale.code) {
+    } else if (findOneMale?.codeMother === findOneFemale?.code) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale.codeMother == findOneFemale.codeMother) {
+    } else if (findOneMale?.codeMother === findOneFemale?.codeMother) {
       throw new HttpException(
         `Unable to perform breeding animals have same mother`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale.codeFather == findOneFemale.codeFather) {
+    } else if (findOneMale?.codeFather === findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same father`,
         HttpStatus.BAD_REQUEST,

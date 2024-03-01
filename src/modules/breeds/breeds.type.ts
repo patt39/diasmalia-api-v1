@@ -29,15 +29,5 @@ export const BreedsSelect = {
   id: true,
   name: true,
   type: true,
-  _count: {
-    select: {
-      animals: true,
-    },
-  },
-};
-
-export const BreedsTypeSelect = {
-  createdAt: true,
-  name: true,
-  type: true,
+  userCreatedId: true,
 };

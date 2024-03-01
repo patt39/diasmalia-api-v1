@@ -12,7 +12,7 @@ import {
   GetOneAssignTaskSelections,
   UpdateAssignTasksOptions,
   UpdateAssignTasksSelections,
-} from './assigntasks.type';
+} from './assigne-tasks.type';
 
 @Injectable()
 export class AssignTasksService {

@@ -179,6 +179,7 @@ model Location {
   productionPhase ProductionPhase
   organizationId  String
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId   String
   animals         Animal[]
 }
 
@@ -206,8 +207,6 @@ model Animal {
   birthday        DateTime?
   weight          Int?
   photo           String?
-  castrated       Boolean?        @default(false)
-  isolated        Boolean?        @default(false)
   gender          Gender
   type            AnimalType
   productionPhase ProductionPhase
@@ -256,7 +255,6 @@ enum ProductionPhase {
   GESTATION
   LACTATION
   REPRODUCTION
-  ISOLATION
   WEANING
 }
 
@@ -269,6 +267,7 @@ model Treatment {
   date           DateTime?
   note           String?
   dose           Int?
+  diagnosis      String
   medication     MedicationTypes?
   method         MethodTreatment?
   animalId       String?

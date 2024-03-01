@@ -123,9 +123,7 @@ export class CheckPregnanciesController {
 
     await this.breedingsService.updateOne(
       { breedingId: findOneBreeding?.id },
-      {
-        checkStatus: !findOneBreeding?.checkStatus,
-      },
+      { checkStatus: !findOneBreeding?.checkStatus },
     );
 
     return reply({ res, results: checkPregnancy });

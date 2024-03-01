@@ -104,6 +104,8 @@ export class AnimalsService {
       gender,
       status,
       animalId,
+      isIsolated,
+      isCastrated,
       organizationId,
       electronicCode,
       productionPhase,
@@ -111,6 +113,18 @@ export class AnimalsService {
 
     if (animalId) {
       Object.assign(prismaWhere, { id: animalId });
+    }
+
+    if (isCastrated === 'FALSE') {
+      Object.assign(prismaWhere, {
+        castration: null,
+      });
+    }
+
+    if (isIsolated === 'FALSE') {
+      Object.assign(prismaWhere, {
+        isolations: { none: {} },
+      });
     }
 
     if (gender) {
@@ -157,14 +171,11 @@ export class AnimalsService {
       status,
       weight,
       gender,
-      photo,
       birthday,
       breedId,
       locationId,
       codeFather,
       codeMother,
-      castrated,
-      isolated,
       productionPhase,
       electronicCode,
       organizationId,
@@ -176,7 +187,6 @@ export class AnimalsService {
         code,
         type,
         status,
-        photo,
         weight,
         gender,
         birthday,
@@ -184,8 +194,6 @@ export class AnimalsService {
         locationId,
         codeFather,
         codeMother,
-        castrated,
-        isolated,
         productionPhase,
         electronicCode,
         organizationId,
@@ -213,8 +221,6 @@ export class AnimalsService {
       birthday,
       codeFather,
       codeMother,
-      castrated,
-      isolated,
       productionPhase,
       electronicCode,
       locationId,
@@ -236,8 +242,6 @@ export class AnimalsService {
         birthday,
         codeFather,
         codeMother,
-        castrated,
-        isolated,
         productionPhase,
         electronicCode,
         locationId,

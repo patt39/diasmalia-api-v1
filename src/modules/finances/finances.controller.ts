@@ -113,9 +113,9 @@ export class FinanceController {
 
     if (financialMgt.type === 'INCOME')
       await this.accountService.updateOne(
-        { accountId: findAccount.id },
+        { accountId: findAccount?.id },
         {
-          incomeAmount: financialMgt.amount,
+          incomeAmount: financialMgt?.amount,
         },
       );
 
