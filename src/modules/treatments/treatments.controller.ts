@@ -23,7 +23,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateTreatmentsDto } from './treatments.dto';
 import { TreatmentsService } from './treatments.service';
 
@@ -36,7 +36,7 @@ export class TreatmentsController {
 
   /** Get all Treatments */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -59,8 +59,8 @@ export class TreatmentsController {
   }
 
   /** Post one treatment */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -86,7 +86,7 @@ export class TreatmentsController {
       dose,
       diagnosis,
       medication,
-      animalId: findOneAnimal.id,
+      animalId: findOneAnimal?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -95,8 +95,8 @@ export class TreatmentsController {
   }
 
   /** Update one reatment */
-  @Put(`/:treatmentId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:treatmentId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -108,17 +108,17 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTreatement) {
       throw new HttpException(
-        ` ${treatmentId} doesn't exists please change`,
+        `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -127,7 +127,7 @@ export class TreatmentsController {
       );
 
     const treatment = await this.treatmentsService.updateOne(
-      { treatmentId: findOneTreatement.id },
+      { treatmentId: findOneTreatement?.id },
       {
         note,
         date,
@@ -135,7 +135,7 @@ export class TreatmentsController {
         dose,
         diagnosis,
         medication,
-        animalId: findOneAnimal.id,
+        animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -145,12 +145,12 @@ export class TreatmentsController {
   }
 
   /** Get one treatment */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/:slug/view`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdTreatment(
     @Res() res,
     @Res() req,
-    @Query('treatmentId', ParseUUIDPipe) treatmentId: string,
+    @Param('slug', ParseUUIDPipe) treatmentId: string,
   ) {
     const { user } = req;
 
@@ -160,7 +160,7 @@ export class TreatmentsController {
     });
     if (!findOneTreatement) {
       throw new HttpException(
-        ` ${treatmentId} doesn't exists please change`,
+        `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -170,7 +170,7 @@ export class TreatmentsController {
 
   /** Delete one treatment */
   @Delete(`/delete/:treatmentId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -180,11 +180,11 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTreatement) {
       throw new HttpException(
-        `${treatmentId} doesn't exists please change`,
+        `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

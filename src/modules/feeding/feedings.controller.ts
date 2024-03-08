@@ -22,8 +22,8 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateFeedingsDto } from './feedings.dto';
+import { UserAuthGuard } from '../users/middleware';
+import { BulkFeedingsDto, CreateOrUpdateFeedingsDto } from './feedings.dto';
 import { FeedingsService } from './feedings.service';
 
 @Controller('feedings')
@@ -35,7 +35,7 @@ export class FeedingsController {
 
   /** Get all Feedings */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -58,8 +58,8 @@ export class FeedingsController {
   }
 
   /** Post one feeding */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -70,7 +70,7 @@ export class FeedingsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
-      organizationId: user?.organizationId,
+      status: 'ACTIVE',
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -84,7 +84,7 @@ export class FeedingsController {
       quantity,
       feedType,
       productionPhase,
-      animalId: findOneAnimal.id,
+      animalId: findOneAnimal?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -92,9 +92,42 @@ export class FeedingsController {
     return reply({ res, results: [HttpStatus.CREATED, feeding] });
   }
 
+  /** Post one Bulk feeding */
+  @Post(`/bulk/create`)
+  @UseGuards(UserAuthGuard)
+  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
+    const { user } = req;
+    const { date, feedType, productionPhase, quantity, animals, note } = body;
+
+    for (const animal of animals) {
+      const findOneAnimal = await this.animalsService.findOneBy({
+        status: 'ACTIVE',
+        code: animal?.code,
+      });
+      if (!findOneAnimal)
+        throw new HttpException(
+          `Animal ${findOneAnimal?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      await this.feedingsService.createOne({
+        note,
+        date,
+        quantity,
+        feedType,
+        productionPhase,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+    }
+
+    return reply({ res, results: 'Saved' });
+  }
+
   /** Update one feeding */
-  @Put(`/:feedingId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:feedingId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -132,7 +165,7 @@ export class FeedingsController {
         quantity,
         feedType,
         productionPhase,
-        animalId: findOneAnimal.id,
+        animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -142,12 +175,12 @@ export class FeedingsController {
   }
 
   /** Get one feeding */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/feedingId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdFeeding(
     @Res() res,
     @Res() req,
-    @Query('feedingId', ParseUUIDPipe) feedingId: string,
+    @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
     const findOneFeeding = await this.feedingsService.findOneBy({
@@ -156,7 +189,7 @@ export class FeedingsController {
     });
     if (!findOneFeeding)
       throw new HttpException(
-        `${feedingId} doesn't exists please change`,
+        `FeedingId: ${feedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -165,7 +198,7 @@ export class FeedingsController {
 
   /** Delete one feeding */
   @Delete(`/delete/:feedingId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -183,7 +216,7 @@ export class FeedingsController {
       );
 
     const feeding = await this.feedingsService.updateOne(
-      { feedingId: findOneFeeding.id },
+      { feedingId: findOneFeeding?.id },
       { deletedAt: new Date() },
     );
 

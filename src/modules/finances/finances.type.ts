@@ -1,14 +1,16 @@
-import { Finance } from '@prisma/client';
+import { Finance, financeType } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetFinancesSelections = {
   search?: string;
-  organizationId: string;
+  type?: financeType;
+  organizationId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneFinanceSelections = {
   financeId?: Finance['id'];
+  slug?: string;
   organizationId?: Finance['organizationId'];
 };
 
@@ -24,10 +26,11 @@ export const FinancesSelect = {
   createdAt: true,
   id: true,
   date: true,
+  slug: true,
   note: true,
   amount: true,
   type: true,
-  details: true,
+  detail: true,
   userCreatedId: true,
   organizationId: true,
 };

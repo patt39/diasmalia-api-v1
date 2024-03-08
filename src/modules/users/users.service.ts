@@ -12,7 +12,7 @@ import {
 export class UsersService {
   constructor(private readonly client: DatabaseService) {}
 
-  /** Find one Users to the database. */
+  /** Find one User in  database. */
   async findOneBy(selections: GetOneUsersSelections) {
     const prismaWhereUser = {} as Prisma.UserWhereInput;
     const { userId, organizationId, email, provider } = selections;
@@ -35,6 +35,7 @@ export class UsersService {
 
     const user = await this.client.user.findFirst({
       where: { ...prismaWhereUser, deletedAt: null },
+      include: { profile: true, organization: true },
     });
 
     return user;
@@ -44,26 +45,22 @@ export class UsersService {
   async createOne(options: CreateUsersOptions): Promise<User> {
     const {
       email,
-      refreshToken,
-      accessToken,
-      organizationId,
-      password,
       token,
       provider,
       username,
+      password,
+      organizationId,
       confirmedAt,
     } = options;
 
     const user = this.client.user.create({
       data: {
         email,
-        refreshToken,
-        accessToken,
-        organizationId,
-        password,
         token,
+        password,
         provider,
         username,
+        organizationId,
         confirmedAt,
       },
     });
@@ -79,14 +76,12 @@ export class UsersService {
     const { userId } = selections;
     const {
       email,
-      refreshToken,
-      accessToken,
-      organizationId,
-      password,
       token,
       provider,
       username,
+      password,
       confirmedAt,
+      organizationId,
       deletedAt,
     } = options;
 
@@ -96,14 +91,12 @@ export class UsersService {
       },
       data: {
         email,
-        refreshToken,
-        accessToken,
-        organizationId,
-        password,
         token,
         provider,
         username,
+        password,
         confirmedAt,
+        organizationId,
         deletedAt,
       },
     });

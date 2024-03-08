@@ -22,7 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateBreedsDto, GetBreedsTypeDto } from './breeds.dto';
 import { BreedsService } from './breeds.service';
 
@@ -32,7 +32,7 @@ export class BreedsController {
 
   /** Get all breeds */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -58,8 +58,8 @@ export class BreedsController {
   }
 
   /** Post one breed */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -67,6 +67,17 @@ export class BreedsController {
   ) {
     const { user } = req;
     const { name, type } = body;
+
+    const findOneBreed = await this.breedsService.findOneBy({
+      name,
+      type,
+    });
+    if (findOneBreed) {
+      throw new HttpException(
+        `Breed ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     const breed = await this.breedsService.createOne({
       name,
@@ -79,8 +90,8 @@ export class BreedsController {
   }
 
   /** Update one breed */
-  @Put(`/:breedId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:breedId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -92,13 +103,13 @@ export class BreedsController {
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
+      organizationId: user?.organizationId,
     });
-    if (!findOneBreed) {
+    if (!findOneBreed)
       throw new HttpException(
         `BreedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const breed = await this.breedsService.updateOne(
       { breedId: findOneBreed?.id },
@@ -115,7 +126,7 @@ export class BreedsController {
 
   /** Get one breed */
   @Get(`/view/:breedId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async getOneByIdBreed(
     @Res() res,
     @Req() req,
@@ -124,11 +135,11 @@ export class BreedsController {
     const { user } = req;
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneBreed) {
       throw new HttpException(
-        `Type ${breedId} doesn't exists please change`,
+        `BreedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -138,13 +149,16 @@ export class BreedsController {
 
   /** Delete one breed */
   @Delete(`/delete/:breedId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
+    @Req() req,
     @Param('BreedId', ParseUUIDPipe) breedId: string,
   ) {
+    const { user } = req;
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
+      organizationId: user?.organizationId,
     });
     if (!findOneBreed) {
       throw new HttpException(
@@ -154,7 +168,7 @@ export class BreedsController {
     }
 
     const breed = await this.breedsService.updateOne(
-      { breedId: findOneBreed.id },
+      { breedId: findOneBreed?.id },
       { deletedAt: new Date() },
     );
 

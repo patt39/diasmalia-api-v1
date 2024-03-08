@@ -22,7 +22,7 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import { BulkDeathsDto, CreateOrUpdateDeathsDto } from './deaths.dto';
 import { DeathsService } from './deaths.service';
 
@@ -35,7 +35,7 @@ export class DeathsController {
 
   /** Get all deaths */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -58,8 +58,8 @@ export class DeathsController {
   }
 
   /** Post one death */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -71,14 +71,21 @@ export class DeathsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeAnimal,
       status: 'ACTIVE',
-      organizationId: user?.organizationId,
     });
-    if (!findOneAnimal) {
+    if (!findOneAnimal)
       throw new HttpException(
         `Animal ${findOneAnimal.code} doesn't exists, isn't ACTIVE, please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
+
+    const findOneDeath = await this.deathsService.findOneBy({
+      organizationId: user?.organizationId,
+    });
+    if (!findOneDeath)
+      throw new HttpException(
+        `Animal already dead please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const death = await this.deathsService.createOne({
       date,
@@ -90,17 +97,15 @@ export class DeathsController {
 
     await this.animalsService.updateOne(
       { animalId: death.animalId },
-      {
-        status: 'DEAD',
-      },
+      { status: 'DEAD' },
     );
 
     return reply({ res, results: death });
   }
 
   /** Post one Bulk death */
-  @Post(`/bulk`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/bulk/create`)
+  @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkDeathsDto) {
     const { user } = req;
     const { date, animals, note } = body;
@@ -109,7 +114,6 @@ export class DeathsController {
       const findOneAnimal = await this.animalsService.findOneBy({
         status: 'ACTIVE',
         code: animal?.code,
-        organizationId: user.organizationId,
       });
       if (!findOneAnimal) {
         throw new HttpException(
@@ -122,15 +126,13 @@ export class DeathsController {
         date,
         note,
         animalId: findOneAnimal?.id,
-        organizationId: findOneAnimal?.organizationId,
+        organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
 
       await this.animalsService.updateOne(
         { animalId: death?.animalId },
-        {
-          status: 'DEAD',
-        },
+        { status: 'DEAD' },
       );
     }
 
@@ -138,12 +140,12 @@ export class DeathsController {
   }
 
   /** Get one Death */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/:deathId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdDeath(
     @Res() res,
     @Req() req,
-    @Query('deathId', ParseUUIDPipe) deathId: string,
+    @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
     const findOneDeadAnimal = await this.deathsService.findOneBy({
@@ -160,9 +162,9 @@ export class DeathsController {
     return reply({ res, results: findOneDeadAnimal });
   }
 
-  /** Update one breed */
-  @Put(`/:deathId`)
-  @UseGuards(JwtAuthGuard)
+  /** Update one death */
+  @Put(`/:deathId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -174,7 +176,7 @@ export class DeathsController {
 
     const findOneDeath = await this.deathsService.findOneBy({
       deathId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneDeath) {
       throw new HttpException(
@@ -186,7 +188,6 @@ export class DeathsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeAnimal,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
     });
     if (!findOneAnimal) {
       throw new HttpException(
@@ -199,23 +200,16 @@ export class DeathsController {
       date,
       note,
       animalId: findOneAnimal?.id,
-      organizationId: findOneAnimal?.organizationId,
+      organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
-
-    await this.animalsService.updateOne(
-      { animalId: death.animalId },
-      {
-        status: 'DEAD',
-      },
-    );
 
     return reply({ res, results: death });
   }
 
   /** Update one breed */
-  @Put(`/:deathId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:deathId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOneBulk(
     @Res() res,
     @Req() req,
@@ -239,7 +233,6 @@ export class DeathsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeAnimal,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
     });
     if (!findOneAnimal) {
       throw new HttpException(
@@ -252,7 +245,7 @@ export class DeathsController {
       date,
       note,
       animalId: findOneAnimal?.id,
-      organizationId: findOneAnimal?.organizationId,
+      organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
@@ -268,7 +261,7 @@ export class DeathsController {
 
   /** Delete one Death */
   @Delete(`/delete/:deathId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

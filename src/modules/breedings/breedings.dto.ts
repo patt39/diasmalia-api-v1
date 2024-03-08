@@ -37,12 +37,6 @@ export class GetAnimalBreedingsDto {
   animalId: string;
 }
 
-export class GetAnimalBreedingsByCheckDto {
-  @IsOptional()
-  @IsString()
-  checkStatus: any;
-}
-
 export class GetAnimalBreedingsByMethodDto {
   @IsOptional()
   @IsString()

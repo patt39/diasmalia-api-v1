@@ -24,10 +24,9 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
 import { BreedingsService } from '../breedings/breedings.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import {
-  checkPregancyMethodDto,
-  checkPregancyResultDto,
+  checkPregancyQueryDto,
   CreateOrUpdateCheckPregnanciesDto,
 } from './check-pregnancies.dto';
 import { CheckPregnanciesService } from './check-pregnancies.service';
@@ -42,19 +41,17 @@ export class CheckPregnanciesController {
 
   /** Get all checkPregnancies */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryMethod: checkPregancyMethodDto,
-    @Query() queryResult: checkPregancyResultDto,
+    @Query() queryMethod: checkPregancyQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { method } = queryMethod;
-    const { result } = queryResult;
+    const { method, result } = queryMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -71,8 +68,8 @@ export class CheckPregnanciesController {
   }
 
   /** Post one checkPregnancy */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -92,15 +89,13 @@ export class CheckPregnanciesController {
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
       checkStatus: false,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      productionPhase: 'REPRODUCTION',
-      organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -116,7 +111,7 @@ export class CheckPregnanciesController {
       result,
       farrowingDate,
       breedingId: findOneBreeding?.id,
-      animalFemaleId: findOneFemale?.id,
+      animalFemaleId: findOneBreeding?.animalFemaleId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -130,8 +125,8 @@ export class CheckPregnanciesController {
   }
 
   /** Update one checkPregnancy */
-  @Put(`/:checkPregnancyId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:checkPregnancyId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -143,6 +138,7 @@ export class CheckPregnanciesController {
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
+      organizationId: user?.organizationId,
     });
     if (!findOnecheckPregnancy) {
       throw new HttpException(
@@ -153,7 +149,7 @@ export class CheckPregnanciesController {
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       checkStatus: false,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneBreeding) {
       throw new HttpException(
@@ -167,7 +163,6 @@ export class CheckPregnanciesController {
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'REPRODUCTION',
-      organizationId: user?.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -185,7 +180,7 @@ export class CheckPregnanciesController {
         result,
         farrowingDate,
         breedingId: findOneBreeding?.id,
-        animalFemaleId: findOneFemale?.id,
+        animalFemaleId: findOneBreeding?.animalFemaleId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -195,12 +190,12 @@ export class CheckPregnanciesController {
   }
 
   /** Get one checkPregnancy */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/checkPregnancyId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdCheckPregnancy(
     @Res() res,
     @Req() req,
-    @Query('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
+    @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
     const { user } = req;
 
@@ -220,7 +215,7 @@ export class CheckPregnanciesController {
 
   /** Delete one checkPregnancy */
   @Delete(`/delete/:checkPregnancyId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

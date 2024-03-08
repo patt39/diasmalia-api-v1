@@ -41,10 +41,7 @@ export class BreedingsService {
       Object.assign(prismaWhereBreeding, {
         OR: [
           {
-            animalFemaleId: { contains: search, mode: 'insensitive' },
-          },
-          {
-            animalMaleId: { contains: search, mode: 'insensitive' },
+            code: { contains: search, mode: 'insensitive' },
           },
         ],
       });

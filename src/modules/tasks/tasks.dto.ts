@@ -33,3 +33,11 @@ export class CreateOrUpdateTasksDto {
   @IsUUID()
   contributorId: string;
 }
+
+export class TasksQueryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(TaskStatus)
+  status: TaskStatus;
+}

@@ -1,8 +1,9 @@
-import { Contributor } from '@prisma/client';
+import { Contributor, RoleContributorRole } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetContributorsSelections = {
   search?: string;
+  role?: RoleContributorRole;
   organizationId: string;
   pagination?: PaginationType;
 };
@@ -27,6 +28,21 @@ export const ContributorSelect = {
   id: true,
   role: true,
   userId: true,
+  user: {
+    select: {
+      profile: {
+        select: {
+          firstName: true,
+          lastName: true,
+          occupation: true,
+          companyName: true,
+          address: true,
+          phone: true,
+          description: true,
+        },
+      },
+    },
+  },
   organizationId: true,
   organization: {
     select: {

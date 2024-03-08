@@ -23,10 +23,9 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateBreedingsDto,
-  GetAnimalBreedingsByCheckDto,
   GetAnimalBreedingsByMethodDto,
   GetAnimalBreedingsDto,
 } from './breedings.dto';
@@ -41,18 +40,16 @@ export class BreedingsController {
 
   /** Get all breedings */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryStatus: GetAnimalBreedingsByCheckDto,
     @Query() queryMethod: GetAnimalBreedingsByMethodDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { checkStatus } = queryStatus;
     const { method } = queryMethod;
 
     const { take, page, sort } = requestPaginationDto;
@@ -62,7 +59,6 @@ export class BreedingsController {
       method,
       search,
       pagination,
-      checkStatus,
       organizationId: user?.organizationId,
     });
 
@@ -71,8 +67,8 @@ export class BreedingsController {
 
   /** Get all breedings */
   @Get(`/animals`)
-  @UseGuards(JwtAuthGuard)
-  async findAnimalAll(
+  @UseGuards(UserAuthGuard)
+  async findAllAnimal(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
@@ -108,8 +104,8 @@ export class BreedingsController {
   }
 
   /** Post one breeding */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -125,7 +121,6 @@ export class BreedingsController {
       isCastrated: 'FALSE',
       isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
-      organizationId: user.organizationId,
     });
     if (!findOneMale)
       throw new HttpException(
@@ -139,7 +134,6 @@ export class BreedingsController {
       status: 'ACTIVE',
       isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
-      organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -199,8 +193,8 @@ export class BreedingsController {
   }
 
   /** Update one breeding */
-  @Put(`/:breedingId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:breedingId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -212,7 +206,7 @@ export class BreedingsController {
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
       checkStatus: false,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneBreeding) {
       throw new HttpException(
@@ -225,7 +219,6 @@ export class BreedingsController {
       code: codeMale,
       gender: 'MALE',
       status: 'ACTIVE',
-      organizationId: user.organizationId,
     });
     if (!findOneMale) {
       throw new HttpException(
@@ -238,7 +231,6 @@ export class BreedingsController {
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -301,12 +293,12 @@ export class BreedingsController {
   }
 
   /** Get one breeding */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/:animalId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdBreeding(
     @Res() res,
     @Req() req,
-    @Query('animalId', ParseUUIDPipe) animalId: string,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
   ) {
     const { user } = req;
     const findOneAnimal = await this.animalsService.findOneBy({
@@ -328,7 +320,7 @@ export class BreedingsController {
 
     if (!findOnebreeding) {
       throw new HttpException(
-        `${animalId} doesn't exists please change`,
+        `AnimalId: ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -338,7 +330,7 @@ export class BreedingsController {
 
   /** Delete one breeding */
   @Delete(`/delete/:breedingId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -347,7 +339,6 @@ export class BreedingsController {
     const { user } = req;
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
-      checkStatus: false,
       organizationId: user.organizationId,
     });
     if (!findOneBreeding) {

@@ -23,8 +23,11 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateIsolationsDto } from './isolations.dto';
+import { UserAuthGuard } from '../users/middleware';
+import {
+  BulkIsolationsDto,
+  CreateOrUpdateIsolationsDto,
+} from './isolations.dto';
 import { IsolationsService } from './isolations.service';
 
 @Controller('isolations')
@@ -36,7 +39,7 @@ export class IsolationsController {
 
   /** Get all castrations */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -59,8 +62,8 @@ export class IsolationsController {
   }
 
   /** Post one isolation */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -72,7 +75,6 @@ export class IsolationsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
       status: 'ACTIVE',
-      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -91,9 +93,40 @@ export class IsolationsController {
     return reply({ res, results: isolation });
   }
 
+  /** Post one Bulk isolation */
+  @Post(`/bulk/create`)
+  @UseGuards(UserAuthGuard)
+  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkIsolationsDto) {
+    const { user } = req;
+    const { date, animals, note } = body;
+
+    for (const animal of animals) {
+      const findOneAnimal = await this.animalsService.findOneBy({
+        status: 'ACTIVE',
+        code: animal?.code,
+      });
+      if (!findOneAnimal) {
+        throw new HttpException(
+          `Animal ${findOneAnimal?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      await this.isolationsService.createOne({
+        date,
+        note,
+        animalId: findOneAnimal?.id,
+        organizationId: findOneAnimal?.organizationId,
+        userCreatedId: user?.id,
+      });
+    }
+
+    return reply({ res, results: 'Saved' });
+  }
+
   /** Update one isolation */
-  @Put(`/:isolationId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:isolationId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -139,7 +172,7 @@ export class IsolationsController {
 
   /** Delete one isolation */
   @Delete(`/delete/:isolationId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

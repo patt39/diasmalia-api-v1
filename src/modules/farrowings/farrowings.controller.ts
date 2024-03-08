@@ -23,7 +23,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateFarrowingsDto } from './farrowings.dto';
 import { FarrowingsService } from './farrowings.service';
 
@@ -36,7 +36,7 @@ export class FarrowingsController {
 
   /** Get all farrowings */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -59,8 +59,8 @@ export class FarrowingsController {
   }
 
   /** Post one farrowing */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -104,8 +104,8 @@ export class FarrowingsController {
   }
 
   /** Update one farrowing */
-  @Put(`/:farrowingId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:farrowingId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -130,7 +130,6 @@ export class FarrowingsController {
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
-      organizationId: user?.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -161,12 +160,12 @@ export class FarrowingsController {
   }
 
   /** Get one farrowing */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/:farrowingId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdFarrowing(
     @Res() res,
     @Req() req,
-    @Query('farrowingId', ParseUUIDPipe) farrowingId: string,
+    @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
     const farrowing = await this.farrowingsService.findOneBy({
@@ -185,7 +184,7 @@ export class FarrowingsController {
 
   /** Delete one farrowing */
   @Delete(`/delete/:farrowingId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -198,7 +197,7 @@ export class FarrowingsController {
     });
     if (!findOneFarrowing) {
       throw new HttpException(
-        `${farrowingId} doesn't exists please change`,
+        `FarrowingId: ${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

@@ -26,6 +26,27 @@ export const isolationsSelect = {
   date: true,
   note: true,
   animalId: true,
+  animal: {
+    select: {
+      code: true,
+      type: true,
+      status: true,
+      gender: true,
+      weight: true,
+      electronicCode: true,
+      productionPhase: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
   userCreatedId: true,
   organizationId: true,
 };

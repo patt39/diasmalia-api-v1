@@ -22,7 +22,7 @@ export class FeedingsService {
     selections: GetFeedingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FeedingWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, feedType, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +36,10 @@ export class FeedingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (feedType) {
+      Object.assign(prismaWhere, { feedType });
     }
 
     const feeding = await this.client.feeding.findMany({

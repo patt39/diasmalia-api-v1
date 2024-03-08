@@ -1,45 +1,20 @@
 import {
-  Body,
   Controller,
   Delete,
   Get,
   Param,
   ParseUUIDPipe,
-  Post,
-  Req,
   Res,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { CreateOrUpdateProfilesDto } from './profiles.dto';
 import { ProfilesService } from './profiles.service';
 
 @Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  /** Post one Profiles */
-  @Post(`/`)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateProfilesDto,
-  ) {
-    const { firstName, lastName, phone, address, birthday } = body;
-
-    const profile = await this.profilesService.createOne({
-      firstName,
-      lastName,
-      address,
-      phone,
-      birthday,
-      userId: '',
-    });
-
-    return reply({ res, results: profile });
-  }
-
-  /** Get one Profiles */
+  /** Get one Profile */
   @Get(`/show/:profileId`)
   // @UseGuards(JwtAuthGuard)
   async getOneByIdUser(

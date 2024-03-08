@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Finance, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
+import { Slug, generateNumber } from '../../app/utils/commons/generate-random';
 import {
   WithPaginationResponse,
   withPagination,
@@ -22,13 +23,13 @@ export class FinancesService {
     selections: GetFinancesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FinanceWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, type, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [
           {
-            date: { contains: search, mode: 'insensitive' },
+            detail: { contains: search, mode: 'insensitive' },
           },
         ],
       });
@@ -36,6 +37,10 @@ export class FinancesService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
     }
 
     const finances = await this.client.finance.findMany({
@@ -59,12 +64,22 @@ export class FinancesService {
 
   /** Find one finance from database. */
   async findOneBy(selections: GetOneFinanceSelections) {
-    const { financeId } = selections;
-    const finance = await this.client.finance.findUnique({
+    const prismaWhere = {} as Prisma.FinanceWhereInput;
+    const { financeId, slug, organizationId } = selections;
+    if (financeId) {
+      Object.assign(prismaWhere, { id: financeId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (slug) {
+      Object.assign(prismaWhere, { slug });
+    }
+
+    const finance = await this.client.finance.findFirst({
       select: FinancesSelect,
-      where: {
-        id: financeId,
-      },
     });
 
     return finance;
@@ -72,25 +87,17 @@ export class FinancesService {
 
   /** Create one finance in database. */
   async createOne(options: CreateFinanceOptions): Promise<Finance> {
-    const {
-      date,
-      note,
-      type,
-      amount,
-      accountId,
-      details,
-      organizationId,
-      userCreatedId,
-    } = options;
+    const { date, note, type, amount, detail, organizationId, userCreatedId } =
+      options;
 
     const financialMgt = this.client.finance.create({
       data: {
         date,
         note,
         type,
+        detail,
         amount,
-        accountId,
-        details,
+        slug: `${Slug(detail)}-${generateNumber(4)}`,
         organizationId,
         userCreatedId,
       },
@@ -110,8 +117,7 @@ export class FinancesService {
       note,
       type,
       amount,
-      details,
-      accountId,
+      detail,
       organizationId,
       userCreatedId,
       deletedAt,
@@ -126,8 +132,7 @@ export class FinancesService {
         note,
         type,
         amount,
-        details,
-        accountId,
+        detail,
         organizationId,
         userCreatedId,
         deletedAt,

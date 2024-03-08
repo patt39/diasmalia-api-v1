@@ -12,25 +12,30 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { reply } from '../../app/utils/reply';
-
+import { config } from '../../app/config';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
   addPagination,
 } from '../../app/utils/pagination/with-pagination';
+import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  AddContributorUserDto,
   CreateOneContributorUserDto,
   CreateOrUpdateContributorDto,
+  GetContributorsByRoleDto,
 } from '../contributors/contributors.dto';
-import { OrganizationsService } from '../organizations/organizations.service';
+import { UploadsUtil } from '../integrations/integration.utils';
 import { ProfilesService } from '../profiles/profiles.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { authPasswordResetMail } from '../users/mails/auth-password-reset-mail';
+import { UserAuthGuard } from '../users/middleware';
+import { CheckUserService } from '../users/middleware/check-user.service';
 import { UsersService } from '../users/users.service';
 import { ContributorsService } from './contributors.service';
 
@@ -40,46 +45,13 @@ export class ContributorsController {
     private readonly usersService: UsersService,
     private readonly profilesService: ProfilesService,
     private readonly contributorsService: ContributorsService,
-    private readonly organizationsService: OrganizationsService,
+    private readonly uploadsUtil: UploadsUtil,
+    private readonly checkUserService: CheckUserService,
   ) {}
 
   /** Post one Contributor */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
-  async addOne(@Res() res, @Req() req, @Body() body: AddContributorUserDto) {
-    const { user } = req;
-    const { email } = body;
-
-    const findOneUser = await this.usersService.findOneBy({ email });
-    if (!findOneUser)
-      throw new HttpException(
-        `Email don't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneContributor = await this.contributorsService.findOneBy({
-      userId: findOneUser.id,
-      organizationId: user?.organizationId,
-    });
-    if (findOneContributor)
-      throw new HttpException(
-        `User already exists please change`,
-        HttpStatus.OK,
-      );
-
-    await this.contributorsService.createOne({
-      role: 'ADMIN',
-      userId: findOneUser.id,
-      userCreatedId: findOneUser.id,
-      organizationId: user?.organizationId,
-    });
-
-    return reply({ res, results: 'Contributor saved successfully' });
-  }
-
-  /** Post one Contributor */
-  @Post(`/new-contributor`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/new`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -88,10 +60,10 @@ export class ContributorsController {
     const { user } = req;
     const {
       email,
-      lastName,
-      firstName,
       phone,
       address,
+      lastName,
+      firstName,
       occupation,
       companyName,
     } = body;
@@ -106,32 +78,102 @@ export class ContributorsController {
     const newUser = await this.usersService.createOne({
       provider: 'default',
       email: email.toLocaleLowerCase(),
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     await this.profilesService.createOne({
-      firstName,
-      lastName,
       phone,
       address,
+      lastName,
+      firstName,
       occupation,
       companyName,
-      userId: newUser.id,
+      userId: newUser?.id,
     });
 
     await this.contributorsService.createOne({
       role: 'ADMIN',
-      userId: newUser.id,
-      organizationId: newUser.organizationId,
-      userCreatedId: user.id,
+      userId: newUser?.id,
+      organizationId: newUser?.organizationId,
+      userCreatedId: user?.id,
+    });
+
+    const tokenVerify = await this.checkUserService.createTokenCookie(
+      { userId: newUser?.id },
+      config.cookie_access.user.accessExpireVerify,
+    );
+
+    await authPasswordResetMail({
+      email,
+      tokenVerify,
     });
 
     return reply({ res, results: 'Contributor saved successfully' });
   }
 
-  /** Update one Contributor */
-  @Put(`/:contributorId`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/profile/show`)
+  @UseGuards(UserAuthGuard)
+  async getOneByProfileId(@Res() res, @Req() req) {
+    const { user } = req;
+    const findOneProfile = await this.profilesService.findOneBy({
+      profileId: user?.profile?.id,
+    });
+    if (!findOneProfile)
+      throw new HttpException(
+        `Profile doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneProfile });
+  }
+
+  @Put(`/profile/update/`)
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  async updateProfile(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOneContributorUserDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const { user } = req;
+
+    const { fileName } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'animals_photos',
+    });
+
+    const {
+      phone,
+      address,
+      lastName,
+      firstName,
+      occupation,
+      companyName,
+      description,
+    } = body;
+    await this.profilesService.updateOne(
+      { profileId: user?.profile?.id },
+      {
+        phone,
+        address,
+        lastName,
+        firstName,
+        occupation,
+        companyName,
+        description,
+        photo: fileName,
+        userId: user?.id,
+      },
+    );
+
+    return reply({ res, results: 'Profile updated successfully' });
+  }
+
+  /** Update Contributor Role */
+  @Put(`/:contributorId/role/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -143,22 +185,17 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
+      organizationId: user?.organizationId,
     });
-
-    if (!fineOnecontributor) {
+    if (!fineOnecontributor)
       throw new HttpException(
         `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const contributor = await this.contributorsService.updateOne(
-      { contributorId },
-      {
-        role,
-        userCreatedId: user?.id,
-        updatedAt: new Date(),
-      },
+      { contributorId: fineOnecontributor?.id },
+      { role },
     );
 
     return reply({ res, results: contributor });
@@ -166,20 +203,23 @@ export class ContributorsController {
 
   /** Get all contributors */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryRole: GetContributorsByRoleDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { role } = queryRole;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const contributors = await this.contributorsService.findAll({
+      role,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -190,7 +230,7 @@ export class ContributorsController {
 
   /** Get one contributor */
   @Get(`/show/:contributorId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async getOneByIdUser(
     @Res() res,
     @Req() req,
@@ -200,22 +240,20 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
-
-    if (!fineOnecontributor) {
+    if (!fineOnecontributor)
       throw new HttpException(
-        `${contributorId} doesn't exists please change`,
+        `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: fineOnecontributor });
   }
 
   /** Delete one contributor */
   @Delete(`/delete/:contributorId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -227,17 +265,17 @@ export class ContributorsController {
       contributorId,
       organizationId: user?.organizationId,
     });
-    if (!fineOnecontributor) {
+    if (!fineOnecontributor)
       throw new HttpException(
         `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
-    const contributor = await this.contributorsService.updateOne(
+
+    await this.contributorsService.updateOne(
       { contributorId: fineOnecontributor?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: contributor });
+    return reply({ res, results: 'Contributor deleted successfully' });
   }
 }

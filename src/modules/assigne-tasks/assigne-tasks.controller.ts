@@ -23,7 +23,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ContributorsService } from '../contributors/contributors.service';
 import { TasksService } from '../tasks/tasks.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
 import {
   CreateOrUpdateAssignTasksDto,
@@ -42,17 +42,17 @@ export class AssignTasksController {
 
   /** Get all assignTasks */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryUser: GetAssignTasksDto,
+    @Query() queryAssigneTasks: GetAssignTasksDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { taskId, userId } = queryUser;
+    const { taskId, userId } = queryAssigneTasks;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -69,8 +69,8 @@ export class AssignTasksController {
   }
 
   /** Post one assignedTask */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/new`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -83,10 +83,9 @@ export class AssignTasksController {
       userId,
       organizationId: user?.organizationId,
     });
-
     if (!findOneContributor)
       throw new HttpException(
-        ` ${userId} doesn't exists please change`,
+        `ContributorId: ${userId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -96,7 +95,7 @@ export class AssignTasksController {
     });
     if (!findOneTask)
       throw new HttpException(
-        ` ${taskId} doesn't exists please change`,
+        `TaskId: ${taskId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -106,9 +105,9 @@ export class AssignTasksController {
 
     const assignTask = !findOneAssignedTask
       ? await this.assignTasksService.createOne({
-          taskId: findOneTask.id,
-          userId: findOneContributor.userId,
-          organizationId: findOneTask.organizationId,
+          taskId: findOneTask?.id,
+          userId: findOneContributor?.userId,
+          organizationId: user?.organizationId,
           userCreatedId: user?.id,
         })
       : 'Already Created';
@@ -125,7 +124,7 @@ export class AssignTasksController {
 
   /** Delete one assignTask */
   @Delete(`/delete/:assignTaskId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -134,16 +133,16 @@ export class AssignTasksController {
     const { user } = req;
     const findOneassignTask = await this.assignTasksService.findOneBy({
       assignTaskId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneassignTask) {
       throw new HttpException(
-        `${assignTaskId} doesn't exists please change`,
+        `AssigneTaskId: ${assignTaskId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
     const task = await this.assignTasksService.updateOne(
-      { assignTaskId },
+      { assignTaskId: findOneassignTask?.id },
       { deletedAt: new Date() },
     );
 

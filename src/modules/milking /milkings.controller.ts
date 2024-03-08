@@ -23,8 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateMilkingsDto } from './milkings.dto';
+import { UserAuthGuard } from '../users/middleware';
+import {
+  BulkMilkingsDto,
+  CreateOrUpdateMilkingsDto,
+  GetMilkingsByMethod,
+} from './milkings.dto';
 import { MilkingsService } from './milkings.service';
 
 @Controller('milkings')
@@ -36,21 +40,24 @@ export class MilkingsController {
 
   /** Get all milkings */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryMethod: GetMilkingsByMethod,
   ) {
     const { user } = req;
     const { search } = query;
+    const { method } = queryMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const milkings = await this.milkingsService.findAll({
       search,
+      method,
       pagination,
       organizationId: user?.organizationId,
     });
@@ -59,8 +66,8 @@ export class MilkingsController {
   }
 
   /** Post one milking */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -73,8 +80,8 @@ export class MilkingsController {
       code: femaleCode,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      isIsolated: 'FALSE',
       productionPhase: 'LACTATION',
-      organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -88,7 +95,7 @@ export class MilkingsController {
       date,
       method,
       quantity,
-      animalId: findOneFemale.id,
+      animalId: findOneFemale?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -96,9 +103,45 @@ export class MilkingsController {
     return reply({ res, results: milking });
   }
 
+  /** Post one Bulk milking */
+  @Post(`/bulk/create`)
+  @UseGuards(UserAuthGuard)
+  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkMilkingsDto) {
+    const { user } = req;
+    const { date, method, quantity, animals, note } = body;
+
+    for (const animal of animals) {
+      const findOneFemale = await this.animalsService.findOneBy({
+        status: 'ACTIVE',
+        code: animal?.code,
+        gender: 'FEMALE',
+        isIsolated: 'FALSE',
+        productionPhase: 'LACTATION',
+      });
+      if (!findOneFemale) {
+        throw new HttpException(
+          `Animal ${findOneFemale?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      await this.milkingsService.createOne({
+        note,
+        date,
+        method,
+        quantity,
+        animalId: findOneFemale?.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+    }
+
+    return reply({ res, results: 'Saved' });
+  }
+
   /** Update one milking */
-  @Put(`/:milkingId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:milkingId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -110,10 +153,11 @@ export class MilkingsController {
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
+      organizationId: user?.organizationId,
     });
     if (!findOneMilking) {
       throw new HttpException(
-        `${milkingId} doesn't exists, please change`,
+        `MilkingId: ${milkingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -122,8 +166,8 @@ export class MilkingsController {
       code: femaleCode,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      isIsolated: 'FALSE',
       productionPhase: 'LACTATION',
-      organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -139,7 +183,7 @@ export class MilkingsController {
         date,
         method,
         quantity,
-        animalId: findOneFemale.id,
+        animalId: findOneFemale?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -150,7 +194,7 @@ export class MilkingsController {
 
   /** Get one milking */
   @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async getOneByIdMilking(
     @Res() res,
     @Req() req,
@@ -173,7 +217,7 @@ export class MilkingsController {
 
   /** Delete one milking */
   @Delete(`/delete/:milkingId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

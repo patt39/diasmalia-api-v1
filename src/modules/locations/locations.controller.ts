@@ -22,11 +22,10 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateLocationsDto,
-  GetLocationsByPhase,
-  GetLocationsByType,
+  GetLocationsQueryDto,
 } from './locations.dto';
 import { LocationsService } from './locations.service';
 
@@ -36,19 +35,17 @@ export class LocationsController {
 
   /** Get all locations */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryTypes: GetLocationsByType,
-    @Query() queryPhase: GetLocationsByPhase,
+    @Query() queryLocations: GetLocationsQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { type } = queryTypes;
-    const { productionPhase } = queryPhase;
+    const { type, productionPhase } = queryLocations;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -65,8 +62,8 @@ export class LocationsController {
   }
 
   /** Post one location */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -79,7 +76,7 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       type,
       number,
-      organizationId: user?.organizationId,
+      productionPhase,
     });
     if (findOneLocation) {
       throw new HttpException(
@@ -111,7 +108,7 @@ export class LocationsController {
 
   /** Update one location */
   @Put(`/:locationId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -139,7 +136,7 @@ export class LocationsController {
         number,
         through,
         squareMeter,
-        organizationId: user.organizationId,
+        organizationId: user?.organizationId,
       },
     );
 
@@ -154,12 +151,12 @@ export class LocationsController {
   }
 
   /** Get one location */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/:locationId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdUser(
     @Res() res,
     @Req() req,
-    @Query('locationId', ParseUUIDPipe) locationId: string,
+    @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
     const findOneLocation = await this.locationsService.findOneBy({
@@ -178,7 +175,7 @@ export class LocationsController {
 
   /** Delete one Location */
   @Delete(`/delete/:locationId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

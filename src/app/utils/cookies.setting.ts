@@ -1,4 +1,4 @@
-export type Env = 'local' | 'prod' | 'dev' | 'test';
+export type Env = 'dev' | 'prod' | 'test';
 
 /** Get the correct cookie settings based on environment */
 export const getCookieSettings = (env: string) =>
@@ -12,11 +12,6 @@ const settingsMap: {
     sameSite: 'none' | 'lax';
   };
 } = {
-  local: {
-    httpOnly: false,
-    secure: true,
-    sameSite: 'none',
-  },
   dev: {
     httpOnly: false,
     secure: true,

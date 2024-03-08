@@ -22,34 +22,33 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { AccountService } from '../account/account.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateFinancesDto } from './finances.dto';
+import { UserAuthGuard } from '../users/middleware';
+import { CreateOrUpdateFinancesDto, GetFinancesByType } from './finances.dto';
 import { FinancesService } from './finances.service';
 
-@Controller('financialMgt')
+@Controller('finances')
 export class FinanceController {
-  constructor(
-    private readonly financeService: FinancesService,
-    private readonly accountService: AccountService,
-  ) {}
+  constructor(private readonly financeService: FinancesService) {}
 
-  /** Get all finance */
+  /** Get all finances */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryFinances: GetFinancesByType,
   ) {
     const { user } = req;
     const { search } = query;
+    const { type } = queryFinances;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const finances = await this.financeService.findAll({
+      type,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -57,74 +56,33 @@ export class FinanceController {
 
     return reply({ res, results: finances });
   }
-
-  /** Create Account */
-  @Post(`/account`)
-  @UseGuards(JwtAuthGuard)
-  async createOneAccount(@Res() res, @Req() req) {
-    const { user } = req;
-
-    const account = await this.accountService.createOne({
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
-    });
-
-    return reply({ res, results: account });
-  }
-
   /** Post one Finance */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateFinancesDto,
   ) {
     const { user } = req;
-    const { date, note, amount, type, details } = body;
+    const { date, note, amount, type, detail } = body;
 
-    const findAccount = await this.accountService.findOneBy({
-      organizationId: user?.organizationId,
-    });
-    if (!findAccount)
-      throw new HttpException(
-        `Account doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const financialMgt = await this.financeService.createOne({
+    const finance = await this.financeService.createOne({
       date,
       type,
       note,
-      details,
+      detail,
       amount,
-      accountId: findAccount.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
-    if (financialMgt.type === 'EXPENSE')
-      await this.accountService.updateOne(
-        { accountId: findAccount.id },
-        {
-          expenditureAmount: financialMgt.amount,
-        },
-      );
-
-    if (financialMgt.type === 'INCOME')
-      await this.accountService.updateOne(
-        { accountId: findAccount?.id },
-        {
-          incomeAmount: financialMgt?.amount,
-        },
-      );
-
-    return reply({ res, results: financialMgt });
+    return reply({ res, results: finance });
   }
 
-  /** Post one financialMgt */
-  @Put(`/:financeId`)
-  @UseGuards(JwtAuthGuard)
+  /** Update one finance */
+  @Put(`/:financeId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -132,44 +90,7 @@ export class FinanceController {
     @Param('financeId', ParseUUIDPipe) financeId: string,
   ) {
     const { user } = req;
-    const { date, note, amount, type, details } = body;
-
-    const findOneFinance = await this.financeService.findOneBy({
-      financeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneFinance)
-      throw new HttpException(
-        `${financeId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const finance = await this.financeService.updateOne(
-      { financeId: findOneFinance?.id },
-      {
-        date,
-        note,
-        type,
-        details,
-        amount,
-        //financialAccountId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      },
-    );
-
-    return reply({ res, results: finance });
-  }
-
-  /** Get one finance */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
-    @Res() res,
-    @Req() req,
-    @Query('financialMgtId', ParseUUIDPipe) financeId: string,
-  ) {
-    const { user } = req;
+    const { date, note, amount, type, detail } = body;
 
     const findOneFinance = await this.financeService.findOneBy({
       financeId,
@@ -181,16 +102,48 @@ export class FinanceController {
         HttpStatus.NOT_FOUND,
       );
 
+    const finance = await this.financeService.updateOne(
+      { financeId: findOneFinance?.id },
+      {
+        date,
+        note,
+        type,
+        amount,
+        detail,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      },
+    );
+
+    return reply({ res, results: finance });
+  }
+
+  /** Get one finance */
+  @Get(`/view/:slug`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdUser(@Res() res, @Req() req, @Param('slug') slug: string) {
+    const { user } = req;
+
+    const findOneFinance = await this.financeService.findOneBy({
+      slug,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFinance)
+      throw new HttpException(
+        `Slug: ${slug} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     return reply({ res, results: findOneFinance });
   }
 
   /** Delete one finance */
   @Delete(`/delete/:financeId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
-    @Param('financialMgtId', ParseUUIDPipe) financeId: string,
+    @Param('financeId', ParseUUIDPipe) financeId: string,
   ) {
     const { user } = req;
 

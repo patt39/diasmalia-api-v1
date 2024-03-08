@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Task } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
+import { Slug, generateNumber } from '../../app/utils/commons/generate-random';
 import {
   WithPaginationResponse,
   withPagination,
@@ -22,7 +23,7 @@ export class TasksService {
     selections: GetTasksSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTask = {} as Prisma.TaskWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, status, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhereTask, {
@@ -37,6 +38,10 @@ export class TasksService {
 
     if (organizationId) {
       Object.assign(prismaWhereTask, { organizationId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhereTask, { status });
     }
 
     const tasks = await this.client.task.findMany({
@@ -58,26 +63,34 @@ export class TasksService {
     });
   }
 
-  /** Find one Tasks to the database. */
+  /** Find one task in database. */
   async findOneBy(selections: GetOneTasksSelections) {
-    const { taskId } = selections;
-    const contact = await this.client.task.findUnique({
-      select: TaskSelect,
-      where: {
-        id: taskId,
-      },
-    });
+    const prismaWhereTask = {} as Prisma.TaskWhereInput;
+    const { taskId, organizationId, slug } = selections;
 
-    return contact;
+    if (organizationId) {
+      Object.assign(prismaWhereTask, { organizationId });
+    }
+
+    if (slug) {
+      Object.assign(prismaWhereTask, { slug });
+    }
+
+    if (taskId) {
+      Object.assign(prismaWhereTask, { id: taskId });
+    }
+    const task = await this.client.task.findFirst({});
+
+    return task;
   }
 
   /** Create one Tasks to the database. */
   async createOne(options: CreateTasksOptions): Promise<Task> {
     const {
       title,
-      description,
-      dueDate,
       status,
+      dueDate,
+      description,
       contributorId,
       organizationId,
       userCreatedId,
@@ -86,8 +99,9 @@ export class TasksService {
     const task = this.client.task.create({
       data: {
         title,
-        description,
         status,
+        description,
+        slug: `${Slug(title)}-${generateNumber(4)}`,
         dueDate: new Date(dueDate),
         contributorId,
         organizationId,

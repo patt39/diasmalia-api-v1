@@ -42,7 +42,7 @@ export const LocationsSelect = {
       name: true,
     },
   },
-  animals: true,
+  //animals: true,
   _count: {
     select: {
       animals: {

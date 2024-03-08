@@ -1,11 +1,14 @@
-import { murmurhash2_x86_32 } from 'number-generator';
-import { murmurhash3_x64_128 } from 'number-generator';
-import { v4 as uuidv4 } from 'uuid';
+import { murmurhash2_x86_32, murmurhash3_x64_128 } from 'number-generator';
+import * as QRCode from 'qrcode';
 import slugify from 'slugify';
+import { v4 as uuidv4 } from 'uuid';
 
 export const generateUUID = () => {
   return uuidv4();
 };
+
+export const generateQRCode = async (code: string) =>
+  await QRCode.toDataURL(`http://localhost:4900/api/v1/animals/view/${code}`);
 
 export const generateCouponCode = (length: number) => {
   let result = '';

@@ -43,3 +43,28 @@ export const hashPassword = async (password: string) => {
     parallelism: 4,
   });
 };
+
+export const UserSelect = {
+  createdAt: true,
+  id: true,
+  email: true,
+  confirmedAt: true,
+  profile: {
+    select: {
+      firstName: true,
+      lastName: true,
+      occupation: true,
+      companyName: true,
+      address: true,
+      phone: true,
+      description: true,
+    },
+  },
+  organizationId: true,
+  organization: {
+    select: {
+      name: true,
+      description: true,
+    },
+  },
+};
