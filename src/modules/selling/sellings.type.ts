@@ -27,10 +27,33 @@ export const SellingSelect = {
   date: true,
   price: true,
   soldTo: true,
-  animalId: true,
-  method: true,
-  organizationId: true,
-  userCreatedId: true,
   phone: true,
   note: true,
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
+      photo: true,
+      type: true,
+      status: true,
+      gender: true,
+      weight: true,
+      electronicCode: true,
+      productionPhase: true,
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+  method: true,
+  organizationId: true,
+  organization: {
+    select: {
+      name: true,
+      logo: true,
+    },
+  },
+  userCreatedId: true,
 };

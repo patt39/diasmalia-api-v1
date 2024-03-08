@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateMilkingsOptions,
-  GetMilkingsSelections,
-  GetOneMilkingsSelections,
-  UpdateMilkingsOptions,
-  UpdateMilkingsSelections,
-  MilkingSelect,
-} from './milkings.type';
+import { Milking, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { Milking, Prisma } from '@prisma/client';
+import {
+  CreateMilkingsOptions,
+  GetMilkingsSelections,
+  GetOneMilkingsSelections,
+  MilkingSelect,
+  UpdateMilkingsOptions,
+  UpdateMilkingsSelections,
+} from './milkings.type';
 
 @Injectable()
 export class MilkingsService {
@@ -22,7 +22,7 @@ export class MilkingsService {
     selections: GetMilkingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.MilkingWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, method, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +36,10 @@ export class MilkingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (method) {
+      Object.assign(prismaWhere, { method });
     }
 
     const milkings = await this.client.milking.findMany({

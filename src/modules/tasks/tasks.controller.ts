@@ -23,8 +23,8 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ContributorsService } from '../contributors/contributors.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateTasksDto } from './tasks.dto';
+import { UserAuthGuard } from '../users/middleware';
+import { CreateOrUpdateTasksDto, TasksQueryDto } from './tasks.dto';
 import { TasksService } from './tasks.service';
 
 @Controller('tasks')
@@ -36,20 +36,23 @@ export class TasksController {
 
   /** Get all Tasks */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryTasks: TasksQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { status } = queryTasks;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const tasks = await this.tasksService.findAll({
+      status,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -59,38 +62,36 @@ export class TasksController {
   }
 
   /** Post one Task */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateTasksDto,
   ) {
     const { user } = req;
-    const { title, description, dueDate, status, contributorId } = body;
+    const { title, description, dueDate, contributorId } = body;
 
     const findOneContributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user?.organizationId,
     });
     if (!findOneContributor)
       throw new HttpException(
-        ` ${contributorId} doesn't exists please change`,
+        `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneContributor.role !== 'SUPERADMIN')
+    if (findOneContributor.role === 'ADMIN')
       throw new HttpException(
-        ` ${contributorId} can't create a task`,
+        `ContributorId: ${contributorId} can't create a task`,
         HttpStatus.NOT_FOUND,
       );
 
     const task = await this.tasksService.createOne({
       title,
-      status,
       dueDate,
       description,
-      contributorId: findOneContributor.id,
+      contributorId: findOneContributor?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -98,9 +99,9 @@ export class TasksController {
     return reply({ res, results: task });
   }
 
-  /** Post one Task */
-  @Put(`/:taskId`)
-  @UseGuards(JwtAuthGuard)
+  /** Update one Task */
+  @Put(`/:taskId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -112,6 +113,7 @@ export class TasksController {
 
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -126,13 +128,16 @@ export class TasksController {
     });
     if (!findOneContributor)
       throw new HttpException(
-        ` ${contributorId} doesn't exists please change`,
+        `ContributorId: ${contributorId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneContributor.role !== 'SUPERADMIN')
+    if (
+      findOneContributor?.role === 'ADMIN' &&
+      findOneTask?.userCreatedId !== user?.id
+    )
       throw new HttpException(
-        ` ${contributorId} can't create a task`,
+        `ContributorId: ${contributorId} can't update this task`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -143,7 +148,7 @@ export class TasksController {
         status,
         dueDate,
         description,
-        contributorId: findOneContributor.id,
+        contributorId: findOneContributor?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -153,21 +158,17 @@ export class TasksController {
   }
 
   /** Get one Task */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
-  async getOneByIdUser(
-    @Res() res,
-    @Req() req,
-    @Query('taskId', ParseUUIDPipe) taskId: string,
-  ) {
+  @Get(`/:slug/show`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdUser(@Res() res, @Req() req, @Param('slug') slug: string) {
     const { user } = req;
     const findOneTask = await this.tasksService.findOneBy({
-      taskId,
+      slug,
       organizationId: user?.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
-        `TaskId: ${taskId} doesn't exists please change`,
+        `Task: ${slug} doesn't exists`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -177,7 +178,7 @@ export class TasksController {
 
   /** Delete one Task */
   @Delete(`/delete/:taskId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

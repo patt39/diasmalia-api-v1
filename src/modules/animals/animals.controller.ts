@@ -12,8 +12,12 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as QRCode from 'qrcode';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
@@ -22,17 +26,10 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { BreedsService } from '../breeds/breeds.service';
-import { CastrationsService } from '../castrations/castrations.service';
-import { IsolationsService } from '../isolations/isolations.service';
+import { UploadsUtil } from '../integrations/integration.utils';
 import { LocationsService } from '../locations/locations.service';
-import { JwtAuthGuard } from '../users/middleware';
-import {
-  CreateOrUpdateAnimalsDto,
-  GetAnimalsByGender,
-  GetAnimalsByProductionPhase,
-  GetAnimalsByStatus,
-  GetAnimalsByType,
-} from './animals.dto';
+import { UserAuthGuard } from '../users/middleware';
+import { CreateOrUpdateAnimalsDto, GetAnimalsQuery } from './animals.dto';
 import { AnimalsService } from './animals.service';
 
 @Controller('animals')
@@ -41,30 +38,22 @@ export class AnimalsController {
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
     private readonly breedsService: BreedsService,
-    private readonly isolationsService: IsolationsService,
-    private readonly castrationsService: CastrationsService,
+    private readonly uploadsUtil: UploadsUtil,
   ) {}
 
   /** Get all animals */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryStatus: GetAnimalsByStatus,
-    @Query() queryType: GetAnimalsByType,
-    @Query() queryGender: GetAnimalsByGender,
-    @Query() queryPhase: GetAnimalsByProductionPhase,
+    @Query() queryAnimal: GetAnimalsQuery,
   ) {
     const { user } = req;
     const { search } = query;
-    const { status } = queryStatus;
-    const { type } = queryType;
-    const { gender } = queryGender;
-    const { productionPhase } = queryPhase;
-
+    const { status, type, gender, productionPhase } = queryAnimal;
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
@@ -82,8 +71,8 @@ export class AnimalsController {
   }
 
   /** Post one animal */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -145,11 +134,22 @@ export class AnimalsController {
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(
         `breedId: ${breedId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (
+      gender === 'MALE' &&
+      (productionPhase === 'LACTATION' ||
+        productionPhase === 'WEANING' ||
+        productionPhase === 'GESTATION')
+    )
+      throw new HttpException(
+        `Male animalId: ${code} can't be in this phase please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -163,8 +163,8 @@ export class AnimalsController {
       codeMother,
       productionPhase,
       electronicCode,
-      locationId: findOneLocation.id,
-      breedId: findOneBreed.id,
+      locationId: findOneLocation?.id,
+      breedId: findOneBreed?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -180,13 +180,15 @@ export class AnimalsController {
   }
 
   /** Update one animal */
-  @Put(`/update/:animalId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:animalId/edit`)
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   async updateOne(
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateAnimalsDto,
     @Param('animalId', ParseUUIDPipe) animalId: string,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     const { user } = req;
     const {
@@ -203,13 +205,19 @@ export class AnimalsController {
       productionPhase,
     } = body;
 
+    const { fileName } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'photos',
+    });
+
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
+        `AnimalId: ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -230,9 +238,26 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
+    if (
+      findOneAnimal.gender === 'MALE' &&
+      (productionPhase === 'LACTATION' ||
+        productionPhase === 'WEANING' ||
+        productionPhase === 'GESTATION')
+    )
+      throw new HttpException(
+        `Male animalId: ${animalId} can't be in this phase please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneLocation.type !== type)
+      throw new HttpException(
+        `Animal location ${findOneLocation.type} isn't valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(
@@ -250,10 +275,11 @@ export class AnimalsController {
         birthday,
         codeFather,
         codeMother,
+        photo: fileName,
         electronicCode,
         productionPhase,
-        locationId: findOneLocation.id,
-        breedId: findOneBreed.id,
+        locationId: findOneLocation?.id,
+        breedId: findOneBreed?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -270,32 +296,57 @@ export class AnimalsController {
   }
 
   /** Get one animal */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/:animalId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdAnimal(
     @Res() res,
     @Req() req,
-    @Query('animalId', ParseUUIDPipe) animalId: string,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
   ) {
     const { user } = req;
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
-    if (!findOneAnimal) {
+    if (!findOneAnimal)
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOneAnimal });
   }
 
+  /** Get animal QRCode*/
+  @Get(`/view/:animalId/qrcode`)
+  @UseGuards(UserAuthGuard)
+  async getAnimalQRCode(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+    const url = `http://localhost:4900/api/v1/animals/view/${animalId}`;
+
+    const qrCode = await QRCode.toDataURL(url);
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: qrCode });
+  }
+
   /** Delete one animal */
   @Delete(`/delete/:animalId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
@@ -304,14 +355,13 @@ export class AnimalsController {
     const { user } = req;
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
-    if (!findOneAnimal) {
+    if (!findOneAnimal)
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     await this.animalsService.updateOne(
       { animalId: findOneAnimal?.id },

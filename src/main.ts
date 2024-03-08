@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { config } from './app/config';
@@ -16,8 +17,11 @@ async function bootstrap() {
   const version = config.api.version;
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix(`/api/${version}`);
+  const withList = config.url.allowedOrigins?.split(',') || [
+    'http://localhost:3000',
+  ];
   app.enableCors({
-    origin: true,
+    origin: withList,
     credentials: true,
   });
   app.useGlobalPipes(
@@ -25,6 +29,7 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+  app.use(cookieParser());
   app.use(helmet());
   // app.use(useragent.express());
   await app.listen(port, () => {

@@ -1,9 +1,10 @@
-import { Milking } from '@prisma/client';
+import { MethodMilking, Milking } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetMilkingsSelections = {
   search?: string;
-  organizationId: string;
+  method?: MethodMilking;
+  organizationId?: string;
   pagination?: PaginationType;
 };
 

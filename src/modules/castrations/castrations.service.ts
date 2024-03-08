@@ -22,16 +22,20 @@ export class CastrationsService {
     selections: GetCastrationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.CastrationWhereInput;
-    const { search, pagination } = selections;
+    const { search, method, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [
           {
-            name: { contains: search, mode: 'insensitive' },
+            code: { contains: search, mode: 'insensitive' },
           },
         ],
       });
+    }
+
+    if (method) {
+      Object.assign(prismaWhere, { method });
     }
 
     const castrations = await this.client.castration.findMany({

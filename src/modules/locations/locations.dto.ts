@@ -34,13 +34,12 @@ export class CreateOrUpdateLocationsDto {
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 }
-export class GetLocationsByType {
+export class GetLocationsQueryDto {
   @IsOptional()
   @IsString()
   @IsEnum(AnimalType)
   type: AnimalType;
-}
-export class GetLocationsByPhase {
+
   @IsOptional()
   @IsString()
   @IsEnum(ProductionPhase)

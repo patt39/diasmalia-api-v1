@@ -1,11 +1,10 @@
-import { financialType } from '@prisma/client';
+import { financeType } from '@prisma/client';
 import {
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -18,7 +17,7 @@ export class CreateOrUpdateFinancesDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  details: string;
+  detail: string;
 
   @IsNotEmpty()
   @IsInt()
@@ -31,12 +30,14 @@ export class CreateOrUpdateFinancesDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
-  @IsEnum(financialType)
-  type: financialType;
+  @IsEnum(financeType)
+  type: financeType;
+}
 
-  @IsNotEmpty()
+export class GetFinancesByType {
+  @IsOptional()
   @IsString()
   @MaxLength(100)
-  @IsUUID()
-  financialDetailId: string;
+  @IsEnum(financeType)
+  type: financeType;
 }

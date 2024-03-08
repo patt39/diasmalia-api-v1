@@ -1,14 +1,13 @@
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateOrUpdateOrganizationsDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(50)
   name: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   description: string;
 
   @IsOptional()
@@ -19,4 +18,14 @@ export class CreateOrUpdateOrganizationsDto {
   @IsString()
   @MaxLength(50)
   image: string;
+}
+
+export class GetOneUploadsDto {
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsNotEmpty()
+  @IsString()
+  folder: string;
 }

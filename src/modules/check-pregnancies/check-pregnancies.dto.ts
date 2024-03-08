@@ -43,14 +43,12 @@ export class CreateOrUpdateCheckPregnanciesDto {
   result: ResultCheckPregnancy;
 }
 
-export class checkPregancyMethodDto {
+export class checkPregancyQueryDto {
   @IsOptional()
   @IsString()
   @IsEnum(MethodCheckPregnancy)
   method: MethodCheckPregnancy;
-}
 
-export class checkPregancyResultDto {
   @IsOptional()
   @IsString()
   @IsEnum(ResultCheckPregnancy)

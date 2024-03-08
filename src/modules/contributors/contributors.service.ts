@@ -21,7 +21,11 @@ export class ContributorsService {
     selections: GetContributorsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
-    const { pagination } = selections;
+    const { pagination, role } = selections;
+
+    if (role) {
+      Object.assign(prismaWhereContributor, { role });
+    }
 
     const contributors = await this.client.contributor.findMany({
       where: { ...prismaWhereContributor, deletedAt: null },
@@ -76,8 +80,8 @@ export class ContributorsService {
 
     const contributor = this.client.contributor.create({
       data: {
-        userId,
         role,
+        userId,
         organizationId,
         userCreatedId,
       },
@@ -97,22 +101,6 @@ export class ContributorsService {
     const contributor = this.client.contributor.update({
       where: { id: contributorId },
       data: { role, deletedAt, updatedAt },
-    });
-
-    return contributor;
-  }
-
-  /** Find all contributor tasks in database. */
-  async findAllTasks(selections: GetOneContributorsSelections) {
-    const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
-    const { contributorId } = selections;
-
-    if (contributorId) {
-      Object.assign(prismaWhereContributor, { id: contributorId });
-    }
-
-    const contributor = await this.client.contributor.findFirst({
-      where: { ...prismaWhereContributor, deletedAt: null },
     });
 
     return contributor;

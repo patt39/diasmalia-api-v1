@@ -23,8 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
-import { CreateOrUpdateCastrationsDto } from './castrations.dto';
+import { UserAuthGuard } from '../users/middleware';
+import {
+  BulkCastrationsDto,
+  CreateOrUpdateCastrationsDto,
+  GetCastrationsByMethodDto,
+} from './castrations.dto';
 import { CastrationsService } from './castrations.service';
 
 @Controller('castrations')
@@ -36,21 +40,24 @@ export class CastrationsController {
 
   /** Get all castrations */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryMethod: GetCastrationsByMethodDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { method } = queryMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const castrations = await this.castrationsService.findAll({
       search,
+      method,
       pagination,
       organizationId: user?.organizationId,
     });
@@ -59,8 +66,8 @@ export class CastrationsController {
   }
 
   /** Post one castration */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -72,6 +79,7 @@ export class CastrationsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: maleCode,
       gender: 'MALE',
+      status: 'ACTIVE',
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -91,9 +99,46 @@ export class CastrationsController {
     return reply({ res, results: castration });
   }
 
+  /** Post one Bulk castration */
+  @Post(`/bulk/create`)
+  @UseGuards(UserAuthGuard)
+  async createOneBulk(
+    @Res() res,
+    @Req() req,
+    @Body() body: BulkCastrationsDto,
+  ) {
+    const { user } = req;
+    const { date, method, animals, note } = body;
+
+    for (const animal of animals) {
+      const findOneMale = await this.animalsService.findOneBy({
+        status: 'ACTIVE',
+        code: animal?.code,
+        gender: 'MALE',
+      });
+      if (!findOneMale) {
+        throw new HttpException(
+          `Animal ${findOneMale?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      await this.castrationsService.createOne({
+        note,
+        date,
+        method,
+        animalId: findOneMale?.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+    }
+
+    return reply({ res, results: 'Saved' });
+  }
+
   /** Update one castration */
-  @Put(`/:castrationId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:castrationId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -116,7 +161,7 @@ export class CastrationsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: maleCode,
       gender: 'MALE',
-      organizationId: user?.organizationId,
+      status: 'ACTIVE',
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -141,7 +186,7 @@ export class CastrationsController {
 
   /** Delete one castration */
   @Delete(`/delete/:castrationId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

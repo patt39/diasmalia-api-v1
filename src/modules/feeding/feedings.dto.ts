@@ -1,7 +1,9 @@
 import { FeedType, ProductionPhase } from '@prisma/client';
 import {
+  IsArray,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -35,4 +37,41 @@ export class CreateOrUpdateFeedingsDto {
   @MaxLength(100)
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
+}
+
+export class BulkFeedingsDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  note: string;
+
+  @IsNotEmpty()
+  @IsString()
+  date: Date;
+
+  @IsNotEmpty()
+  @IsArray()
+  animals: any;
+
+  @IsNotEmpty()
+  @IsNumber()
+  quantity: number;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(FeedType)
+  feedType: FeedType;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
+}
+
+export class GetFeedTypeDts {
+  @IsOptional()
+  @IsString()
+  @IsEnum(FeedType)
+  feedType: FeedType;
 }

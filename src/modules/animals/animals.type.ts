@@ -51,8 +51,6 @@ export const AnimalSelect = {
   productionPhase: true,
   electronicCode: true,
   locationId: true,
-  castration: true,
-  isolations: true,
   organizationId: true,
   location: {
     select: {

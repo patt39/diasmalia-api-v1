@@ -59,27 +59,34 @@ export class ProfilesService {
     });
   }
 
-  /** Find one Profiles to the database. */
+  /** Find one Profile in database. */
   async findOneBy(selections: GetOneProfilesSelections) {
+    const prismaWhereProfile = {} as Prisma.ProfileWhereInput;
     const { profileId } = selections;
-    const profile = await this.client.profile.findUnique({
-      where: {
-        id: profileId,
-      },
+
+    if (profileId) {
+      Object.assign(prismaWhereProfile, { id: profileId });
+    }
+
+    const profile = await this.client.profile.findFirst({
+      where: { ...prismaWhereProfile, deletedAt: null },
     });
 
     return profile;
   }
 
-  /** Create one Profiles to the database. */
+  /** Create one Profile in database. */
   async createOne(options: CreateProfilesOptions): Promise<Profile> {
     const {
       firstName,
       lastName,
       address,
       phone,
+      photo,
       color,
       url,
+      companyName,
+      occupation,
       description,
       birthday,
       userId,
@@ -91,8 +98,11 @@ export class ProfilesService {
         lastName,
         address,
         phone,
+        photo,
         color,
         url,
+        companyName,
+        occupation,
         description,
         birthday,
         userId,
@@ -102,7 +112,7 @@ export class ProfilesService {
     return profile;
   }
 
-  /** Update one Profiles to the database. */
+  /** Update one Profile in database. */
   async updateOne(
     selections: UpdateProfilesSelections,
     options: UpdateProfilesOptions,
@@ -113,8 +123,11 @@ export class ProfilesService {
       lastName,
       address,
       phone,
+      photo,
       color,
       url,
+      companyName,
+      occupation,
       description,
       birthday,
       deletedAt,
@@ -130,7 +143,10 @@ export class ProfilesService {
         address,
         phone,
         color,
+        photo,
         url,
+        companyName,
+        occupation,
         description,
         birthday,
         deletedAt,

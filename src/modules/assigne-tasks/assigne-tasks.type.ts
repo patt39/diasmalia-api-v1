@@ -50,28 +50,3 @@ export const AllAssignedTaskSelect = {
   },
   organizationId: true,
 };
-
-export const AllUserAssignedTaskSelect = {
-  createdAt: true,
-  id: true,
-  profile: {
-    select: {
-      firstName: true,
-      lastName: true,
-    },
-  },
-  assignTasks: {
-    select: {
-      taskId: true,
-      task: {
-        select: {
-          title: true,
-          description: true,
-          dueDate: true,
-          status: true,
-        },
-      },
-    },
-  },
-  organizationId: true,
-};

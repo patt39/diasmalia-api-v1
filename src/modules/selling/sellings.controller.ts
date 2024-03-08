@@ -22,7 +22,7 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
-import { JwtAuthGuard } from '../users/middleware';
+import { UserAuthGuard } from '../users/middleware';
 import {
   BulkSalesDto,
   CreateOrUpdateSellingsDto,
@@ -39,7 +39,7 @@ export class SellingsController {
 
   /** Get all Selling */
   @Get(`/`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Req() req,
@@ -65,8 +65,8 @@ export class SellingsController {
   }
 
   /** Post one Selling */
-  @Post(`/`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
@@ -77,11 +77,11 @@ export class SellingsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
-      organizationId: user.organizationId,
+      isIsolated: 'FALSE',
     });
     if (!findOneAnimal) {
       throw new HttpException(
-        `Animal ${findOneAnimal.code} doesn't exists please change`,
+        `Animal ${findOneAnimal?.code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -92,7 +92,7 @@ export class SellingsController {
       price,
       soldTo,
       method,
-      animalId: findOneAnimal.id,
+      animalId: findOneAnimal?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -101,8 +101,8 @@ export class SellingsController {
   }
 
   /** Update one Selling */
-  @Put(`/:sellingId`)
-  @UseGuards(JwtAuthGuard)
+  @Put(`/:sellingId/edit`)
+  @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
@@ -114,11 +114,12 @@ export class SellingsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
-      organizationId: user.organizationId,
+      isIsolated: 'FALSE',
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal) {
       throw new HttpException(
-        `Animal ${findOneAnimal.code} doesn't exists please change`,
+        `Animal ${findOneAnimal?.code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -132,7 +133,7 @@ export class SellingsController {
         phone,
         method,
         soldTo,
-        animalId: findOneAnimal.id,
+        animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -142,8 +143,8 @@ export class SellingsController {
   }
 
   /** Post one Bulk sale */
-  @Post(`/bulk`)
-  @UseGuards(JwtAuthGuard)
+  @Post(`/bulk/create`)
+  @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkSalesDto) {
     const { user } = req;
     const { date, animals, note, price, method, soldTo, phone } = body;
@@ -152,11 +153,11 @@ export class SellingsController {
       const findOneAnimal = await this.animalsService.findOneBy({
         status: 'ACTIVE',
         code: animal?.code,
-        organizationId: user.organizationId,
+        isIsolated: 'FALSE',
       });
       if (!findOneAnimal) {
         throw new HttpException(
-          `Animal ${findOneAnimal.code} doesn't exists please change`,
+          `Animal ${findOneAnimal?.code} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
       }
@@ -169,15 +170,13 @@ export class SellingsController {
         method,
         soldTo,
         animalId: findOneAnimal?.id,
-        organizationId: findOneAnimal?.organizationId,
+        organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
 
       await this.animalsService.updateOne(
-        { animalId: sell.animalId },
-        {
-          status: 'SOLD',
-        },
+        { animalId: sell?.animalId },
+        { status: 'SOLD' },
       );
     }
 
@@ -185,12 +184,12 @@ export class SellingsController {
   }
 
   /** Get one Selling */
-  @Get(`/view`)
-  @UseGuards(JwtAuthGuard)
+  @Get(`/view/:sellingId`)
+  @UseGuards(UserAuthGuard)
   async getOneByIdUser(
     @Res() res,
     @Req() req,
-    @Query('sellingId', ParseUUIDPipe) sellingId: string,
+    @Param('sellingId', ParseUUIDPipe) sellingId: string,
   ) {
     const { user } = req;
     const findOneSelling = await this.sellingsService.findOneBy({
@@ -203,7 +202,7 @@ export class SellingsController {
 
   /** Delete one Selling */
   @Delete(`/delete/:sellingId`)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,

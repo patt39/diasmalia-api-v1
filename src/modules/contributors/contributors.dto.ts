@@ -15,6 +15,14 @@ export class CreateOrUpdateContributorDto {
   @IsEnum(RoleContributorRole)
   role: RoleContributorRole;
 }
+
+export class GetContributorsByRoleDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  @IsEnum(RoleContributorRole)
+  role: RoleContributorRole;
+}
 export class AddContributorUserDto {
   @IsNotEmpty()
   @IsString()
@@ -23,39 +31,36 @@ export class AddContributorUserDto {
   email: string;
 }
 export class CreateOneContributorUserDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEmail()
-  @MaxLength(50)
   email: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   firstName: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   lastName: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   phone: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   address: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   companyName: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(50)
   occupation: string;
+
+  @IsOptional()
+  @IsString()
+  description: string;
 }

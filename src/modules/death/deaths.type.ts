@@ -8,8 +8,8 @@ export type GetDeathsSelections = {
 };
 
 export type GetOneDeathSelections = {
-  deathId: Death['id'];
-  organizationId: Death['organizationId'];
+  deathId?: Death['id'];
+  organizationId?: Death['organizationId'];
 };
 
 export type UpdateDeathsSelections = {
@@ -24,8 +24,29 @@ export const DeathSelect = {
   createdAt: true,
   id: true,
   date: true,
+  note: true,
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
+      type: true,
+      status: true,
+      gender: true,
+      weight: true,
+      electronicCode: true,
+      productionPhase: true,
+      location: {
+        select: {
+          number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
   organizationId: true,
   userCreatedId: true,
-  animalId: true,
-  note: true,
 };

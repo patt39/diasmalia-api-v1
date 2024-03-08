@@ -6,24 +6,26 @@ export const config = {
    * Url site
    */
   url: {
+    allowedOrigins: process.env.ALLOWED_ORIGINS,
     client: process.env.NODE_CLIENT_URL,
     dashboard: process.env.NODE_DASHBOARD_URL,
   },
   /**
    * Node environment
    */
-  environment: process.env.NODE_ENV || 'development',
+  environment: process.env.NODE_ENV || 'dev',
   /**
    * Cookie configuration
    */
+
   cookieKey: process.env.COOKIE_KEY || '@3%NE8IksyHK4yC5POFurDCAVW@FqxBe',
   cookie_access: {
     user: {
-      accessExpire: process.env.COOKIE_ACCESS_EXPIRE || '86400000',
-      refreshExpire: process.env.COOKIE_REFRESH_EXPIRE || '96400000',
-      firstStepExpire: process.env.COOKIE_FIRST_STEP_EXPIRE || '300000',
-      verificationExpire: process.env.COOKIE_VERIFICATION_EXPIRE || '300000',
-      validationTokenExpire: process.env.COOKIE_VALIDATION_TOKEN_EXPIRE,
+      nameLogin: process.env.COOKIE_NAME_LOGIN || 'x-user',
+      accessExpireLogin: process.env.COOKIE_ACCESS_EXPIRE || '864000000',
+      nameVerify: process.env.COOKIE_NAME_LOGIN || 'x-verify-code',
+      accessExpireVerify:
+        process.env.COOKIE_VALIDATION_TOKEN_EXPIRE || '3000000000',
     },
   },
   /**
@@ -76,17 +78,6 @@ export const config = {
    */
   showLog: true,
   /**
-   * Jwt configuration
-   */
-  jwt: {
-    secret: process.env.JWT_SECRET,
-    expiration: process.env.JWT_EXPIRATION,
-    expirationPw: process.env.JWT_EXPIRATION_PW,
-    refreshSecret: process.env.JWT_REFRESH_SECRET,
-    refreshExpiration: process.env.JWT_REFRESH_EXPIRATION,
-  },
-
-  /**
    * External implementations
    */
   implementations: {
@@ -97,13 +88,6 @@ export const config = {
       accountSid: process.env.TWILIO_ACCOUNT_SID,
       authToken: process.env.TWILIO_AUTH_TOKEN,
       verifySid: process.env.TWILIO_VERIFY_SID,
-    },
-    /**
-     * Birevo marketplace
-     */
-    ivemo: {
-      link: process.env.IVEMO_LINK,
-      token: process.env.IVEMO_ACCESS_TOKEN,
     },
     /**
      * Stripe
@@ -184,7 +168,7 @@ export const config = {
         host: 'https://api.amazon.com',
       },
       sts: {
-        host: 'sts.eu-west-1.amazonaws.com',
+        host: 'sts.eu-central-1.amazonaws.com',
         service: 'sts',
       },
       cloudfront: {

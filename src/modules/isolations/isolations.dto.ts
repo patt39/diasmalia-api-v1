@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateOrUpdateIsolationsDto {
   @IsNotEmpty()
@@ -12,4 +18,19 @@ export class CreateOrUpdateIsolationsDto {
   @IsNotEmpty()
   @IsString()
   code: string;
+}
+
+export class BulkIsolationsDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  note: string;
+
+  @IsNotEmpty()
+  @IsString()
+  date: Date;
+
+  @IsNotEmpty()
+  @IsArray()
+  animals: any;
 }

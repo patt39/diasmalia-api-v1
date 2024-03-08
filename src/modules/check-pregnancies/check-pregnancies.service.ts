@@ -28,7 +28,7 @@ export class CheckPregnanciesService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            codeFemale: { contains: search, mode: 'insensitive' },
+            code: { contains: search, mode: 'insensitive' },
           },
         ],
       });
