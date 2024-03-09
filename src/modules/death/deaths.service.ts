@@ -105,8 +105,15 @@ export class DeathsService {
     options: UpdateDeathsOptions,
   ): Promise<Death> {
     const { deathId } = selections;
-    const { date, animalId, organizationId, userCreatedId, note, deletedAt } =
-      options;
+    const {
+      date,
+      status,
+      animalId,
+      organizationId,
+      userCreatedId,
+      note,
+      deletedAt,
+    } = options;
 
     const death = this.client.death.update({
       where: {
@@ -115,6 +122,7 @@ export class DeathsService {
       data: {
         date,
         note,
+        status,
         animalId,
         organizationId,
         userCreatedId,

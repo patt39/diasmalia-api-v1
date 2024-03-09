@@ -1,22 +1,22 @@
-import { sellingMethod } from '@prisma/client';
+import { AnimalStatus, sellingMethod } from '@prisma/client';
 import {
   IsArray,
-  IsDate,
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
 
-export class CreateOrUpdateSellingsDto {
+export class CreateOrUpdateSalesDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
   note: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   code: string;
@@ -32,19 +32,23 @@ export class CreateOrUpdateSellingsDto {
   phone: string;
 
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber()
   price: number;
 
   @IsNotEmpty()
-  @IsDate()
-  @MaxLength(100)
+  @IsString()
   date: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   @IsEnum(sellingMethod)
   method: sellingMethod;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(AnimalStatus)
+  status: AnimalStatus;
 }
 
 export class BulkSalesDto {
@@ -82,7 +86,7 @@ export class BulkSalesDto {
   animals: any;
 }
 export class SaleMethodDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   @IsEnum(sellingMethod)

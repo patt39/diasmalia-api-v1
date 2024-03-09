@@ -1,5 +1,7 @@
+import { AnimalStatus } from '@prisma/client';
 import {
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -20,6 +22,11 @@ export class CreateOrUpdateDeathsDto {
   @IsString()
   @MaxLength(100)
   codeAnimal: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(AnimalStatus)
+  status: AnimalStatus;
 }
 
 export class BulkDeathsDto {

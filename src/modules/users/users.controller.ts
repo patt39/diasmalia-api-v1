@@ -14,10 +14,6 @@ import {
 } from '@nestjs/common';
 import { config } from '../../app/config/index';
 import { reply } from '../../app/utils/reply';
-import { ContributorsService } from '../contributors/contributors.service';
-import { UploadsUtil } from '../integrations/integration.utils';
-import { OrganizationsService } from '../organizations/organizations.service';
-import { ProfilesService } from '../profiles/profiles.service';
 import { UserAuthGuard } from './middleware';
 import { UpdateOneEmailUserDto, UpdateUserPasswordDto } from './users.dto';
 import { UsersService } from './users.service';
@@ -25,13 +21,7 @@ import { checkIfPasswordMatch, hashPassword } from './users.type';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly profilesService: ProfilesService,
-    private readonly uploadsUtil: UploadsUtil,
-    private readonly contributorsService: ContributorsService,
-    private readonly organizationsService: OrganizationsService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   /** Get one User */
   @Get(`/show/me`)
