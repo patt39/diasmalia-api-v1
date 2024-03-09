@@ -19,7 +19,7 @@ import { LocationsModule } from './modules/locations/locations.module';
 import { MilkingsModule } from './modules/milking /milkings.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
-import { SellingsModule } from './modules/selling/sellings.module';
+import { SalesModule } from './modules/sales/sales.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { TreatmentsModule } from './modules/treatments/treatments.module';
 import { UsersModule } from './modules/users/users.module';
@@ -42,7 +42,7 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     BreedingsModule,
     TreatmentsModule,
     LocationsModule,
-    SellingsModule,
+    SalesModule,
     IsolationsModule,
     CastrationsModule,
     FarrowingsModule,

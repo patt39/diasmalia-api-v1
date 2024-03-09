@@ -94,7 +94,7 @@ model Organization {
   deaths           Death[]
   milkings         Milking[]
   feedings         Feeding[]
-  sellings         Selling[]
+  sellings         Sale[]
   finances         Finance[]
   locations        Location[]
   assignTasks      AssignTask[]
@@ -218,7 +218,7 @@ model Animal {
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   death           Death?
-  selling         Selling?
+  selling         Sale?
   milkings        Milking[]
   treatments      Treatment[]
   farrowings      Farrowing[]
@@ -411,6 +411,7 @@ model Death {
   id             String       @id @default(uuid())
   date           DateTime?
   note           String?      @db.Text
+  status         AnimalStatus @default(DEAD)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -471,7 +472,7 @@ enum FeedType {
   OTHERS
 }
 
-model Selling {
+model Sale {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
@@ -481,6 +482,7 @@ model Selling {
   phone          String?
   price          Int?
   soldTo         String?
+  status         AnimalStatus   @default(SOLD)
   method         sellingMethod?
   animalId       String         @unique
   animal         Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)

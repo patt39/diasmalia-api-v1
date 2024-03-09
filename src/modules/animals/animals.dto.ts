@@ -6,8 +6,8 @@ import {
 } from '@prisma/client';
 import {
   IsEnum,
-  IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -31,7 +31,7 @@ export class CreateOrUpdateAnimalsDto {
   codeMother: string;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   weight: number;
 
   @IsNotEmpty()
