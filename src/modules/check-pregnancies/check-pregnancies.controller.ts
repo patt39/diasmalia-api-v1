@@ -97,12 +97,11 @@ export class CheckPregnanciesController {
       gender: 'FEMALE',
       status: 'ACTIVE',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const checkPregnancy = await this.checkPregnanciesService.createOne({
       date,
@@ -140,23 +139,21 @@ export class CheckPregnanciesController {
       checkPregnancyId,
       organizationId: user?.organizationId,
     });
-    if (!findOnecheckPregnancy) {
+    if (!findOnecheckPregnancy)
       throw new HttpException(
         `CheckPregnancyId: ${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       checkStatus: false,
       organizationId: user?.organizationId,
     });
-    if (!findOneBreeding) {
+    if (!findOneBreeding)
       throw new HttpException(
         `Animal ${findOneBreeding.id} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -164,12 +161,11 @@ export class CheckPregnanciesController {
       status: 'ACTIVE',
       productionPhase: 'REPRODUCTION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const checkPregnancy = await this.checkPregnanciesService.updateOne(
       { checkPregnancyId: findOnecheckPregnancy?.id },
@@ -203,12 +199,11 @@ export class CheckPregnanciesController {
       checkPregnancyId,
       organizationId: user?.organizationId,
     });
-    if (!checkPregnancyId) {
+    if (!checkPregnancyId)
       throw new HttpException(
         `CheckpregnancyId: ${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOnecheckPregnancy });
   }
@@ -227,18 +222,17 @@ export class CheckPregnanciesController {
       checkPregnancyId,
       organizationId: user?.organizationId,
     });
-    if (!checkPregnancyId) {
+    if (!findOnecheckPregnancy)
       throw new HttpException(
         `checkPregnancyId: ${checkPregnancyId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     await this.checkPregnanciesService.updateOne(
-      { checkPregnancyId },
+      { checkPregnancyId: findOnecheckPregnancy?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: findOnecheckPregnancy });
+    return reply({ res, results: 'CheckPregnancy deleted successfully' });
   }
 }

@@ -288,7 +288,10 @@ export class UsersAuthController {
   /** Logout user */
   @Get(`/logout`)
   async logout(@Res() res) {
-    res.clearCookie();
+    res.clearCookie(
+      config.cookie_access.user.nameLogin,
+      validation_login_cookie_setting,
+    );
 
     return reply({ res, results: 'User logout successfully' });
   }

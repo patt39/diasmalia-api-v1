@@ -37,7 +37,7 @@ export class IsolationsController {
     private readonly animalsService: AnimalsService,
   ) {}
 
-  /** Get all castrations */
+  /** Get all isolations */
   @Get(`/`)
   @UseGuards(UserAuthGuard)
   async findAll(
@@ -78,7 +78,7 @@ export class IsolationsController {
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${code} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
+        `Animal ${code} doesn't exists, or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -105,12 +105,11 @@ export class IsolationsController {
         status: 'ACTIVE',
         code: animal?.code,
       });
-      if (!findOneAnimal) {
+      if (!findOneAnimal)
         throw new HttpException(
           `Animal ${findOneAnimal?.code} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
-      }
 
       await this.isolationsService.createOne({
         date,
@@ -184,18 +183,17 @@ export class IsolationsController {
       isolationId,
       organizationId: user?.organizationId,
     });
-    if (!findOneIsolation) {
+    if (!findOneIsolation)
       throw new HttpException(
         `IsolationId: ${isolationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    const isolation = await this.isolationsService.updateOne(
+    await this.isolationsService.updateOne(
       { isolationId: findOneIsolation?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: isolation });
+    return reply({ res, results: 'Isolation deleted successfully' });
   }
 }

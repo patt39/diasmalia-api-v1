@@ -17,7 +17,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import * as QRCode from 'qrcode';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
@@ -308,7 +307,6 @@ export class AnimalsController {
       animalId,
       organizationId: user?.organizationId,
     });
-
     if (!findOneAnimal)
       throw new HttpException(
         `Animal ${animalId} doesn't exists please change`,
@@ -318,32 +316,35 @@ export class AnimalsController {
     return reply({ res, results: findOneAnimal });
   }
 
-  /** Get animal QRCode*/
-  @Get(`/view/:animalId/qrcode`)
+  /** Download animal template */
+  @Get(`/download/template`)
   @UseGuards(UserAuthGuard)
-  async getAnimalQRCode(
-    @Res() res,
-    @Req() req,
-    @Param('animalId', ParseUUIDPipe) animalId: string,
-  ) {
-    const { user } = req;
-    const url = `http://localhost:4900/api/v1/animals/view/${animalId}`;
-
-    const qrCode = await QRCode.toDataURL(url);
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
+  async getDownloadTemplate(@Res() res) {
+    try {
+      await this.animalsService.downloadExcelTemplate(res);
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename= ' + 'BulkImportTemplate.xlsx',
       );
 
-    return reply({ res, results: qrCode });
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocuments.spreadsheetml.sheet',
+      );
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error during download.');
+    }
   }
 
+  @Post(`/upload/data`)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcelFile(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<void> {
+    await this.animalsService.uploadDataFromExcel(file.path);
+    //data.pipe(createReadStream(file.path));
+  }
   /** Delete one animal */
   @Delete(`/delete/:animalId`)
   @UseGuards(UserAuthGuard)

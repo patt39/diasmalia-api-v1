@@ -74,7 +74,6 @@ export class FarrowingsController {
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
-      organizationId: user.organizationId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -118,12 +117,11 @@ export class FarrowingsController {
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
     });
-    if (!findOneFarrowing) {
+    if (!findOneFarrowing)
       throw new HttpException(
         `FarrowingId: ${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -131,12 +129,11 @@ export class FarrowingsController {
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing?.id },
@@ -172,12 +169,11 @@ export class FarrowingsController {
       farrowingId,
       organizationId: user?.organizationId,
     });
-    if (!farrowingId) {
+    if (!farrowingId)
       throw new HttpException(
         `FarrowingId: ${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: farrowing });
   }
@@ -195,18 +191,17 @@ export class FarrowingsController {
       farrowingId,
       organizationId: user?.organizationId,
     });
-    if (!findOneFarrowing) {
+    if (!findOneFarrowing)
       throw new HttpException(
         `FarrowingId: ${farrowingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    const farrowing = await this.farrowingsService.updateOne(
+    await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: farrowing });
+    return reply({ res, results: 'Farrowing deleted successfully' });
   }
 }

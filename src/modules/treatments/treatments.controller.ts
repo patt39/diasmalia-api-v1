@@ -71,7 +71,6 @@ export class TreatmentsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -94,7 +93,7 @@ export class TreatmentsController {
     return reply({ res, results: treatment });
   }
 
-  /** Update one reatment */
+  /** Update one treatment */
   @Put(`/:treatmentId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
@@ -110,12 +109,11 @@ export class TreatmentsController {
       treatmentId,
       organizationId: user?.organizationId,
     });
-    if (!findOneTreatement) {
+    if (!findOneTreatement)
       throw new HttpException(
         `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
@@ -158,12 +156,11 @@ export class TreatmentsController {
       treatmentId,
       organizationId: user?.organizationId,
     });
-    if (!findOneTreatement) {
+    if (!findOneTreatement)
       throw new HttpException(
         `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOneTreatement });
   }
@@ -182,18 +179,16 @@ export class TreatmentsController {
       treatmentId,
       organizationId: user?.organizationId,
     });
-    if (!findOneTreatement) {
+    if (!findOneTreatement)
       throw new HttpException(
         `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
-
-    const treatment = await this.treatmentsService.updateOne(
+    await this.treatmentsService.updateOne(
       { treatmentId: findOneTreatement?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: treatment });
+    return reply({ res, results: 'Treatment deleted successfully' });
   }
 }

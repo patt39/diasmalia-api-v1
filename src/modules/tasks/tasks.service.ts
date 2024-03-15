@@ -118,8 +118,15 @@ export class TasksService {
     options: UpdateTasksOptions,
   ): Promise<Task> {
     const { taskId } = selections;
-    const { title, description, dueDate, status, contributorId, deletedAt } =
-      options;
+    const {
+      title,
+      slug,
+      description,
+      dueDate,
+      status,
+      contributorId,
+      deletedAt,
+    } = options;
 
     const task = this.client.task.update({
       where: {
@@ -127,6 +134,7 @@ export class TasksService {
       },
       data: {
         title,
+        slug,
         description,
         dueDate: new Date(dueDate),
         status,

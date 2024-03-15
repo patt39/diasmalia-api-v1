@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Res } from '@nestjs/common';
 import { Animal, Prisma } from '@prisma/client';
+import * as exceljs from 'exceljs';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -242,5 +243,90 @@ export class AnimalsService {
     });
 
     return animal;
+  }
+
+  /** Generate excel template to load data. */
+  async downloadExcelTemplate(@Res() res) {
+    const workbook = new exceljs.Workbook();
+    const worksheet = workbook.addWorksheet('Bulk create animals');
+    worksheet.state = 'visible';
+
+    worksheet.columns = [
+      { header: 'Code', key: 'code', width: 15 },
+      { header: 'Father Code', key: 'codeFather', width: 12 },
+      { header: 'Mother Code', key: 'codeMother', width: 40 },
+      { header: 'Gender', key: 'gender', width: 40 },
+      { header: 'Weight', key: 'weight', width: 40 },
+      { header: 'Electronic Code', key: 'electronicCode', width: 10 },
+      { header: 'Birthday', key: 'birthday', width: 20 },
+      { header: 'Type', key: 'type', width: 20 },
+      { header: 'Production Phase', key: 'productionPhase', width: 20 },
+    ];
+
+    worksheet.getRow(1).height = 20;
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      bgColor: { argb: '000000' },
+      fgColor: { argb: '000000' },
+    };
+    worksheet.getRow(1).font = {
+      size: 11.5,
+      bold: true,
+      color: { argb: 'FFFFFF' },
+    };
+
+    worksheet.getRow(1).alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: true,
+    };
+
+    worksheet.getRow(1).border = {
+      top: { style: 'thin', color: { argb: '000000' } },
+      bottom: { style: 'thin', color: { argb: '000000' } },
+      left: { style: 'thin', color: { argb: 'FFFFFF' } },
+      right: { style: 'thin', color: { argb: 'FFFFFF' } },
+    };
+
+    workbook.xlsx.write(res);
+
+    workbook.creator = 'me';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date();
+  }
+
+  /** Load data to database. */
+  async uploadDataFromExcel(filePath: string): Promise<string> {
+    // Load Excel workbook
+    const workbook = new exceljs.Workbook();
+    await workbook.xlsx.readFile(filePath);
+
+    // Extract data from Excel worksheet
+    const worksheet = workbook.getWorksheet(1); // Assuming data is on the first worksheet
+    const data: Animal[] = [];
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+      // Assuming data starts from the second row
+      if (row.number !== 0) {
+        const animal: Animal = {
+          code: row.getCell(1).value,
+          codeFather: row.getCell(2).value,
+          codeMother: row.getCell(3).value,
+          gender: row.getCell(4).value,
+          weight: row.getCell(5).value,
+          electronicCode: row.getCell(6).value,
+          type: row.getCell(7).value,
+          productionPhase: row.getCell(8).value,
+          birthday: row.getCell(9).value,
+        } as Animal;
+
+        data.push(animal);
+      }
+    });
+
+    // Save data to PostgreSQL database using Prisma
+    await this.client.animal.createMany({ data });
+    return 'Bulk animals created';
   }
 }

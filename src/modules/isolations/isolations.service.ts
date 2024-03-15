@@ -28,7 +28,7 @@ export class IsolationsService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            name: { contains: search, mode: 'insensitive' },
+            code: { contains: search, mode: 'insensitive' },
           },
         ],
       });

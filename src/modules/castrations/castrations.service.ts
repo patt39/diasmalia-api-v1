@@ -28,7 +28,7 @@ export class CastrationsService {
       Object.assign(prismaWhere, {
         OR: [
           {
-            code: { contains: search, mode: 'insensitive' },
+            maleCode: { contains: search, mode: 'insensitive' },
           },
         ],
       });

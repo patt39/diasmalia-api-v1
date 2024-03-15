@@ -96,8 +96,8 @@ export class WeaningsController {
       note,
       date,
       litter,
-      animalId: findOneFemale.id,
-      farrowingId: findOneFarrowing.id,
+      animalId: findOneFemale?.id,
+      farrowingId: findOneFarrowing?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -198,7 +198,7 @@ export class WeaningsController {
     const { user } = req;
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
@@ -206,11 +206,11 @@ export class WeaningsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const weaning = await this.weaningsService.updateOne(
-      { weaningId: findOneWeaning.id },
+    await this.weaningsService.updateOne(
+      { weaningId: findOneWeaning?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: weaning });
+    return reply({ res, results: 'Weaning deleted successfully' });
   }
 }

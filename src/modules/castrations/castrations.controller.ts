@@ -116,12 +116,11 @@ export class CastrationsController {
         code: animal?.code,
         gender: 'MALE',
       });
-      if (!findOneMale) {
+      if (!findOneMale)
         throw new HttpException(
           `Animal ${findOneMale?.code} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
-      }
 
       await this.castrationsService.createOne({
         note,
@@ -198,18 +197,17 @@ export class CastrationsController {
       castrationId,
       organizationId: user?.organizationId,
     });
-    if (!findOneCastration) {
+    if (!findOneCastration)
       throw new HttpException(
         `CastrationId: ${castrationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    const castration = await this.castrationsService.updateOne(
+    await this.castrationsService.updateOne(
       { castrationId: findOneCastration?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: castration });
+    return reply({ res, results: 'Castration deleted successfully' });
   }
 }

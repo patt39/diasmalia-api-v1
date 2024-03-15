@@ -25,7 +25,7 @@ export const TreatmentSelect = {
   id: true,
   method: true,
   note: true,
-  numberOfDose: true,
+  dose: true,
   name: true,
   date: true,
   diagnosis: true,
