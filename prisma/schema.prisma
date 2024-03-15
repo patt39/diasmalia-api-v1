@@ -218,7 +218,7 @@ model Animal {
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   death           Death?
-  selling         Sale?
+  sale            Sale?
   milkings        Milking[]
   treatments      Treatment[]
   farrowings      Farrowing[]
@@ -241,10 +241,10 @@ enum AnimalStatus {
 }
 
 enum AnimalType {
-  PIG
-  BOVINE
-  GOAT
-  RABBIT
+  PIGS
+  BOVINES
+  GOATS
+  RABBITS
 }
 
 enum ProductionPhase {
@@ -480,6 +480,9 @@ model Sale {
   date           DateTime?
   note           String?        @db.Text
   phone          String?
+  email          String?
+  address        String?
+  type           AnimalType
   price          Int?
   soldTo         String?
   status         AnimalStatus   @default(SOLD)

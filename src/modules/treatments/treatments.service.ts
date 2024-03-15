@@ -29,7 +29,7 @@ export class TreatmentsService {
       Object.assign(prismaWhereTreatment, {
         OR: [
           {
-            numberOfDose: { contains: search, mode: 'insensitive' },
+            name: { contains: search, mode: 'insensitive' },
           },
         ],
       });

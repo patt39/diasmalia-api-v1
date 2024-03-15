@@ -6,6 +6,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { AnimalsService } from '../animals/animals.service';
 import {
   CreateSalesOptions,
   GetOneSaleSelections,
@@ -16,13 +17,16 @@ import {
 } from './sales.type';
 @Injectable()
 export class SalesService {
-  constructor(private readonly client: DatabaseService) {}
+  constructor(
+    private readonly client: DatabaseService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   async findAll(
     selections: GetSalesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.SaleWhereInput;
-    const { search, method, organizationId, pagination } = selections;
+    const { search, method, type, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -40,6 +44,10 @@ export class SalesService {
 
     if (method) {
       Object.assign(prismaWhere, { method });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
     }
 
     const sales = await this.client.sale.findMany({
@@ -64,7 +72,7 @@ export class SalesService {
   /** Find one sale in database. */
   async findOneBy(selections: GetOneSaleSelections) {
     const prismaWhere = {} as Prisma.SaleWhereInput;
-    const { saleId, animalId, organizationId } = selections;
+    const { saleId, organizationId } = selections;
 
     if (saleId) {
       Object.assign(prismaWhere, { id: saleId });
@@ -74,9 +82,9 @@ export class SalesService {
       Object.assign(prismaWhere, { organizationId });
     }
 
-    if (animalId) {
-      Object.assign(prismaWhere, { animalId });
-    }
+    // if (animalId) {
+    //   Object.assign(prismaWhere, { animalId });
+    // }
 
     const sale = await this.client.sale.findFirst({
       where: { ...prismaWhere, deletedAt: null },
@@ -91,10 +99,13 @@ export class SalesService {
     const {
       date,
       note,
+      type,
       price,
       soldTo,
       method,
+      address,
       phone,
+      email,
       animalId,
       organizationId,
       userCreatedId,
@@ -104,10 +115,13 @@ export class SalesService {
       data: {
         date,
         note,
+        type,
         price,
         soldTo,
         method,
+        address,
         phone,
+        email,
         animalId,
         organizationId,
         userCreatedId,
@@ -127,8 +141,10 @@ export class SalesService {
       date,
       note,
       price,
+      type,
       soldTo,
       method,
+      address,
       phone,
       status,
       animalId,
@@ -144,9 +160,11 @@ export class SalesService {
       data: {
         date,
         note,
+        type,
         price,
         soldTo,
         method,
+        address,
         phone,
         status,
         animalId,
@@ -159,7 +177,7 @@ export class SalesService {
     return sale;
   }
 
-  async downloadToExcel(@Res() res): Promise<WithPaginationResponse | null> {
+  async downloadToExcel(@Res() res) {
     const prismaWhere = {} as Prisma.SaleWhereInput;
 
     const sales = await this.client.sale.findMany({
@@ -168,19 +186,18 @@ export class SalesService {
 
     if (!sales) throw new HttpException(`Sales empty`, HttpStatus.NOT_FOUND);
 
-    const newSaleArray: any = [];
-
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sales sheet');
     worksheet.state = 'visible';
 
     worksheet.columns = [
       { header: 'Date', key: 'date', width: 15 },
-      { header: 'Animal Code', key: 'animalId', width: 12 },
+      { header: 'Animal Code', key: 'animals', width: 12 },
       { header: 'Phone number', key: 'phone', width: 40 },
       { header: 'Price', key: 'price', width: 20 },
       { header: 'Sold to', key: 'soldTo', width: 20 },
       { header: 'Method', key: 'method', width: 20 },
+      { header: 'Email', key: 'email', width: 40 },
       { header: 'Status', key: 'status', width: 10 },
     ];
 
@@ -213,11 +230,11 @@ export class SalesService {
     for (const sale of sales) {
       worksheet.addRow({
         date: sale.date,
-        code: sale.animalId,
         phone: sale.phone,
         price: sale.price,
         soldTo: sale.soldTo,
         method: sale.method,
+        email: sale.email,
         status: sale.status,
       });
     }
@@ -243,7 +260,5 @@ export class SalesService {
         visibility: 'visible',
       },
     ];
-
-    return { value: newSaleArray };
   }
 }

@@ -30,7 +30,8 @@ export type GetOneAnimalsSelections = {
 };
 
 export type UpdateAnimalsSelections = {
-  animalId: Animal['id'];
+  animalId?: Animal['id'];
+  code?: Animal['code'];
 };
 
 export type CreateAnimalsOptions = Partial<Animal>;

@@ -74,12 +74,11 @@ export class GestationsController {
       result: 'PREGNANT',
       organizationId: user?.organization,
     });
-    if (!findOneCheckPregnancy) {
+    if (!findOneCheckPregnancy)
       throw new HttpException(
         `Animal ${codeFemale} is not PREGNANT please change it's production phase`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -87,17 +86,16 @@ export class GestationsController {
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const gestation = await this.gestationsService.createOne({
       note,
-      animalId: findOneFemale.id,
-      checkPregnancyId: findOneCheckPregnancy.id,
+      animalId: findOneFemale?.id,
+      checkPregnancyId: findOneCheckPregnancy?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -152,12 +150,11 @@ export class GestationsController {
       status: 'ACTIVE',
       productionPhase: 'GESTATION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const gestation = await this.gestationsService.updateOne(
       { gestationId: findOneGestation?.id },
@@ -193,12 +190,11 @@ export class GestationsController {
       gestationId,
       organizationId: user?.organization,
     });
-    if (!findOneGestation) {
+    if (!findOneGestation)
       throw new HttpException(
         `GestationId: ${gestationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOneGestation });
   }
@@ -217,18 +213,17 @@ export class GestationsController {
       gestationId,
       organizationId: user?.organization,
     });
-    if (!findOneGestation) {
+    if (!findOneGestation)
       throw new HttpException(
         `GestationId: ${gestationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    const gestation = await this.gestationsService.updateOne(
+    await this.gestationsService.updateOne(
       { gestationId: findOneGestation?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: gestation });
+    return reply({ res, results: 'Gestation deleted successfully' });
   }
 }

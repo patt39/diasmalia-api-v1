@@ -123,12 +123,11 @@ export class LocationsController {
       number,
       locationId,
     });
-    if (!findOneLocation) {
+    if (!findOneLocation)
       throw new HttpException(
         `Location ${number} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
     const location = await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       {
@@ -163,12 +162,11 @@ export class LocationsController {
       locationId,
       organizationId: user?.organizationId,
     });
-    if (!findOneLocation) {
+    if (!findOneLocation)
       throw new HttpException(
         `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOneLocation });
   }
@@ -186,18 +184,17 @@ export class LocationsController {
       locationId,
       organizationId: user?.organizationId,
     });
-    if (!findOneLocation) {
+    if (!findOneLocation)
       throw new HttpException(
         `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    const location = await this.locationsService.updateOne(
+    await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: location });
+    return reply({ res, results: 'Location deleted successfully' });
   }
 }

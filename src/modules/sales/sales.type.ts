@@ -6,11 +6,12 @@ export type GetSalesSelections = {
   organizationId: string;
   pagination?: PaginationType;
   method: Sale['method'];
+  type: Sale['type'];
 };
 
 export type GetOneSaleSelections = {
   saleId?: Sale['id'];
-  animalId?: Sale['animalId'];
+  // animalId?: Sale['animalId'];
   organizationId?: Sale['organizationId'];
 };
 
@@ -32,24 +33,8 @@ export const SalesSelect = {
   phone: true,
   note: true,
   animalId: true,
-  animal: {
-    select: {
-      code: true,
-      photo: true,
-      type: true,
-      status: true,
-      gender: true,
-      weight: true,
-      electronicCode: true,
-      productionPhase: true,
-      breed: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  },
   method: true,
+  animals: true,
   organizationId: true,
   organization: {
     select: {

@@ -72,12 +72,11 @@ export class BreedsController {
       name,
       type,
     });
-    if (findOneBreed) {
+    if (findOneBreed)
       throw new HttpException(
         `Breed ${name} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const breed = await this.breedsService.createOne({
       name,
@@ -137,12 +136,11 @@ export class BreedsController {
       breedId,
       organizationId: user?.organizationId,
     });
-    if (!findOneBreed) {
+    if (!findOneBreed)
       throw new HttpException(
         `BreedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOneBreed });
   }
@@ -160,18 +158,17 @@ export class BreedsController {
       breedId,
       organizationId: user?.organizationId,
     });
-    if (!findOneBreed) {
+    if (!findOneBreed)
       throw new HttpException(
         `BreedId: ${breedId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    const breed = await this.breedsService.updateOne(
+    await this.breedsService.updateOne(
       { breedId: findOneBreed?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: breed });
+    return reply({ res, results: 'Breed deleted successfully' });
   }
 }

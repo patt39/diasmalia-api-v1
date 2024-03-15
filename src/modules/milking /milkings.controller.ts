@@ -83,12 +83,11 @@ export class MilkingsController {
       isIsolated: 'FALSE',
       productionPhase: 'LACTATION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${femaleCode} doesn't exists, isn't in LACTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const milking = await this.milkingsService.createOne({
       note,
@@ -118,12 +117,11 @@ export class MilkingsController {
         isIsolated: 'FALSE',
         productionPhase: 'LACTATION',
       });
-      if (!findOneFemale) {
+      if (!findOneFemale)
         throw new HttpException(
           `Animal ${findOneFemale?.code} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
-      }
 
       await this.milkingsService.createOne({
         note,
@@ -153,7 +151,6 @@ export class MilkingsController {
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user?.organizationId,
     });
     if (!findOneMilking) {
       throw new HttpException(
@@ -169,12 +166,11 @@ export class MilkingsController {
       isIsolated: 'FALSE',
       productionPhase: 'LACTATION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${femaleCode} doesn't exists, isn't in LACTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const milking = await this.milkingsService.updateOne(
       { milkingId: findOneMilking?.id },
@@ -203,14 +199,13 @@ export class MilkingsController {
     const { user } = req;
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
-    if (!findOneMilking) {
+    if (!findOneMilking)
       throw new HttpException(
-        `${milkingId} doesn't exists, please change`,
+        `MilkingId: ${milkingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     return reply({ res, results: findOneMilking });
   }
@@ -227,20 +222,19 @@ export class MilkingsController {
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
-    if (!findOneMilking) {
+    if (!findOneMilking)
       throw new HttpException(
-        `${milkingId} doesn't exists, please change`,
+        `MilkingId: ${milkingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     await this.milkingsService.updateOne(
       { milkingId: findOneMilking?.id },
       { deletedAt: new Date() },
     );
 
-    return reply({ res, results: findOneMilking });
+    return reply({ res, results: 'Milking deleted successfully' });
   }
 }

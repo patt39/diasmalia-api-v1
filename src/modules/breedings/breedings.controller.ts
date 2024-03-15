@@ -85,12 +85,11 @@ export class BreedingsController {
       animalId,
       organizationId: user?.organizationId,
     });
-    if (!findOneAnimal) {
+    if (!findOneAnimal)
       throw new HttpException(
         `Animal ${animalId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const animals = await this.breedingsService.findAll({
       search,
@@ -135,37 +134,36 @@ export class BreedingsController {
       isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase, is Isolated or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     /** This is to check that animals are of same type */
-    if (findOneMale?.type !== findOneFemale?.type) {
+    if (findOneMale?.type !== findOneFemale?.type)
       throw new HttpException(
         `Unable to perform breeding animals aren't of same type please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
-    if (findOneMale?.code == findOneFemale?.codeFather) {
+    /** This is to check for parenty in other to avoid inbreeding */
+    if (findOneMale?.code === findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale?.codeMother == findOneFemale?.code) {
+    } else if (findOneMale?.codeMother === findOneFemale?.code) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale?.codeMother == findOneFemale?.codeMother) {
+    } else if (findOneMale?.codeMother === findOneFemale?.codeMother) {
       throw new HttpException(
         `Unable to perform breeding animals have same mother`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (findOneMale?.codeFather == findOneFemale?.codeFather) {
+    } else if (findOneMale?.codeFather === findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same father`,
         HttpStatus.BAD_REQUEST,
@@ -206,47 +204,49 @@ export class BreedingsController {
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
       checkStatus: false,
-      organizationId: user?.organizationId,
     });
-    if (!findOneBreeding) {
+    if (!findOneBreeding)
       throw new HttpException(
         `BreedingId: ${breedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneMale = await this.animalsService.findOneBy({
       code: codeMale,
       gender: 'MALE',
       status: 'ACTIVE',
+      isCastrated: 'FALSE',
+      isIsolated: 'FALSE',
+      productionPhase: 'REPRODUCTION',
     });
-    if (!findOneMale) {
+    if (!findOneMale)
       throw new HttpException(
         `Animal ${codeMale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      isCastrated: 'FALSE',
+      isIsolated: 'FALSE',
+      productionPhase: 'REPRODUCTION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     /** This is to check that animals are of same type */
-    if (findOneMale?.type !== findOneFemale?.type) {
+    if (findOneMale?.type !== findOneFemale?.type)
       throw new HttpException(
         `Unable to perform breeding animals aren't of same type please change`,
         HttpStatus.BAD_REQUEST,
       );
-    }
 
+    /** This is to check for parenty in other to avoid inbreeding */
     if (findOneMale?.code === findOneFemale?.codeFather) {
       throw new HttpException(
         `Unable to perform breeding animals have same ancestors`,
@@ -305,19 +305,17 @@ export class BreedingsController {
       animalId,
       organizationId: user?.organizationId,
     });
-    if (!findOneAnimal) {
+    if (!findOneAnimal)
       throw new HttpException(
         `Animal ${animalId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOnebreeding = await this.breedingsService.findOneBreedingBy({
       animalId,
       gender: findOneAnimal?.gender,
       organizationId: user?.organizationId,
     });
-
     if (!findOnebreeding) {
       throw new HttpException(
         `AnimalId: ${animalId} doesn't exists please change`,
