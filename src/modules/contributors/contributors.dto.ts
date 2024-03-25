@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -16,12 +17,16 @@ export class CreateOrUpdateContributorDto {
   role: RoleContributorRole;
 }
 
-export class GetContributorsByRoleDto {
+export class GetContributorsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(50)
   @IsEnum(RoleContributorRole)
   role: RoleContributorRole;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  organizationId: RoleContributorRole;
 }
 export class AddContributorUserDto {
   @IsNotEmpty()
@@ -63,4 +68,14 @@ export class CreateOneContributorUserDto {
   @IsOptional()
   @IsString()
   description: string;
+}
+
+export class InvitationConfirmationDto {
+  @IsOptional()
+  @IsString()
+  confirmation: string;
+
+  @IsNotEmpty()
+  @IsString()
+  token: string;
 }

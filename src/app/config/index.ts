@@ -22,10 +22,10 @@ export const config = {
   cookie_access: {
     user: {
       nameLogin: process.env.COOKIE_NAME_LOGIN || 'x-user',
-      accessExpireLogin: process.env.COOKIE_ACCESS_EXPIRE || '864000000',
+      accessExpireLogin: process.env.COOKIE_ACCESS_EXPIRE || '86400000000',
       nameVerify: process.env.COOKIE_NAME_LOGIN || 'x-verify-code',
       accessExpireVerify:
-        process.env.COOKIE_VALIDATION_TOKEN_EXPIRE || '3000000000',
+        process.env.COOKIE_VALIDATION_TOKEN_EXPIRE || '300000000000',
     },
   },
   /**

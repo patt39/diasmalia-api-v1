@@ -21,10 +21,33 @@ export class ContributorsService {
     selections: GetContributorsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
-    const { pagination, role } = selections;
+    const { pagination, search, role, organizationId } = selections;
+
+    if (search) {
+      Object.assign(prismaWhereContributor, {
+        OR: [
+          { role: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          {
+            user: {
+              profile: { firstName: { contains: search, mode: 'insensitive' } },
+            },
+          },
+          {
+            user: {
+              profile: { lastName: { contains: search, mode: 'insensitive' } },
+            },
+          },
+        ],
+      });
+    }
 
     if (role) {
       Object.assign(prismaWhereContributor, { role });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhereContributor, { organizationId });
     }
 
     const contributors = await this.client.contributor.findMany({
@@ -45,7 +68,7 @@ export class ContributorsService {
     });
   }
 
-  /** Find one Contributors to the database. */
+  /** Find one Contributor in database. */
   async findOneBy(selections: GetOneContributorsSelections) {
     const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
     const { contributorId, userId, organizationId, role } = selections;
@@ -74,14 +97,23 @@ export class ContributorsService {
     return contributor;
   }
 
-  /** Create one Contributors to the database. */
+  /** Create one Contributor in database. */
   async createOne(options: CreateContributorsOptions): Promise<Contributor> {
-    const { userId, role, organizationId, userCreatedId } = options;
+    const {
+      role,
+      userId,
+      confirmation,
+      confirmedAt,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const contributor = this.client.contributor.create({
       data: {
         role,
         userId,
+        confirmation,
+        confirmedAt,
         organizationId,
         userCreatedId,
       },
@@ -90,17 +122,17 @@ export class ContributorsService {
     return contributor;
   }
 
-  /** Update one Contributors to the database. */
+  /** Update one Contributor in database. */
   async updateOne(
     selections: UpdateContributorsSelections,
     options: UpdateContributorsOptions,
   ): Promise<Contributor> {
     const { contributorId } = selections;
-    const { role, deletedAt, updatedAt } = options;
+    const { role, confirmedAt, confirmation, deletedAt, updatedAt } = options;
 
     const contributor = this.client.contributor.update({
       where: { id: contributorId },
-      data: { role, deletedAt, updatedAt },
+      data: { role, confirmedAt, confirmation, deletedAt, updatedAt },
     });
 
     return contributor;

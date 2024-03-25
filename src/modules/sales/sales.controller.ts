@@ -94,7 +94,7 @@ export class SalesController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
     });
-    if (findOneAnimal.status === 'SOLD')
+    if (findOneAnimal?.status === 'SOLD')
       throw new HttpException(
         `Animal ${findOneAnimal?.code} doesn't exists or it's already SOLD please change`,
         HttpStatus.NOT_FOUND,
@@ -167,7 +167,7 @@ export class SalesController {
           status,
           method,
           soldTo,
-          //animalId: findOneAnimal?.id,
+          animalId: findOneAnimal?.id,
           organizationId: user?.organizationId,
           userCreatedId: user?.id,
         },

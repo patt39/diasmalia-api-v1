@@ -29,7 +29,6 @@ export class ProfilesService {
           {
             firstName: { contains: search, mode: 'insensitive' },
             lastName: { contains: search, mode: 'insensitive' },
-            address: { contains: search, mode: 'insensitive' },
           },
         ],
       });
