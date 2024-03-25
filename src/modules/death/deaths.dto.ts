@@ -1,9 +1,10 @@
+import { AnimalStatus } from '@prisma/client';
 import {
+  IsArray,
+  IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -18,11 +19,27 @@ export class CreateOrUpdateDeathsDto {
   date: Date;
 
   @IsNotEmpty()
-  @IsNumber()
-  number: number;
+  @IsString()
+  @MaxLength(100)
+  codeAnimal: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(AnimalStatus)
+  status: AnimalStatus;
+}
+
+export class BulkDeathsDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  note: string;
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  batchId: string;
+  date: Date;
+
+  @IsNotEmpty()
+  @IsArray()
+  animals: any;
 }

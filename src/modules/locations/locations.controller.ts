@@ -45,7 +45,7 @@ export class LocationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { type } = queryLocations;
+    const { type, productionPhase } = queryLocations;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -54,6 +54,7 @@ export class LocationsController {
       type,
       search,
       pagination,
+      productionPhase,
       organizationId: user?.organizationId,
     });
 
@@ -69,11 +70,13 @@ export class LocationsController {
     @Body() body: CreateOrUpdateLocationsDto,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, number, type } = body;
+    const { squareMeter, manger, through, number, type, productionPhase } =
+      body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       type,
       number,
+      productionPhase,
     });
     if (findOneLocation) {
       throw new HttpException(
@@ -88,6 +91,7 @@ export class LocationsController {
       manger,
       through,
       squareMeter,
+      productionPhase,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });

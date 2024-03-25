@@ -6,6 +6,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { AnimalsService } from '../animals/animals.service';
 import {
   CreateSalesOptions,
   GetOneSaleSelections,
@@ -16,13 +17,16 @@ import {
 } from './sales.type';
 @Injectable()
 export class SalesService {
-  constructor(private readonly client: DatabaseService) {}
+  constructor(
+    private readonly client: DatabaseService,
+    private readonly animalsService: AnimalsService,
+  ) {}
 
   async findAll(
     selections: GetSalesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.SaleWhereInput;
-    const { search, method, organizationId, pagination } = selections;
+    const { search, method, type, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -40,6 +44,10 @@ export class SalesService {
 
     if (method) {
       Object.assign(prismaWhere, { method });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
     }
 
     const sales = await this.client.sale.findMany({
@@ -74,6 +82,10 @@ export class SalesService {
       Object.assign(prismaWhere, { organizationId });
     }
 
+    // if (animalId) {
+    //   Object.assign(prismaWhere, { animalId });
+    // }
+
     const sale = await this.client.sale.findFirst({
       where: { ...prismaWhere, deletedAt: null },
       select: SalesSelect,
@@ -94,8 +106,7 @@ export class SalesService {
       address,
       phone,
       email,
-      quantity,
-      batchId,
+      animalId,
       organizationId,
       userCreatedId,
     } = options;
@@ -104,15 +115,14 @@ export class SalesService {
       data: {
         date,
         note,
-        price,
         type,
+        price,
         soldTo,
         method,
         address,
         phone,
         email,
-        quantity,
-        batchId,
+        animalId,
         organizationId,
         userCreatedId,
       },
@@ -131,14 +141,13 @@ export class SalesService {
       date,
       note,
       price,
-      email,
       type,
       soldTo,
       method,
       address,
       phone,
-      quantity,
-      batchId,
+      status,
+      animalId,
       organizationId,
       userCreatedId,
       deletedAt,
@@ -156,10 +165,9 @@ export class SalesService {
         soldTo,
         method,
         address,
-        email,
         phone,
-        quantity,
-        batchId,
+        status,
+        animalId,
         organizationId,
         userCreatedId,
         deletedAt,
@@ -227,6 +235,7 @@ export class SalesService {
         soldTo: sale.soldTo,
         method: sale.method,
         email: sale.email,
+        status: sale.status,
       });
     }
 

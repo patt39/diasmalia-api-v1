@@ -29,14 +29,24 @@ export const TreatmentSelect = {
   name: true,
   date: true,
   diagnosis: true,
-  batchId: true,
+  animalId: true,
   animal: {
     select: {
+      code: true,
+      productionPhase: true,
       weight: true,
+      electronicCode: true,
+      status: true,
+      gender: true,
       type: true,
       location: {
         select: {
           number: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
         },
       },
     },

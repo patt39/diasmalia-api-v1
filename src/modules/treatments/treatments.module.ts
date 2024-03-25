@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { BatchsService } from '../batchs/batchs.service';
+import { AnimalsService } from '../animals/animals.service';
 import { TreatmentsController } from './treatments.controller';
 import { TreatmentsService } from './treatments.service';
 
 @Module({
   controllers: [TreatmentsController],
-  providers: [TreatmentsService, BatchsService],
+  providers: [TreatmentsService, AnimalsService],
 })
 export class TreatmentsModule {}

@@ -1,4 +1,4 @@
-import { Location } from '@prisma/client';
+import { AnimalStatus, Location } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetLocationsSelections = {
@@ -6,6 +6,7 @@ export type GetLocationsSelections = {
   locationId?: Location['id'];
   pagination?: PaginationType;
   type?: Location['type'];
+  productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
 };
 
@@ -13,6 +14,7 @@ export type GetOneLocationsSelections = {
   locationId?: Location['id'];
   number?: Location['number'];
   type?: Location['type'];
+  productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
 };
 
@@ -33,10 +35,22 @@ export const LocationsSelect = {
   manger: true,
   type: true,
   userCreatedId: true,
+  productionPhase: true,
   organizationId: true,
   organization: {
     select: {
       name: true,
+    },
+  },
+  //animals: true,
+  _count: {
+    select: {
+      animals: {
+        where: {
+          deletedAt: null,
+          status: 'ACTIVE' as AnimalStatus,
+        },
+      },
     },
   },
 };
