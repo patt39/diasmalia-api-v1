@@ -32,15 +32,17 @@ model User {
 }
 
 model Contributor {
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
   deletedAt      DateTime?
-  id             String              @id @default(uuid())
-  role           RoleContributorRole @default(SUPERADMIN)
-  user           User                @relation(fields: [userId], references: [id])
+  id             String                  @id @default(uuid())
+  role           RoleContributorRole     @default(SUPERADMIN)
+  user           User                    @relation(fields: [userId], references: [id])
   userId         String
+  confirmation   ContributorConfirmation @default(CHOOSE)
+  confirmedAt    DateTime?
   organizationId String
-  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
   tasks          Task[]
 }
@@ -48,6 +50,12 @@ model Contributor {
 enum RoleContributorRole {
   SUPERADMIN
   ADMIN
+}
+
+enum ContributorConfirmation {
+  YES
+  NO
+  CHOOSE
 }
 
 model Profile {

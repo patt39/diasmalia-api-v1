@@ -52,7 +52,7 @@ export class CreateLoginUserDto {
 export class ConfirmEmailUserDto {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(8)
+  @MinLength(6)
   code: string;
 }
 
@@ -66,9 +66,14 @@ export class ResetPasswordUserDto {
 
 export class UpdateResetPasswordUserDto {
   @IsNotEmpty()
+  @MinLength(8)
   @IsString()
-  @MaxLength(100)
   password: string;
+
+  @IsString()
+  @MinLength(8)
+  @Match('password')
+  passwordConfirm: string;
 
   @IsNotEmpty()
   @MinLength(8)
@@ -98,12 +103,16 @@ export class UpdateUserPasswordDto {
 export class UpdateOneEmailUserDto {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
-  @IsEmail()
   email: string;
 
   @IsNotEmpty()
   @MinLength(8)
   @IsString()
   password: string;
+}
+
+export class GetUsers {
+  @IsOptional()
+  @IsString()
+  email: string;
 }

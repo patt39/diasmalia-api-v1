@@ -1,11 +1,12 @@
 import { config } from '../../../app/config/index';
 import { sendEmail } from '../email.service';
 
-export const authPasswordResetMail = async (options: {
+export const contributorInvitationMail = async (options: {
+  user: any;
   email: string;
   token: string;
 }) => {
-  const { email, token } = { ...options };
+  const { email, user, token } = { ...options };
   const output = `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml">
@@ -32,23 +33,23 @@ export const authPasswordResetMail = async (options: {
         width: 100% !important;
       "
     >
-    <style>
-    @media only screen and (max-width: 600px) {
-      .inner-body {
-        width: 100% !important;
-      }
-
-      .footer {
-        width: 100% !important;
-      }
-    }
-
-    @media only screen and (max-width: 500px) {
-      .button {
-        width: 100% !important;
-      }
-    }
-  </style>
+      <style>
+        @media only screen and (max-width: 600px) {
+          .inner-body {
+            width: 100% !important;
+          }
+  
+          .footer {
+            width: 100% !important;
+          }
+        }
+  
+        @media only screen and (max-width: 500px) {
+          .button {
+            width: 100% !important;
+          }
+        }
+      </style>
       <table
         class="wrapper"
         width="100%"
@@ -198,12 +199,14 @@ export const authPasswordResetMail = async (options: {
                         color: #0d0c22;
                         font-family: Helvetica Neue Roman, Arial, sans-serif,
                           'Open Sans';
-                      ">Reset your password</h2>
-  
+                      ">Invitation to join</h2>
+
+                      <div style="text-align: center">
                         <span style="font-size: 16px">
-                          You are receiving this email because we received a
-                          password reset request for your account </span
-                        ><br /><br />
+                            ${user.profile.firstName} ${user.profile.lastName} has invited you to join the ${user.organization.name}
+                            organization </span
+                          >
+                      </div><br />
   
                         <table
                           class="subcopy"
@@ -215,47 +218,31 @@ export const authPasswordResetMail = async (options: {
                           <tr>
                             <td colspan="2">
                               <div style="text-align: center">
-                              <a
-                                  href="${config.datasite.urlClient}/reset-password/${token}"                                style="
-                                  font-family: 'Google Sans', Roboto,
-                                    RobotoDraft, Helvetica, Arial, sans-serif;
-                                  line-height: 16px;
-                                  color: #ffffff;
-                                  font-weight: 400;
-                                  text-decoration: none;
-                                  font-size: 14px;
-                                  display: inline-block;
-                                  padding: 15px 30px;
-                                  background-color: #4184f3;
-                                  border-radius: 5px;
-                                  min-width: 90px;
-                                "
-                                target="_blank"
-                                >Reset Password</a
-                              >
-                            </div>
+                                <a
+                                  href="${config.datasite.urlClient}/contributors/invitation/${token}"
+                                  style="
+                                    font-family: 'Google Sans', Roboto,
+                                      RobotoDraft, Helvetica, Arial, sans-serif;
+                                    line-height: 16px;
+                                    color: #ffffff;
+                                    font-weight: 400;
+                                    text-decoration: none;
+                                    font-size: 14px;
+                                    display: inline-block;
+                                    padding: 15px 30px;
+                                    background-color: #4184f3;
+                                    border-radius: 5px;
+                                    min-width: 90px;
+                                  "
+                                  target="_blank"
+                                  >Join ${user.organization.name}</a
+                                >
+                              </div>
                             </td>
                           </tr>
                         </table>
                         <br /><br />
   
-                        <p
-                          style="
-                            box-sizing: border-box;
-                            font-family: -apple-system, BlinkMacSystemFont,
-                              'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
-                              'Apple Color Emoji', 'Segoe UI Emoji',
-                              'Segoe UI Symbol';
-                            position: relative;
-                            font-size: 16px;
-                            line-height: 1.5em;
-                            margin-top: 0;
-                            text-align: left;
-                          "
-                        >
-                          If you did not request a password reset, no further
-                          action is required.
-                        </p>
                         <p
                           style="
                             box-sizing: border-box;
@@ -316,9 +303,10 @@ export const authPasswordResetMail = async (options: {
                                   font-size: 14px;
                                 "
                               >
-                                If you’re having trouble clicking the "Reset
-                                Password" button, copy and paste the URL below
-                                into your web browser is valid for 30 minutes:
+                                If you’re having trouble clicking the "Join
+                                ${user.organization.name}" button, copy and paste the URL
+                                below into your web browser is valid for 30
+                                minutes:
                                 <span
                                   class="break-all"
                                   style="
@@ -332,8 +320,8 @@ export const authPasswordResetMail = async (options: {
                                   "
                                 >
                                   <a
-                                  target="_blank"
-                                    href="${config.datasite.urlClient}/reset-password/${token}"
+                                    target="_blank"
+                                    href="${config.datasite.urlClient}/contributors/invitation/${token}"
                                     style="
                                       box-sizing: border-box;
                                       font-family: -apple-system,
@@ -345,7 +333,7 @@ export const authPasswordResetMail = async (options: {
                                       color: #3869d4;
                                     "
                                   >
-                                    ${config.datasite.urlClient}/reset-password/${token}
+                                    ${config.datasite.urlClient}/contributors/invitation/${token}
                                   </a></span
                                 >
                               </p>
@@ -395,14 +383,14 @@ export const authPasswordResetMail = async (options: {
                       <td
                         style="
                           font-family: Montserrat, -apple-system, 'Segoe UI',
-                          sans-serif;
-                        font-size: 12px;
-                        padding-left: 48px;
-                        padding-right: 48px;
-                        --text-opacity: 1;
-                        color: #eceff1;
-                        color: rgba(236, 239, 241, var(--text-opacity));
-                        padding: 20px;
+                            sans-serif;
+                          font-size: 12px;
+                          padding-left: 48px;
+                          padding-right: 48px;
+                          --text-opacity: 1;
+                          color: #eceff1;
+                          color: rgba(236, 239, 241, var(--text-opacity));
+                          padding: 20px;
                         "
                       >
                         <p
@@ -438,24 +426,24 @@ export const authPasswordResetMail = async (options: {
                           >.
                         </p>
                         <p
-                        style="
-                        box-sizing: border-box;
-                        font-family: -apple-system, BlinkMacSystemFont,
-                          'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
-                          'Apple Color Emoji', 'Segoe UI Emoji',
-                          'Segoe UI Symbol';
-                        position: relative;
-                        line-height: 1.5em;
-                        margin-top: 0;
-                        color: #b0adc5;
-                        font-size: 12px;
-                        text-align: center;
-                        "
-                      >
-                        © 2024 - ${new Date().getFullYear()} ${
-                          config.datasite.name
-                        }. All rights reserved.
-                      </p>
+                          style="
+                            box-sizing: border-box;
+                            font-family: -apple-system, BlinkMacSystemFont,
+                              'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+                              'Apple Color Emoji', 'Segoe UI Emoji',
+                              'Segoe UI Symbol';
+                            position: relative;
+                            line-height: 1.5em;
+                            margin-top: 0;
+                            color: #b0adc5;
+                            font-size: 12px;
+                            text-align: center;
+                          "
+                        >
+                          © 2024 - ${new Date().getFullYear()} ${
+                            config.datasite.name
+                          }. All rights reserved.
+                        </p>
                       </td>
                     </tr>
                   </table>
@@ -468,10 +456,9 @@ export const authPasswordResetMail = async (options: {
     </body>
   </html>
       `;
-  // create reusable transporter object using the default SMTP transport
   await sendEmail({
     to: [email],
-    subject: `${config.datasite.name} - Reset password`,
+    subject: `${config.datasite.name} - ${user.profile.firstName} ${user.profile.lastName} has invited you to join the ${user.organization.name}`,
     html: output,
   });
 };

@@ -8,10 +8,17 @@ import {
   Param,
   ParseUUIDPipe,
   Put,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import {
+  PaginationType,
+  RequestPaginationDto,
+  addPagination,
+} from 'src/app/utils/pagination';
+import { SearchQueryDto } from 'src/app/utils/search-query';
 import { config } from '../../app/config/index';
 import { reply } from '../../app/utils/reply';
 import { UserAuthGuard } from './middleware';
@@ -35,6 +42,28 @@ export class UsersController {
     return reply({ res, results: findOneUser });
   }
 
+  /** Get all users */
+  @Get(`/`)
+  @UseGuards(UserAuthGuard)
+  async findAll(
+    @Res() res,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+  ) {
+    const { search } = query;
+
+    const { take, page, sort } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({ page, take, sort });
+
+    const users = await this.usersService.findAll({
+      search,
+      pagination,
+    });
+
+    return reply({ res, results: users });
+  }
+
+  /** Change connected user password */
   @Put(`/change-password`)
   @UseGuards(UserAuthGuard)
   async UpdateUserPasswordDto(
@@ -56,6 +85,7 @@ export class UsersController {
     return reply({ res, results: 'Password Updated successfully' });
   }
 
+  /** Change connected user email */
   @Put(`/change-email`)
   @UseGuards(UserAuthGuard)
   async updateUserEmail(
@@ -77,9 +107,10 @@ export class UsersController {
     return reply({ res, results: 'Email updated successfully' });
   }
 
+  /** Delete user */
   @Delete(`/:userId`)
   @UseGuards(UserAuthGuard)
-  async deleteOnUser(
+  async deleteOneUser(
     @Res() res,
     @Req() req,
     @Param('userId', ParseUUIDPipe) userId: string,

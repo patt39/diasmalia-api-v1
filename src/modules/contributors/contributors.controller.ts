@@ -29,15 +29,25 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   CreateOneContributorUserDto,
   CreateOrUpdateContributorDto,
-  GetContributorsByRoleDto,
+  GetContributorsDto,
+  InvitationConfirmationDto,
 } from '../contributors/contributors.dto';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { ProfilesService } from '../profiles/profiles.service';
-import { authPasswordResetMail } from '../users/mails/auth-password-reset-mail';
+import { contributorInvitationMail } from '../users/mails/contribution-invitation-mail';
+import { contributorCreateUserMail } from '../users/mails/contributor-create-user-mail';
 import { UserAuthGuard } from '../users/middleware';
-import { CheckUserService } from '../users/middleware/check-user.service';
+import {
+  CheckUserService,
+  JwtToken,
+} from '../users/middleware/check-user.service';
 import { UsersService } from '../users/users.service';
 import { ContributorsService } from './contributors.service';
+
+import { validation_verify_cookie_setting } from '../../app/utils/cookies';
+import { Cookies } from '../users/middleware/cookie.guard';
+import { UpdateResetPasswordUserDto } from '../users/users.dto';
+import { hashPassword } from '../users/users.type';
 
 @Controller('contributors')
 export class ContributorsController {
@@ -71,7 +81,7 @@ export class ContributorsController {
     const findOneUser = await this.usersService.findOneBy({ email });
     if (findOneUser)
       throw new HttpException(
-        `Email ${email} already exists please change`,
+        `Email: ${email} already exists please invite instead`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -98,17 +108,242 @@ export class ContributorsController {
       userCreatedId: user?.id,
     });
 
-    const tokenVerify = await this.checkUserService.createTokenCookie(
-      { userId: newUser?.id },
+    const token = await this.checkUserService.createTokenCookie(
+      { userId: newUser?.id, email: newUser.email } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
-    await authPasswordResetMail({
+    await contributorCreateUserMail({
+      user,
       email,
-      tokenVerify,
+      token,
     });
 
     return reply({ res, results: 'Contributor saved successfully' });
+  }
+
+  /** Invite Contributor */
+  @Post(`/invitation`)
+  @UseGuards(UserAuthGuard)
+  async inviteContributor(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOneContributorUserDto,
+  ) {
+    const { user } = req;
+    const { email } = body;
+
+    const findOneUser = await this.usersService.findOneBy({
+      email,
+      organizationId: user?.organizationId,
+    });
+
+    // if (findOneUser)
+    //   throw new HttpException(
+    //     `Email: ${email} already exists please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
+
+    // if (user?.email)
+    //   throw new HttpException(
+    //     `You are already a contributor`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
+
+    if (findOneUser) {
+      await this.contributorsService.createOne({
+        role: 'ADMIN',
+        userId: findOneUser?.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+
+      const token = await this.checkUserService.createTokenCookie(
+        { email: findOneUser?.email } as JwtToken,
+        config.cookie_access.user.accessExpireVerify,
+      );
+
+      await contributorInvitationMail({
+        user,
+        token,
+        email: findOneUser?.email,
+      });
+
+      res.cookie(
+        config.cookie_access.user.nameVerify,
+        token,
+        validation_verify_cookie_setting,
+      );
+    }
+
+    return reply({ res, results: 'Contributor invited successfully' });
+  }
+
+  /** Resend invitation email */
+  @Get(`/invitation/resend-email`)
+  @UseGuards(UserAuthGuard)
+  async resendInvitationEmail(@Res() res, @Req() req, @Cookies() cookies) {
+    const { user } = req;
+    const token = cookies[config.cookie_access.user.nameLogin];
+    if (!token) {
+      throw new HttpException(
+        `Token not valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+    const tokenUser = await this.checkUserService.createTokenCookie(
+      { email: payload?.email } as JwtToken,
+      config.cookie_access.user.accessExpireVerify,
+    );
+    const findOneUser = await this.usersService.findOneBy({
+      email: payload?.email,
+    });
+    if (!findOneUser)
+      throw new HttpException(
+        `User doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await contributorInvitationMail({
+      user,
+      token,
+      email: findOneUser?.email,
+    });
+
+    res.cookie(
+      config.cookie_access.user.nameVerify,
+      tokenUser,
+      validation_verify_cookie_setting,
+    );
+
+    return reply({ res, results: token });
+  }
+
+  /** Resend creation email */
+  @Get(`/resend-email`)
+  @UseGuards(UserAuthGuard)
+  async resendCreationEmail(@Res() res, @Req() req, @Cookies() cookies) {
+    const { user } = req;
+    const token = cookies[config.cookie_access.user.nameLogin];
+    console.log(token);
+    if (!token) {
+      throw new HttpException(
+        `Token not valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+    console.log(payload);
+    const tokenUser = await this.checkUserService.createTokenCookie(
+      { userId: payload.userId, email: payload?.email } as JwtToken,
+      config.cookie_access.user.accessExpireVerify,
+    );
+    const findOneUser = await this.usersService.findOneBy({
+      email: payload?.email,
+    });
+    console.log('user1 ====>', findOneUser);
+    if (!findOneUser)
+      throw new HttpException(
+        `User doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await contributorCreateUserMail({
+      user,
+      token,
+      email: payload?.email,
+    });
+
+    res.cookie(
+      config.cookie_access.user.nameVerify,
+      tokenUser,
+      findOneUser,
+      validation_verify_cookie_setting,
+    );
+
+    return reply({ res, results: token });
+  }
+
+  /** New contributor password reset with token */
+  @Put(`/password/update/:token`)
+  @UseGuards(UserAuthGuard)
+  async contributorPasswordUpdate(
+    @Res() res,
+    @Body() body: UpdateResetPasswordUserDto,
+  ) {
+    const { password, token } = body;
+
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+    console.log(payload);
+    const findOneUser = await this.usersService.findOneBy({
+      email: payload?.email,
+    });
+    console.log('user ====>', findOneUser);
+    if (!findOneUser)
+      throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
+
+    await this.usersService.updateOne(
+      { userId: findOneUser?.id },
+      { password: await hashPassword(password), confirmedAt: new Date() },
+    );
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      userId: findOneUser?.id,
+    });
+    console.log('contributor ====>', findOneContributor);
+
+    if (findOneContributor) {
+      await this.contributorsService.updateOne(
+        { contributorId: findOneContributor?.id },
+        { confirmedAt: new Date(), confirmation: 'YES' },
+      );
+    }
+
+    return reply({
+      res,
+      results: 'Password confirmed',
+    });
+  }
+
+  /** Contributor invitation confirmation*/
+  @Put(`/invitation/:token`)
+  async updatePassword(@Res() res, @Body() body: InvitationConfirmationDto) {
+    const { confirmation, token } = body;
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+    console.log(payload);
+    const findOneUser = await this.usersService.findOneBy({
+      email: payload?.email,
+    });
+    console.log('user ====>', findOneUser);
+    if (!findOneUser)
+      throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
+    if (!findOneUser)
+      throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      userId: findOneUser?.id,
+    });
+    console.log('contributor ====>', findOneContributor);
+
+    if (confirmation === 'YES') {
+      await this.contributorsService.updateOne(
+        { contributorId: findOneContributor?.id },
+        { confirmedAt: new Date(), confirmation: 'YES' },
+      );
+    }
+
+    if (confirmation === 'NO') {
+      await this.contributorsService.updateOne(
+        { contributorId: findOneContributor?.id },
+        { deletedAt: new Date(), confirmation: 'NO' },
+      );
+    }
+
+    return reply({
+      res,
+      results: 'Invitation confirmed',
+    });
   }
 
   @Get(`/profile/show`)
@@ -141,7 +376,7 @@ export class ContributorsController {
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
       file,
       userId: user?.id,
-      folder: 'animals_photos',
+      folder: 'photos',
     });
 
     const {
@@ -206,14 +441,12 @@ export class ContributorsController {
   @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
-    @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryRole: GetContributorsByRoleDto,
+    @Query() queryContributors: GetContributorsDto,
   ) {
-    const { user } = req;
     const { search } = query;
-    const { role } = queryRole;
+    const { role, organizationId } = queryContributors;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -222,7 +455,7 @@ export class ContributorsController {
       role,
       search,
       pagination,
-      organizationId: user?.organizationId,
+      organizationId,
     });
 
     return reply({ res, results: contributors });

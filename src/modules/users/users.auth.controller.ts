@@ -23,7 +23,7 @@ import { ProfilesService } from '../profiles/profiles.service';
 import { authCodeConfirmationMail } from './mails/auth-code-confirmation-mail';
 import { authPasswordResetMail } from './mails/auth-password-reset-mail';
 import { UserVerifyAuthStrategy } from './middleware';
-import { CheckUserService } from './middleware/check-user.service';
+import { CheckUserService, JwtToken } from './middleware/check-user.service';
 import { Cookies } from './middleware/cookie.guard';
 import {
   ConfirmEmailUserDto,
@@ -45,7 +45,7 @@ export class UsersAuthController {
     private readonly organizationsService: OrganizationsService,
   ) {}
 
-  /** Post one Users */
+  /** Post one User */
   @Post(`/register`)
   async createOne(@Res() res, @Body() body: RegisterUserDto) {
     const { email, password, firstName, lastName, nameOrganization } = body;
@@ -81,13 +81,15 @@ export class UsersAuthController {
     await this.contributorsService.createOne({
       role: 'SUPERADMIN',
       userId: user?.id,
+      confirmation: 'YES',
+      confirmedAt: new Date(),
       organizationId: organization?.id,
       userCreatedId: user?.id,
     });
 
     const codeGenerate = generateNumber(6);
     const tokenUser = await this.checkUserService.createTokenCookie(
-      { userId: user?.id, codeGenerate },
+      { userId: user?.id, code: codeGenerate } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
@@ -102,11 +104,12 @@ export class UsersAuthController {
     return reply({ res, results: user });
   }
 
-  /** Post one User */
-  @Post(`/resend-code`)
+  /** Resend user code */
+  @Get(`/resend-code`)
   @UseGuards(UserVerifyAuthStrategy)
   async resendCode(@Res() res, @Cookies() cookies) {
-    const token = cookies[config.cookie_access.user.nameVerify];
+    const token = cookies[config.cookie_access.user.nameLogin];
+    console.log(token);
     if (!token) {
       throw new HttpException(
         `Token not valid please change`,
@@ -116,7 +119,7 @@ export class UsersAuthController {
     const codeGenerate = generateNumber(6);
     const payload = await this.checkUserService.verifyTokenCookie(token);
     const tokenUser = await this.checkUserService.createTokenCookie(
-      { userId: payload?.userId, codeGenerate },
+      { userId: payload?.userId, code: codeGenerate } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
     const findOneUser = await this.usersService.findOneBy({
@@ -139,7 +142,7 @@ export class UsersAuthController {
       code: codeGenerate,
     });
 
-    return reply({ res, results: 'codeGenerate' });
+    return reply({ res, results: 'Code resend' });
   }
 
   /** Confirm email */
@@ -152,25 +155,26 @@ export class UsersAuthController {
   ) {
     const { code } = body;
     const token = cookies[config.cookie_access.user.nameVerify];
-    if (!token) {
+    if (!token)
       throw new HttpException(
         `Token not valid please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
+
     const payload = await this.checkUserService.verifyTokenCookie(token);
-    if (payload?.codeGenerate !== code) {
+    console.log(payload);
+    if (payload?.code !== code) {
       throw new HttpException(
         `Code not valid please change`,
         HttpStatus.NOT_FOUND,
       );
     }
     await this.usersService.updateOne(
-      { userId: payload.userId },
+      { userId: payload?.userId },
       { confirmedAt: new Date() },
     );
     const tokenUser = await this.checkUserService.createTokenCookie(
-      { userId: payload.userId },
+      { userId: payload?.userId } as JwtToken,
       config.cookie_access.user.accessExpireLogin,
     );
 
@@ -199,9 +203,15 @@ export class UsersAuthController {
 
     const codeGenerate = generateNumber(6);
 
+    // if (findOneUser?.confirmedAt === null)
+    //   throw new HttpException(
+    //     `Email: ${email} not confirmed please do`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
+
     if (!findOneUser?.confirmedAt) {
       const tokenUserVerify = await this.checkUserService.createTokenCookie(
-        { userId: findOneUser?.id, codeGenerate },
+        { userId: findOneUser?.id, code: codeGenerate } as JwtToken,
         config.cookie_access.user.accessExpireVerify,
       );
       res.cookie(
@@ -216,7 +226,7 @@ export class UsersAuthController {
       });
     } else {
       const tokenUser = await this.checkUserService.createTokenCookie(
-        { userId: findOneUser?.id },
+        { userId: findOneUser?.id } as JwtToken,
         config.cookie_access.user.accessExpireLogin,
       );
 
@@ -226,9 +236,10 @@ export class UsersAuthController {
         validation_login_cookie_setting,
       );
     }
+
     return reply({
       res,
-      results: 'User connected',
+      results: 'User logged in successfully',
     });
   }
 
@@ -247,23 +258,23 @@ export class UsersAuthController {
         HttpStatus.NOT_FOUND,
       );
 
-    const tokenVerify = await this.checkUserService.createTokenCookie(
-      { userId: findOneUser.id },
+    const token = await this.checkUserService.createTokenCookie(
+      { userId: findOneUser.id } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
     await authPasswordResetMail({
       email,
-      tokenVerify,
+      token,
     });
 
     return reply({
       res,
-      results: 'Send',
+      results: token,
     });
   }
 
-  /** Login user */
+  /** Password reset token */
   @Put(`/password/update/:token`)
   async updatePassword(@Res() res, @Body() body: UpdateResetPasswordUserDto) {
     const { password, token } = body;

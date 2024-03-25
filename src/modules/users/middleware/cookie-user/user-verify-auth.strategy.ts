@@ -4,6 +4,7 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { config } from '../../../../app/config';
 import { UsersService } from '../../users.service';
+import { JwtToken } from '../check-user.service';
 
 @Injectable()
 export class UserVerifyAuthStrategy extends PassportStrategy(
@@ -32,8 +33,8 @@ export class UserVerifyAuthStrategy extends PassportStrategy(
     return null;
   }
 
-  async validate(payload): Promise<any> {
-    const user = await this.usersService.findOneBy({ userId: payload?.id });
+  async validate(payload: JwtToken): Promise<any> {
+    const user = await this.usersService.findOneBy({ userId: payload?.userId });
     if (!user) throw new UnauthorizedException('Invalid user');
 
     return user;

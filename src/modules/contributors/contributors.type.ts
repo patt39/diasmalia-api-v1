@@ -30,6 +30,8 @@ export const ContributorSelect = {
   userId: true,
   user: {
     select: {
+      email: true,
+      id: true,
       profile: {
         select: {
           firstName: true,
