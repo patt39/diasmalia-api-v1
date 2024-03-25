@@ -25,25 +25,15 @@ export const DeathSelect = {
   id: true,
   date: true,
   note: true,
-  status: true,
-  animalId: true,
-  animal: {
+  batchId: true,
+  batch: {
     select: {
-      code: true,
       type: true,
-      status: true,
-      gender: true,
+      quantity: true,
       weight: true,
-      electronicCode: true,
-      productionPhase: true,
       location: {
         select: {
           number: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
         },
       },
     },

@@ -22,7 +22,7 @@ export class LocationsService {
     selections: GetLocationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.LocationWhereInput;
-    const { search, type, productionPhase, pagination } = selections;
+    const { search, type, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -32,10 +32,6 @@ export class LocationsService {
 
     if (type) {
       Object.assign(prismaWhere, { type });
-    }
-
-    if (productionPhase) {
-      Object.assign(prismaWhere, { productionPhase });
     }
 
     const locations = await this.client.location.findMany({
@@ -61,8 +57,7 @@ export class LocationsService {
   async findOneBy(selections: GetOneLocationsSelections) {
     const prismaWhere = {} as Prisma.LocationWhereInput;
 
-    const { locationId, type, number, productionPhase, organizationId } =
-      selections;
+    const { locationId, type, number, organizationId } = selections;
 
     if (locationId) {
       Object.assign(prismaWhere, { id: locationId });
@@ -78,10 +73,6 @@ export class LocationsService {
 
     if (number) {
       Object.assign(prismaWhere, { number });
-    }
-
-    if (productionPhase) {
-      Object.assign(prismaWhere, { productionPhase });
     }
 
     const location = await this.client.location.findFirst({
@@ -100,7 +91,6 @@ export class LocationsService {
       manger,
       through,
       squareMeter,
-      productionPhase,
       organizationId,
       userCreatedId,
     } = options;
@@ -112,7 +102,6 @@ export class LocationsService {
         manger,
         through,
         squareMeter,
-        productionPhase,
         organizationId,
         userCreatedId,
       },
@@ -133,7 +122,6 @@ export class LocationsService {
       manger,
       through,
       squareMeter,
-      productionPhase,
       organizationId,
       deletedAt,
     } = options;
@@ -148,7 +136,6 @@ export class LocationsService {
         manger,
         through,
         squareMeter,
-        productionPhase,
         organizationId,
         deletedAt,
       },

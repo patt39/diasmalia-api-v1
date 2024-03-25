@@ -1,12 +1,11 @@
-import { AnimalStatus, AnimalType, sellingMethod } from '@prisma/client';
+import { sellingMethod } from '@prisma/client';
 import {
-  IsArray,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -23,47 +22,6 @@ export class CreateOrUpdateSalesDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  soldTo: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  phone: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  price: number;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  @IsEnum(sellingMethod)
-  method: sellingMethod;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(AnimalStatus)
-  status: AnimalStatus;
-}
-
-export class BulkSalesDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  note: string;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
   soldTo: string;
 
   @IsOptional()
@@ -72,43 +30,37 @@ export class BulkSalesDto {
 
   @IsOptional()
   @IsString()
-  address: string;
+  phone: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  phone: string;
+  @IsUUID()
+  batchId: string;
 
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber()
   price: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  quantity: number;
+
+  @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
+  date: Date;
+
+  @IsOptional()
+  @IsString()
   @IsEnum(sellingMethod)
   method: sellingMethod;
-
-  @IsNotEmpty()
-  @IsArray()
-  animals: any;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
 }
+
 export class SaleMethodDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
   @IsEnum(sellingMethod)
   method: sellingMethod;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
 }
 
 export class GetOneUploadsDto {

@@ -5,7 +5,6 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { AnimalsService } from '../animals/animals.service';
 import {
   CreateDeathsOptions,
   DeathSelect,
@@ -17,10 +16,7 @@ import {
 
 @Injectable()
 export class DeathsService {
-  constructor(
-    private readonly client: DatabaseService,
-    private readonly animalsService: AnimalsService,
-  ) {}
+  constructor(private readonly client: DatabaseService) {}
 
   async findAll(
     selections: GetDeathsSelections,
@@ -84,13 +80,15 @@ export class DeathsService {
 
   /** Create one death in database. */
   async createOne(options: CreateDeathsOptions): Promise<Death> {
-    const { date, animalId, organizationId, userCreatedId, note } = options;
+    const { date, number, batchId, organizationId, userCreatedId, note } =
+      options;
 
     const death = this.client.death.create({
       data: {
         date,
         note,
-        animalId,
+        number,
+        batchId,
         organizationId,
         userCreatedId,
       },
@@ -105,15 +103,8 @@ export class DeathsService {
     options: UpdateDeathsOptions,
   ): Promise<Death> {
     const { deathId } = selections;
-    const {
-      date,
-      status,
-      animalId,
-      organizationId,
-      userCreatedId,
-      note,
-      deletedAt,
-    } = options;
+    const { date, batchId, organizationId, userCreatedId, note, deletedAt } =
+      options;
 
     const death = this.client.death.update({
       where: {
@@ -122,8 +113,7 @@ export class DeathsService {
       data: {
         date,
         note,
-        status,
-        animalId,
+        batchId,
         organizationId,
         userCreatedId,
         deletedAt,

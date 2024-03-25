@@ -21,18 +21,16 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { AnimalsService } from '../animals/animals.service';
-import { SalesService } from '../sales/sales.service';
+import { BatchsService } from '../batchs/batchs.service';
 import { UserAuthGuard } from '../users/middleware';
-import { BulkDeathsDto, CreateOrUpdateDeathsDto } from './deaths.dto';
+import { CreateOrUpdateDeathsDto } from './deaths.dto';
 import { DeathsService } from './deaths.service';
 
 @Controller('deaths')
 export class DeathsController {
   constructor(
     private readonly deathsService: DeathsService,
-    private readonly animalsService: AnimalsService,
-    private readonly salesService: SalesService,
+    private readonly batchsService: BatchsService,
   ) {}
 
   /** Get all deaths */
@@ -68,65 +66,27 @@ export class DeathsController {
     @Body() body: CreateOrUpdateDeathsDto,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note } = body;
+    const { date, number, note, batchId } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code: codeAnimal,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (findOneAnimal.status === 'DEAD')
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists or animal already death, please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const death = await this.deathsService.createOne({
       date,
       note,
-      animalId: findOneAnimal?.id,
-      organizationId: findOneAnimal?.organizationId,
+      number,
+      batchId: findOneBatch?.id,
+      organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
-    await this.animalsService.updateOne(
-      { animalId: death?.animalId },
-      { status: 'DEAD' },
-    );
-
     return reply({ res, results: death });
-  }
-
-  /** Post one Bulk death */
-  @Post(`/bulk/create`)
-  @UseGuards(UserAuthGuard)
-  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkDeathsDto) {
-    const { user } = req;
-    const { date, animals, note } = body;
-
-    for (const animal of animals) {
-      const findOneAnimal = await this.animalsService.findOneBy({
-        code: animal?.code,
-      });
-      if (findOneAnimal?.status === 'DEAD')
-        throw new HttpException(
-          `Animal ${findOneAnimal?.code} doesn't exists or animal already death, please change`,
-          HttpStatus.NOT_FOUND,
-        );
-
-      const death = await this.deathsService.createOne({
-        date,
-        note,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      });
-
-      await this.animalsService.updateOne(
-        { animalId: death?.animalId },
-        { status: 'DEAD' },
-      );
-    }
-
-    return reply({ res, results: 'Saved' });
   }
 
   /** Get one Death */
@@ -161,7 +121,7 @@ export class DeathsController {
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note, status } = body;
+    const { date, number, note, batchId } = body;
 
     const findOneDeath = await this.deathsService.findOneBy({
       deathId,
@@ -173,61 +133,23 @@ export class DeathsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code: codeAnimal,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (!findOneAnimal)
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${findOneAnimal.code} doesn't exists, isn't ACTIVE, please change`,
+        `Animal ${batchId} doesn't exists, isn't ACTIVE, please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (status === 'DEAD') {
-      await this.deathsService.createOne({
-        date,
-        note,
-        status,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      });
-
-      await this.animalsService.updateOne(
-        { animalId: findOneDeath?.animalId },
-        { status: status },
-      );
-    }
-
-    if (status === 'ACTIVE') {
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        { status: status },
-      );
-
-      await this.deathsService.updateOne(
-        { deathId: findOneDeath?.id },
-        { deletedAt: new Date(), status: 'DEAD' },
-      );
-    }
-
-    if (status === 'SOLD') {
-      await this.salesService.createOne({
-        //animalId: findOneDeath?.animalId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-        status: 'SOLD',
-      });
-
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        { status: status },
-      );
-
-      await this.salesService.updateOne(
-        { saleId: findOneDeath?.id },
-        { deletedAt: new Date(), status: 'SOLD' },
-      );
-    }
+    await this.deathsService.createOne({
+      date,
+      note,
+      number,
+      batchId: findOneBatch?.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
+    });
 
     return reply({ res, results: 'Death updated successfully' });
   }

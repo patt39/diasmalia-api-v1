@@ -21,16 +21,16 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { AnimalsService } from '../animals/animals.service';
+import { BatchsService } from '../batchs/batchs.service';
 import { UserAuthGuard } from '../users/middleware';
-import { BulkFeedingsDto, CreateOrUpdateFeedingsDto } from './feedings.dto';
+import { CreateOrUpdateFeedingsDto } from './feedings.dto';
 import { FeedingsService } from './feedings.service';
 
 @Controller('feedings')
 export class FeedingsController {
   constructor(
     private readonly feedingsService: FeedingsService,
-    private readonly animalsService: AnimalsService,
+    private readonly batchsService: BatchsService,
   ) {}
 
   /** Get all Feedings */
@@ -66,15 +66,14 @@ export class FeedingsController {
     @Body() body: CreateOrUpdateFeedingsDto,
   ) {
     const { user } = req;
-    const { date, quantity, feedType, productionPhase, code, note } = body;
+    const { date, quantity, feedType, batchId, note } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-      status: 'ACTIVE',
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (!findOneAnimal)
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${code} doesn't exists please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -83,46 +82,12 @@ export class FeedingsController {
       note,
       quantity,
       feedType,
-      productionPhase,
-      animalId: findOneAnimal?.id,
+      batchId: findOneBatch?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
     return reply({ res, results: [HttpStatus.CREATED, feeding] });
-  }
-
-  /** Post one Bulk feeding */
-  @Post(`/bulk/create`)
-  @UseGuards(UserAuthGuard)
-  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
-    const { user } = req;
-    const { date, feedType, productionPhase, quantity, animals, note } = body;
-
-    for (const animal of animals) {
-      const findOneAnimal = await this.animalsService.findOneBy({
-        status: 'ACTIVE',
-        code: animal?.code,
-      });
-      if (!findOneAnimal)
-        throw new HttpException(
-          `Animal ${findOneAnimal?.code} doesn't exists please change`,
-          HttpStatus.NOT_FOUND,
-        );
-
-      await this.feedingsService.createOne({
-        note,
-        date,
-        quantity,
-        feedType,
-        productionPhase,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      });
-    }
-
-    return reply({ res, results: 'Saved' });
   }
 
   /** Update one feeding */
@@ -135,15 +100,14 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { date, quantity, feedType, code, note, productionPhase } = body;
+    const { date, quantity, feedType, note, batchId } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-      organizationId: user?.organizationId,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (!findOneAnimal)
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${code} doesn't exists please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -164,8 +128,7 @@ export class FeedingsController {
         note,
         quantity,
         feedType,
-        productionPhase,
-        animalId: findOneAnimal?.id,
+        batchId: findOneBatch?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },

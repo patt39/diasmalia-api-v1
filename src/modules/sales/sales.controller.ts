@@ -14,10 +14,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import PdfPrinter from 'pdfmake';
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
-import { Readable, Writable } from 'stream';
-import { generateUUID } from '../../app/utils/commons';
+import { Readable } from 'stream';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
@@ -25,18 +22,10 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { AnimalsService } from '../animals/animals.service';
-import { DeathsService } from '../death/deaths.service';
-import {
-  awsS3ServiceAdapter,
-  getFileToAws,
-} from '../integrations/aws/aws-s3-service-adapter';
-import { emailPDFAttachment } from '../users/mails/email-pdf-attachment';
+import { BatchsService } from '../batchs/batchs.service';
+import { getFileToAws } from '../integrations/aws/aws-s3-service-adapter';
 import { UserAuthGuard } from '../users/middleware';
-import { UsersService } from '../users/users.service';
-import { formateNowDateYYMMDD } from './../../app/utils/commons/formate-date';
 import {
-  BulkSalesDto,
   CreateOrUpdateSalesDto,
   GetOneUploadsDto,
   SaleMethodDto,
@@ -47,9 +36,7 @@ import { SalesService } from './sales.service';
 export class SalesController {
   constructor(
     private readonly salesService: SalesService,
-    private readonly animalsService: AnimalsService,
-    private readonly deathsService: DeathsService,
-    private readonly usersService: UsersService,
+    private readonly batchsService: BatchsService,
   ) {}
 
   /** Get all Sales */
@@ -64,13 +51,12 @@ export class SalesController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { method, type } = querySaleMethod;
+    const { method } = querySaleMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const sales = await this.salesService.findAll({
-      type,
       method,
       search,
       pagination,
@@ -89,22 +75,17 @@ export class SalesController {
     @Body() body: CreateOrUpdateSalesDto,
   ) {
     const { user } = req;
-    const { note, price, date, code, method, soldTo, phone } = body;
+    const { note, price, date, quantity, batchId, method, soldTo, phone } =
+      body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (findOneAnimal?.status === 'SOLD')
+    if (findOneBatch)
       throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists or it's already SOLD please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-
-    const findOneSale = await this.salesService.findOneBy({
-      organizationId: user?.organizationId,
-    });
-    if (findOneSale)
-      throw new HttpException(`Animal already sold`, HttpStatus.NOT_FOUND);
 
     const sale = await this.salesService.createOne({
       note,
@@ -113,15 +94,11 @@ export class SalesController {
       price,
       soldTo,
       method,
-      //animalId: findOneAnimal?.id,
+      quantity,
+      batchId: findOneBatch?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
-
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      { status: 'SOLD' },
-    );
 
     return reply({ res, results: sale });
   }
@@ -136,7 +113,8 @@ export class SalesController {
     @Param('saleId', ParseUUIDPipe) saleId: string,
   ) {
     const { user } = req;
-    const { note, status, price, date, code, method, soldTo, phone } = body;
+    const { note, price, date, quantity, batchId, method, soldTo, phone } =
+      body;
 
     const findOneSale = await this.salesService.findOneBy({
       saleId,
@@ -147,267 +125,32 @@ export class SalesController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (!findOneAnimal)
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (status === 'SOLD') {
-      await this.salesService.updateOne(
-        { saleId },
-        {
-          note,
-          date,
-          price,
-          phone,
-          status,
-          method,
-          soldTo,
-          animalId: findOneAnimal?.id,
-          organizationId: user?.organizationId,
-          userCreatedId: user?.id,
-        },
-      );
-
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        { status: status },
-      );
-    }
-
-    if (status === 'ACTIVE') {
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        { status: status },
-      );
-
-      await this.salesService.updateOne(
-        { saleId: findOneSale?.id },
-        { deletedAt: new Date(), status: 'SOLD' },
-      );
-    }
-
-    if (status === 'DEAD') {
-      await this.deathsService.createOne({
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-        status: 'DEAD',
-      });
-
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        { status: status },
-      );
-
-      await this.salesService.updateOne(
-        { saleId: findOneSale?.id },
-        { deletedAt: new Date(), status: 'SOLD' },
-      );
-    }
-
-    return reply({ res, results: 'Sale Updated Successfully' });
-  }
-
-  /** Post one Bulk sale */
-  @Post(`/bulk/create`)
-  @UseGuards(UserAuthGuard)
-  async createOneBulk(@Res() res, @Req() req, @Body() body: BulkSalesDto) {
-    const { user } = req;
-    const {
-      date,
-      animals,
-      email,
-      address,
-      note,
-      type,
-      price,
-      method,
-      soldTo,
-      phone,
-    } = body;
-
-    const animalArrayPdf: any = [];
-
-    for (const animal of animals) {
-      const findOneAnimal = await this.animalsService.findOneBy({
-        code: animal?.code,
-      });
-      if (findOneAnimal?.status === 'SOLD')
-        throw new HttpException(
-          `Animal ${findOneAnimal?.code} doesn't exists or animal already SOLD please change`,
-          HttpStatus.NOT_FOUND,
-        );
-      animalArrayPdf.push({
-        qr: `http://localhost:4900/api/v1/animals/view/${findOneAnimal?.id}`,
-        fit: 80,
-        margin: [0, 10],
-        alignment: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-      });
-
-      const sale = await this.salesService.createOne({
+    await this.salesService.updateOne(
+      { saleId },
+      {
         note,
         date,
-        type,
-        email,
         price,
         phone,
         method,
         soldTo,
-        address,
-        animalId: findOneAnimal?.id,
+        quantity,
+        batchId: findOneBatch?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
-      });
-
-      if (findOneAnimal) {
-        await this.animalsService.updateOne(
-          { animalId: sale?.animalId },
-          { status: 'SOLD' },
-        );
-      }
-    }
-
-    const fonts = {
-      Helvetica: {
-        normal: 'Helvetica',
-        bold: 'Helvetica-Bold',
-        italics: 'Helvetica-Oblique',
-        bolditalics: 'Helvetica-BoldOblique',
       },
-    };
-    const printer = new PdfPrinter(fonts);
-    const docDefinition = {
-      content: [
-        {
-          text: `${user?.organization?.logo}`,
-          alignment: 'center',
-          style: { fontSize: 10 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Bill for the sale/sales of ${type}`,
-          alignment: 'center',
-          bold: true,
-          style: { fontSize: 20 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Agreement between ${user?.organization?.name}`,
-          alignment: 'center',
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Located at: ${user?.profile?.address}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Email: ${user?.email},  Phone:  ${user?.profile?.phone}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `- AND -`,
-          alignment: 'center',
-          bold: true,
-          style: { fontSize: 15 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Buyer name: ${soldTo}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Adresse: ${address}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Email: ${email},  Phone:  ${phone}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Below are the QRCodes of your animals you can have access to them through our organization by simply scanning them anytime`,
-          style: { fontSize: 12 },
-          margin: [0, 0, 0, 20],
-        },
-        ...animalArrayPdf,
-        {
-          text: `Sold in ${method}, Price:  ${price}`,
-          style: { fontSize: 12 },
-          bold: true,
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues thanks`,
-          style: { fontSize: 11 },
-          margin: [0, 0, 0, 20],
-        },
-        '\n',
-        {
-          text: `${new Date()}`,
-          style: { fontSize: 10 },
-          margin: [0, 0, 0, 20],
-        },
-      ],
-      styles: {
-        policyText: {
-          //fontSize: 20,
-          // bold: true,
-        },
-      },
-      defaultStyle: {
-        //columnGap: 30,
-        //bold: true,
-        font: 'Helvetica',
-      },
-    } as TDocumentDefinitions;
+    );
 
-    const nameFile = `${formateNowDateYYMMDD(new Date())}-${generateUUID()}`;
-    const fileName = `${nameFile}.pdf`;
-    const pdfDoc = printer.createPdfKitDocument(docDefinition);
-    pdfDoc.compress = true;
-    const chunks = [] as any;
-    await new Promise((resolve, reject) => {
-      const stream = new Writable({
-        write: (chunk, _, next) => {
-          chunks.push(chunk);
-          next();
-        },
-      });
-      stream.once('error', (err) => reject(err));
-      stream.once('close', () => resolve('ok'));
-
-      pdfDoc.pipe(stream);
-      pdfDoc.end();
-    });
-
-    await awsS3ServiceAdapter({
-      fileName: fileName,
-      mimeType: 'application/pdf',
-      folder: 'sales-pdf',
-      file: Buffer.concat(chunks),
-    });
-
-    const findOneUser = await this.usersService.findOneBy({ email });
-    if (findOneUser) {
-      await emailPDFAttachment({
-        email: findOneUser?.email,
-        filename: fileName,
-        content: Buffer.concat(chunks),
-      });
-    }
-    return reply({ res, results: 'Saved' });
+    return reply({ res, results: 'Sale Updated Successfully' });
   }
 
   /** Get one Sale */

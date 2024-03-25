@@ -6,7 +6,6 @@ export type GetSalesSelections = {
   organizationId: string;
   pagination?: PaginationType;
   method: Sale['method'];
-  type: Sale['type'];
 };
 
 export type GetOneSaleSelections = {
@@ -28,13 +27,12 @@ export const SalesSelect = {
   id: true,
   date: true,
   price: true,
-  status: true,
   soldTo: true,
   phone: true,
   note: true,
-  animalId: true,
+  email: true,
+  batchId: true,
   method: true,
-  animals: true,
   organizationId: true,
   organization: {
     select: {

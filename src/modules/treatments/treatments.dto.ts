@@ -32,7 +32,7 @@ export class CreateOrUpdateTreatmentsDto {
   @IsNotEmpty()
   @IsString()
   @IsUUID()
-  animalId: string;
+  batchId: string;
 
   @IsOptional()
   @IsString()

@@ -22,7 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { AnimalsService } from '../animals/animals.service';
+import { BatchsService } from '../batchs/batchs.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateTreatmentsDto } from './treatments.dto';
 import { TreatmentsService } from './treatments.service';
@@ -31,7 +31,7 @@ import { TreatmentsService } from './treatments.service';
 export class TreatmentsController {
   constructor(
     private readonly treatmentsService: TreatmentsService,
-    private readonly animalsService: AnimalsService,
+    private readonly batchsService: BatchsService,
   ) {}
 
   /** Get all Treatments */
@@ -67,14 +67,14 @@ export class TreatmentsController {
     @Body() body: CreateOrUpdateTreatmentsDto,
   ) {
     const { user } = req;
-    const { note, dose, name, date, medication, diagnosis, animalId } = body;
+    const { note, dose, name, date, medication, diagnosis, batchId } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (!findOneAnimal)
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -85,7 +85,7 @@ export class TreatmentsController {
       dose,
       diagnosis,
       medication,
-      animalId: findOneAnimal?.id,
+      batchId: findOneBatch?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -103,7 +103,7 @@ export class TreatmentsController {
     @Param('treatmentId', ParseUUIDPipe) treatmentId: string,
   ) {
     const { user } = req;
-    const { note, date, name, dose, diagnosis, medication, animalId } = body;
+    const { note, date, name, dose, diagnosis, medication, batchId } = body;
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
@@ -115,12 +115,12 @@ export class TreatmentsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
+    const findOneBatch = await this.batchsService.findOneBy({
+      batchId,
     });
-    if (!findOneAnimal)
+    if (!findOneBatch)
       throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
+        `BatchId: ${batchId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -133,7 +133,7 @@ export class TreatmentsController {
         dose,
         diagnosis,
         medication,
-        animalId: findOneAnimal?.id,
+        batchId: findOneBatch?.id,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },

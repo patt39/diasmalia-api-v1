@@ -26,15 +26,10 @@ export const FeedingSelect = {
   id: true,
   quantity: true,
   date: true,
-  feedType: true,
-  productionPhase: true,
-  animalId: true,
-  animal: {
+  batchId: true,
+  batch: {
     select: {
-      code: true,
       weight: true,
-      productionPhase: true,
-      gender: true,
       type: true,
       locationId: true,
       location: {

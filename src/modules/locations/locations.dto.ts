@@ -1,4 +1,4 @@
-import { AnimalType, ProductionPhase } from '@prisma/client';
+import { BirdType } from '@prisma/client';
 import {
   IsEnum,
   IsInt,
@@ -26,22 +26,12 @@ export class CreateOrUpdateLocationsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  @IsEnum(BirdType)
+  type: BirdType;
 }
 export class GetLocationsQueryDto {
   @IsOptional()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  @IsEnum(BirdType)
+  type: BirdType;
 }
