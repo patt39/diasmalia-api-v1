@@ -142,9 +142,13 @@ export const config = {
     /**
      * Resend smtp
      */
+    /**
+     * Resend smtp
+     */
     resendSMTP: {
       apiKey: process.env.RESEND_SMTP_API_KEY,
-      email: process.env.RESEND_SMTP_EMAIL,
+      noReplayFrom:
+        process.env.RESEND_FROM_NO_REPLAY_ADDRESS || 'no-reply@diasmalia.com',
     },
     /**
      * Mailtrap

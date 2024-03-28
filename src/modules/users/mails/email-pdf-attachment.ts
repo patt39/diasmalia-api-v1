@@ -1,5 +1,5 @@
 import { config } from '../../../app/config/index';
-import { sendEmail } from '../email.service';
+import { sendEmail } from '../../integrations/email.service';
 
 export const emailPDFAttachment = async (options: {
   email: string;
@@ -348,6 +348,7 @@ export const emailPDFAttachment = async (options: {
   </html>
       `;
   await sendEmail({
+    from: `${config.implementations.resendSMTP.noReplayFrom}`,
     to: [email],
     subject: `${config.datasite.name} - Sale pdf attachment`,
     html: output,
