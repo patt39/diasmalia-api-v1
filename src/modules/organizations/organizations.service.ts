@@ -12,7 +12,7 @@ import {
 export class OrganizationsService {
   constructor(private readonly client: DatabaseService) {}
 
-  /** Find one Organizations to the database. */
+  /** Find one Organization in database. */
   async findOneBy(selections: GetOneOrganizationsSelections) {
     const prismaWhereOrganization = {} as Prisma.OrganizationWhereInput;
     const { organizationId, userId } = selections;
@@ -32,17 +32,18 @@ export class OrganizationsService {
     return organization;
   }
 
-  /** Create one Organizations to the database. */
+  /** Create one Organization in database. */
   async createOne(options: CreateOrganizationsOptions): Promise<Organization> {
-    const { name, logo, image, description, userId } = options;
+    const { name, logo, image, description, userId, currencyId } = options;
 
     const organization = this.client.organization.create({
       data: {
         name,
         logo,
         image,
-        description,
         userId,
+        description,
+        currencyId,
       },
     });
 
@@ -55,7 +56,7 @@ export class OrganizationsService {
     options: UpdateOrganizationsOptions,
   ): Promise<Organization> {
     const { organizationId } = selections;
-    const { name, logo, image, description, deletedAt } = options;
+    const { name, logo, image, description, currencyId, deletedAt } = options;
 
     const organization = this.client.organization.update({
       where: {
@@ -66,6 +67,7 @@ export class OrganizationsService {
         logo,
         image,
         description,
+        currencyId,
         deletedAt,
       },
     });

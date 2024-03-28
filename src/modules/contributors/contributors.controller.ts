@@ -135,14 +135,14 @@ export class ContributorsController {
 
     const findOneUser = await this.usersService.findOneBy({
       email,
-      organizationId: user?.organizationId,
+      //organizationId: user?.organizationId,
     });
 
-    // if (findOneUser)
-    //   throw new HttpException(
-    //     `Email: ${email} already exists please change`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
+    if (!findOneUser)
+      throw new HttpException(
+        `User doesn't existes please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     // if (user?.email)
     //   throw new HttpException(
@@ -150,33 +150,31 @@ export class ContributorsController {
     //     HttpStatus.NOT_FOUND,
     //   );
 
-    if (findOneUser) {
-      await this.contributorsService.createOne({
-        role: 'ADMIN',
-        userId: findOneUser?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      });
+    await this.contributorsService.createOne({
+      role: 'ADMIN',
+      userId: findOneUser?.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
+    });
 
-      const token = await this.checkUserService.createTokenCookie(
-        { email: findOneUser?.email } as JwtToken,
-        config.cookie_access.user.accessExpireVerify,
-      );
+    const token = await this.checkUserService.createTokenCookie(
+      { email: findOneUser?.email } as JwtToken,
+      config.cookie_access.user.accessExpireVerify,
+    );
 
-      await contributorInvitationMail({
-        user,
-        token,
-        email: findOneUser?.email,
-      });
+    await contributorInvitationMail({
+      user,
+      token,
+      email: findOneUser?.email,
+    });
 
-      res.cookie(
-        config.cookie_access.user.nameVerify,
-        token,
-        validation_verify_cookie_setting,
-      );
-    }
+    res.cookie(
+      config.cookie_access.user.nameVerify,
+      token,
+      validation_verify_cookie_setting,
+    );
 
-    return reply({ res, results: 'Contributor invited successfully' });
+    return reply({ res, results: token });
   }
 
   /** Resend invitation email */
@@ -311,11 +309,9 @@ export class ContributorsController {
   async updatePassword(@Res() res, @Body() body: InvitationConfirmationDto) {
     const { confirmation, token } = body;
     const payload = await this.checkUserService.verifyTokenCookie(token);
-    console.log(payload);
     const findOneUser = await this.usersService.findOneBy({
       email: payload?.email,
     });
-    console.log('user ====>', findOneUser);
     if (!findOneUser)
       throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
     if (!findOneUser)
@@ -324,7 +320,6 @@ export class ContributorsController {
     const findOneContributor = await this.contributorsService.findOneBy({
       userId: findOneUser?.id,
     });
-    console.log('contributor ====>', findOneContributor);
 
     if (confirmation === 'YES') {
       await this.contributorsService.updateOne(
@@ -336,7 +331,7 @@ export class ContributorsController {
     if (confirmation === 'NO') {
       await this.contributorsService.updateOne(
         { contributorId: findOneContributor?.id },
-        { deletedAt: new Date(), confirmation: 'NO' },
+        { deletedAt: new Date(), confirmedAt: null, confirmation: 'NO' },
       );
     }
 

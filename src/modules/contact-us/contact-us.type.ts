@@ -17,3 +17,12 @@ export type UpdateContactUsSelections = {
 export type CreateContactUsOptions = Partial<ContactUs>;
 
 export type UpdateContactUsOptions = Partial<ContactUs>;
+
+export const contactsSelect = {
+  createdAt: true,
+  id: true,
+  subject: true,
+  description: true,
+  userCreatedId: true,
+  organizationId: true,
+};

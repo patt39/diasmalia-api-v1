@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { ContactUs, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
+import {
+  withPagination,
+  WithPaginationResponse,
+} from '../../app/utils/pagination';
 import {
   CreateContactUsOptions,
   GetContactUsSelections,
@@ -6,13 +12,6 @@ import {
   UpdateContactUsOptions,
   UpdateContactUsSelections,
 } from './contact-us.type';
-import { DatabaseService } from '../../app/database/database.service';
-import {
-  WithPaginationResponse,
-  withPagination,
-} from '../../app/utils/pagination';
-import { ContactUs, Prisma } from '@prisma/client';
-import { useCatch } from '../../app/utils/use-catch';
 
 @Injectable()
 export class ContactUsService {
@@ -36,12 +35,10 @@ export class ContactUsService {
       });
     }
 
-    const contactUs = await this.client.contactUs.findMany({
+    const contacts = await this.client.contactUs.findMany({
       take: pagination.take,
       orderBy: pagination.orderBy,
       where: { ...prismaWhereContactUs, deletedAt: null },
-      skip: pagination?.cursor ? 1 : pagination.skip,
-      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
     });
     const rowCount = await this.client.contactUs.count({
       where: { ...prismaWhereContactUs, deletedAt: null },
@@ -50,37 +47,34 @@ export class ContactUsService {
     return withPagination({
       pagination,
       rowCount,
-      value: contactUs,
+      value: contacts,
     });
   }
 
-  /** Find one ContactUs to the database. */
+  /** Find one ContactUs in database. */
   async findOneBy(selections: GetOneContactUsSelections) {
     const { contactUsId } = selections;
-    const contact = await this.client.contactUs.findUnique({
+    const contactUs = await this.client.contactUs.findUnique({
       where: {
         id: contactUsId,
       },
     });
 
-    return contact;
+    return contactUs;
   }
 
-  /** Create one ContactUs to the database. */
+  /** Create one ContactUs in database. */
   async createOne(options: CreateContactUsOptions): Promise<ContactUs> {
-    const { fullName, email, subject, description } = options;
+    const { fullName, email, phone, subject, description } = options;
 
     const contactUs = this.client.contactUs.create({
-      data: { fullName, email, subject, description },
+      data: { fullName, email, phone, subject, description },
     });
 
-    const [error, result] = await useCatch(contactUs);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return contactUs;
   }
 
-  /** Update one ContactUs to the database. */
+  /** Update one ContactUs in database. */
   async updateOne(
     selections: UpdateContactUsSelections,
     options: UpdateContactUsOptions,
@@ -95,9 +89,6 @@ export class ContactUsService {
       data: { fullName, email, subject, description, deletedAt },
     });
 
-    const [error, result] = await useCatch(contactUs);
-    if (error) throw new NotFoundException(error);
-
-    return result;
+    return contactUs;
   }
 }

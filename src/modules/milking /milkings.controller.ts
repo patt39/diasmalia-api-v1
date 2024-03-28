@@ -152,12 +152,11 @@ export class MilkingsController {
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
     });
-    if (!findOneMilking) {
+    if (!findOneMilking)
       throw new HttpException(
         `MilkingId: ${milkingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: femaleCode,

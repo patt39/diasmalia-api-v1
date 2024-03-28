@@ -26,6 +26,7 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { CurrenciesService } from '../currency/currency.service';
 import { DeathsService } from '../death/deaths.service';
 import {
   awsS3ServiceAdapter,
@@ -50,6 +51,7 @@ export class SalesController {
     private readonly animalsService: AnimalsService,
     private readonly deathsService: DeathsService,
     private readonly usersService: UsersService,
+    private readonly currenciesService: CurrenciesService,
   ) {}
 
   /** Get all Sales */
@@ -113,7 +115,7 @@ export class SalesController {
       price,
       soldTo,
       method,
-      //animalId: findOneAnimal?.id,
+      animalId: findOneAnimal?.id,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -220,16 +222,20 @@ export class SalesController {
     const { user } = req;
     const {
       date,
-      animals,
       email,
-      address,
       note,
       type,
       price,
       method,
       soldTo,
       phone,
+      animals,
+      address,
     } = body;
+
+    const getCurrency = await this.currenciesService.findOneBy({
+      organizationId: user.organizationId,
+    });
 
     const animalArrayPdf: any = [];
 
@@ -239,14 +245,14 @@ export class SalesController {
       });
       if (findOneAnimal?.status === 'SOLD')
         throw new HttpException(
-          `Animal ${findOneAnimal?.code} doesn't exists or animal already SOLD please change`,
+          `Animal ${findOneAnimal?.code} doesn't exists or already SOLD please change`,
           HttpStatus.NOT_FOUND,
         );
       animalArrayPdf.push({
         qr: `http://localhost:4900/api/v1/animals/view/${findOneAnimal?.id}`,
         fit: 80,
         margin: [0, 10],
-        alignment: 'center',
+        display: 'flex',
         justifyContent: 'center',
         flexDirection: 'row',
       });
@@ -343,7 +349,7 @@ export class SalesController {
         },
         ...animalArrayPdf,
         {
-          text: `Sold in ${method}, Price:  ${price}`,
+          text: `Sold in ${method}, Price:  ${price} ${getCurrency.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
@@ -402,6 +408,7 @@ export class SalesController {
     const findOneUser = await this.usersService.findOneBy({ email });
     if (findOneUser) {
       await emailPDFAttachment({
+        user,
         email: findOneUser?.email,
         filename: fileName,
         content: Buffer.concat(chunks),

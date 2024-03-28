@@ -45,8 +45,8 @@ export const config = {
    * Organization
    */
   organizationAddress: {
-    name: 'LiveStock MGT',
-    company: 'LiveStock MGT',
+    name: 'Diasmalia',
+    company: 'Diasman',
     street1: 'Via santa maria 17',
     street2: '',
     city: 'Vigevano',
