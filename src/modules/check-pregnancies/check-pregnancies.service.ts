@@ -102,9 +102,9 @@ export class CheckPregnanciesService {
     const {
       date,
       note,
-      farrowingDate,
       method,
       result,
+      farrowingDate,
       animalFemaleId,
       organizationId,
       breedingId,
@@ -115,9 +115,9 @@ export class CheckPregnanciesService {
       data: {
         date,
         note,
-        farrowingDate,
         method,
         result,
+        farrowingDate,
         animalFemaleId,
         organizationId,
         breedingId,
@@ -144,10 +144,10 @@ export class CheckPregnanciesService {
       data: {
         date,
         note,
-        farrowingDate,
         method,
         result,
         breedingId,
+        farrowingDate,
         deletedAt,
       },
     });

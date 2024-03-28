@@ -70,6 +70,7 @@ export class LocationsController {
     @Body() body: CreateOrUpdateLocationsDto,
   ) {
     const { user } = req;
+    console.log(user);
     const { squareMeter, manger, through, number, type, productionPhase } =
       body;
 
@@ -77,13 +78,13 @@ export class LocationsController {
       type,
       number,
       productionPhase,
+      organizationId: user?.organizationId,
     });
-    if (findOneLocation) {
+    if (findOneLocation)
       throw new HttpException(
         `Location ${number} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     const location = await this.locationsService.createOne({
       type,

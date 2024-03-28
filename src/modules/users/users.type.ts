@@ -63,8 +63,15 @@ export const UserSelect = {
   organizationId: true,
   organization: {
     select: {
+      logo: true,
       name: true,
+      image: true,
       description: true,
+      currency: {
+        select: {
+          symbol: true,
+        },
+      },
     },
   },
 };

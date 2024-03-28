@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { reply } from '../../app/utils/reply';
+import { CurrenciesService } from '../currency/currency.service';
 import { getFileToAws } from '../integrations/aws/aws-s3-service-adapter';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
@@ -30,6 +31,7 @@ export class OrganizationsController {
   constructor(
     private readonly organizationsService: OrganizationsService,
     private readonly uploadsUtil: UploadsUtil,
+    private readonly currenciesService: CurrenciesService,
   ) {}
 
   /** Get one Organization */
@@ -51,7 +53,7 @@ export class OrganizationsController {
     return reply({ res, results: organization });
   }
 
-  /** Update one organization image*/
+  /** Update organization */
   @Put(`/update`)
   @UseGuards(UserAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
@@ -62,7 +64,7 @@ export class OrganizationsController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const { user } = req;
-    const { name, description } = body;
+    const { name, description, currencyId } = body;
 
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
       file,
@@ -70,19 +72,29 @@ export class OrganizationsController {
       folder: 'images',
     });
 
+    const findCurrency = await this.currenciesService.findOneBy({
+      currencyId,
+    });
+    if (!findCurrency)
+      throw new HttpException(
+        `CurrencyId: ${currencyId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     await this.organizationsService.updateOne(
       { organizationId: user?.organizationId },
       {
         name,
-        image: fileName,
         description,
+        image: fileName,
+        currencyId: findCurrency.id,
       },
     );
 
     return reply({ res, results: 'Organization Updated Successfully' });
   }
 
-  /** Update one organization logo*/
+  /** Update organization logo*/
   @Put(`/update/logo`)
   @UseGuards(UserAuthGuard)
   @UseInterceptors(FileInterceptor('logo'))

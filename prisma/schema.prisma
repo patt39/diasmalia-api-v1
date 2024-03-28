@@ -70,12 +70,22 @@ model Profile {
   photo       String?
   companyName String?
   occupation  String?
-  color       String?
-  url         String?
   description String?   @db.Text
   birthday    DateTime?
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Currency {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String
+  symbol         String
+  code           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Organization {
@@ -89,6 +99,7 @@ model Organization {
   description      String?          @db.Text
   userId           String           @unique
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currencyId       String?
   contributors     Contributor[]
   tasks            Task[]
   animals          Animal[]
@@ -108,6 +119,20 @@ model Organization {
   assignTasks      AssignTask[]
   isolations       Isolation[]
   castrations      Castration[]
+  contacts         Contact[]
+  currency         Currency[]
+}
+
+model Contact {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  subject        String?
+  description    String?      @db.Text
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String?
 }
 
 model ContactUs {
@@ -115,11 +140,11 @@ model ContactUs {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
   id          String    @id @default(uuid())
-  fullName    String
   email       String
-  phone       String?
+  phone       String
   subject     String?
-  description String?
+  fullName    String
+  description String?   @db.Text
 }
 
 model AuthProvider {

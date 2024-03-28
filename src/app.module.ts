@@ -8,7 +8,9 @@ import { BreedsModule } from './modules/breeds/breeds.module';
 import { CastrationsModule } from './modules/castrations/castrations.module';
 import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregnancies.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
 import { ContributorsModule } from './modules/contributors/contributors.module';
+import { CurrenciesModule } from './modules/currency/currency.module';
 import { DeathsModule } from './modules/death/deaths.module';
 import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 import { FeedingsModule } from './modules/feeding/feedings.module';
@@ -28,7 +30,7 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
 @Module({
   imports: [
     DatabaseModule,
-    ContactUsModule,
+    ContactsModule,
     ProfilesModule,
     UsersModule,
     TasksModule,
@@ -49,6 +51,8 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     FeedingsModule,
     AssignTasksModule,
     FinanceModule,
+    ContactUsModule,
+    CurrenciesModule,
     ContributorsModule,
     OrganizationsModule,
     AuthProvidersModule,

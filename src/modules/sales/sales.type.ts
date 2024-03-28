@@ -34,12 +34,16 @@ export const SalesSelect = {
   note: true,
   animalId: true,
   method: true,
-  animals: true,
   organizationId: true,
   organization: {
     select: {
       name: true,
       logo: true,
+      currency: {
+        select: {
+          symbol: true,
+        },
+      },
     },
   },
   userCreatedId: true,

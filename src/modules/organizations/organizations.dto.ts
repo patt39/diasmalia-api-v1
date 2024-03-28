@@ -1,9 +1,8 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrUpdateOrganizationsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(50)
   name: string;
 
   @IsOptional()
@@ -16,8 +15,12 @@ export class CreateOrUpdateOrganizationsDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(50)
   image: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  currencyId: string;
 }
 
 export class GetOneUploadsDto {

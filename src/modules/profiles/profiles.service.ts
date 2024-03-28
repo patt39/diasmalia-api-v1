@@ -77,34 +77,30 @@ export class ProfilesService {
   /** Create one Profile in database. */
   async createOne(options: CreateProfilesOptions): Promise<Profile> {
     const {
-      firstName,
-      lastName,
-      address,
       phone,
       photo,
-      color,
-      url,
+      userId,
+      address,
+      birthday,
+      lastName,
+      firstName,
       companyName,
       occupation,
       description,
-      birthday,
-      userId,
     } = options;
 
     const profile = this.client.profile.create({
       data: {
-        firstName,
-        lastName,
-        address,
         phone,
         photo,
-        color,
-        url,
+        userId,
+        address,
+        birthday,
+        lastName,
+        firstName,
         companyName,
         occupation,
         description,
-        birthday,
-        userId,
       },
     });
 
@@ -118,17 +114,15 @@ export class ProfilesService {
   ): Promise<Profile> {
     const { profileId } = selections;
     const {
-      firstName,
-      lastName,
-      address,
       phone,
       photo,
-      color,
-      url,
+      address,
+      birthday,
+      lastName,
+      firstName,
       companyName,
       occupation,
       description,
-      birthday,
       deletedAt,
     } = options;
 
@@ -137,17 +131,15 @@ export class ProfilesService {
         id: profileId,
       },
       data: {
-        firstName,
-        lastName,
-        address,
         phone,
-        color,
         photo,
-        url,
+        address,
+        birthday,
+        lastName,
+        firstName,
         companyName,
         occupation,
         description,
-        birthday,
         deletedAt,
       },
     });

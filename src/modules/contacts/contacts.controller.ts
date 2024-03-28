@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -21,14 +23,18 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { contactNotification } from '../users/mails/contact-notification';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateContactUsDto } from './contact-us.dto';
-import { ContactUsService } from './contact-us.service';
+import { UsersService } from '../users/users.service';
+import { CreateOrUpdateContactsDto } from './contacts.dto';
+import { ContactsService } from './contacts.service';
 
-@Controller('contact-us')
-export class ContactUsController {
-  constructor(private readonly contactUsService: ContactUsService) {}
+@Controller('contacts')
+export class ContactsController {
+  constructor(
+    private readonly contactsService: ContactsService,
+    private readonly usersService: UsersService,
+  ) {}
 
-  /** Get all Contact Us */
+  /** Get all Contacts */
   @Get(`/`)
   async findAll(
     @Res() res,
@@ -40,58 +46,62 @@ export class ContactUsController {
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
-    const contactUs = await this.contactUsService.findAll({
+    const contacts = await this.contactsService.findAll({
       search,
       pagination,
     });
 
-    return reply({ res, results: contactUs });
+    return reply({ res, results: contacts });
   }
 
-  /** Post one Contact Us */
+  /** Post one Contact */
   @Post(`/`)
   @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateContactUsDto,
+    @Body() body: CreateOrUpdateContactsDto,
   ) {
     const { user } = req;
-    const { email, phone, fullName, subject, description } = body;
+    const { subject, description } = body;
 
-    await this.contactUsService.createOne({
-      email,
-      phone,
-      subject,
-      fullName,
-      description,
-    });
+    if (user) {
+      await this.contactsService.createOne({
+        subject,
+        description,
+        userCreatedId: user?.id,
+        organizationId: user?.organizationId,
+      });
 
-    await contactNotification({ email: user?.email, user });
+      await contactNotification({ email: user?.email, user });
+    } else {
+      throw new HttpException(`user doesn't exists`, HttpStatus.NOT_FOUND);
+    }
+
     return reply({ res, results: 'Contact send' });
   }
 
-  /** Get one Contact Us */
-  @Get(`/show/:contactUsId`)
+  /** Get one Contact */
+  @Get(`/show/:contactId`)
   @UseGuards(UserAuthGuard)
   async getOneByIdUser(
     @Res() res,
-    @Param('contactUsId', ParseUUIDPipe) contactUsId: string,
+    @Param('contactId', ParseUUIDPipe) contactId: string,
   ) {
-    const user = await this.contactUsService.findOneBy({ contactUsId });
+    const user = await this.contactsService.findOneBy({ contactId });
 
     return reply({ res, results: user });
   }
 
-  /** Delete one Contact Us */
-  @Delete(`/delete/:contactUsId`)
+  /** Delete one Contact */
+  @Delete(`/delete/:contactId`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
-    @Param('contactUsId', ParseUUIDPipe) contactUsId: string,
+    @Param('contactId', ParseUUIDPipe) contactId: string,
   ) {
-    const contact = await this.contactUsService.updateOne(
-      { contactUsId },
+    const contact = await this.contactsService.updateOne(
+      { contactId },
       { deletedAt: new Date() },
     );
 

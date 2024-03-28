@@ -53,6 +53,18 @@ export const AnimalSelect = {
   electronicCode: true,
   locationId: true,
   organizationId: true,
+  organization: {
+    select: {
+      logo: true,
+      name: true,
+      image: true,
+      currency: {
+        select: {
+          symbol: true,
+        },
+      },
+    },
+  },
   location: {
     select: {
       number: true,

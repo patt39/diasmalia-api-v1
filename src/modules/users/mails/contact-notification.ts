@@ -1,11 +1,11 @@
 import { config } from '../../../app/config/index';
 import { sendEmail } from '../email.service';
 
-export const authCodeConfirmationMail = async (options: {
+export const contactNotification = async (options: {
   email: string;
-  code: string;
+  user: any;
 }) => {
-  const { email, code } = options;
+  const { email, user } = options;
   const output = `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml">
@@ -198,28 +198,12 @@ export const authCodeConfirmationMail = async (options: {
                         color: #0d0c22;
                         font-family: Helvetica Neue Roman, Arial, sans-serif,
                           'Open Sans';
-                      ">Welcome to ${config.datasite.name}</h2>
+                      ">Contact Notification</h2>
 
                       <div style="text-align: center">
-                        <span style="font-size: 16px"> Confirmation code resend </span
+                        <span style="font-size: 16px"> You recieved a contact message from ${user.profile.firstName} ${user.profile.lastName} </span
                           >
                       </div><br />
-
-                          <table
-                          class="subcopy"
-                          width="100%"
-                          cellpadding="0"
-                          cellspacing="0"
-                          role="presentation"
-                        >
-                          <tr>
-                            <td colspan="2">
-                              <div style="text-align: center">
-                                <span>  <strong> <a> ${code} </a> </strong></span>
-                              </div>
-                            </td>
-                          </tr>
-                        </table>
                         <p
                           style="
                             box-sizing: border-box;
