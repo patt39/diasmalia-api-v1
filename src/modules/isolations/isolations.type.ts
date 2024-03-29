@@ -37,7 +37,7 @@ export const isolationsSelect = {
       productionPhase: true,
       location: {
         select: {
-          number: true,
+          code: true,
         },
       },
       breed: {

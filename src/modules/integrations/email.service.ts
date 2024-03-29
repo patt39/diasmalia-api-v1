@@ -15,14 +15,15 @@ export type EmailMessage = {
 export const sendEmail = async (options: {
   description?: string;
   html: string;
+  from: string;
   subject: string;
   to: string[];
   attachments?: any[];
 }): Promise<any> => {
-  const { attachments, to, html, subject, description } = options;
+  const { attachments, to, from, html, subject, description } = options;
 
   const mailOptions: EmailMessage = {
-    from: `${config.datasite.name} <${config.implementations.resendSMTP.email}>`, // sender address
+    from: `${config.datasite.name} <${from}>`, // sender address
     to,
     subject: subject,
     text: description,

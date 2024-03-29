@@ -1,5 +1,5 @@
 import { config } from '../../../app/config/index';
-import { sendEmail } from '../email.service';
+import { sendEmail } from '../../integrations/email.service';
 
 export const contributorInvitationMail = async (options: {
   user: any;
@@ -457,6 +457,7 @@ export const contributorInvitationMail = async (options: {
   </html>
       `;
   await sendEmail({
+    from: `${config.implementations.resendSMTP.noReplayFrom}`,
     to: [email],
     subject: `${config.datasite.name} - ${user.profile.firstName} ${user.profile.lastName} has invited you to join the ${user.organization.name}`,
     html: output,

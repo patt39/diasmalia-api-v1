@@ -12,7 +12,7 @@ export type GetLocationsSelections = {
 
 export type GetOneLocationsSelections = {
   locationId?: Location['id'];
-  number?: Location['number'];
+  code?: Location['code'];
   type?: Location['type'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
@@ -29,7 +29,7 @@ export type UpdateLocationsOptions = Partial<Location>;
 export const LocationsSelect = {
   createdAt: true,
   id: true,
-  number: true,
+  code: true,
   squareMeter: true,
   through: true,
   manger: true,

@@ -61,7 +61,7 @@ export class LocationsService {
   async findOneBy(selections: GetOneLocationsSelections) {
     const prismaWhere = {} as Prisma.LocationWhereInput;
 
-    const { locationId, type, number, productionPhase, organizationId } =
+    const { locationId, type, code, productionPhase, organizationId } =
       selections;
 
     if (locationId) {
@@ -76,8 +76,8 @@ export class LocationsService {
       Object.assign(prismaWhere, { type });
     }
 
-    if (number) {
-      Object.assign(prismaWhere, { number });
+    if (code) {
+      Object.assign(prismaWhere, { code });
     }
 
     if (productionPhase) {
@@ -96,7 +96,7 @@ export class LocationsService {
   async createOne(options: CreateLocationsOptions): Promise<Location> {
     const {
       type,
-      number,
+      code,
       manger,
       through,
       squareMeter,
@@ -108,7 +108,7 @@ export class LocationsService {
     const location = this.client.location.create({
       data: {
         type,
-        number,
+        code,
         manger,
         through,
         squareMeter,
@@ -129,7 +129,7 @@ export class LocationsService {
     const { locationId } = selections;
     const {
       type,
-      number,
+      code,
       manger,
       through,
       squareMeter,
@@ -144,7 +144,7 @@ export class LocationsService {
       },
       data: {
         type,
-        number,
+        code,
         manger,
         through,
         squareMeter,

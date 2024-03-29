@@ -35,7 +35,7 @@ export const GestationSelect = {
       type: true,
       location: {
         select: {
-          number: true,
+          code: true,
         },
       },
       breed: {

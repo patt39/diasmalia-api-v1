@@ -1,5 +1,5 @@
 import { config } from '../../../app/config/index';
-import { sendEmail } from '../email.service';
+import { sendEmail } from '../../integrations/email.service';
 
 export const authCodeConfirmationMail = async (options: {
   email: string;
@@ -388,6 +388,7 @@ export const authCodeConfirmationMail = async (options: {
   </html>
       `;
   await sendEmail({
+    from: `${config.implementations.resendSMTP.noReplayFrom}`,
     to: [email],
     subject: `${config.datasite.name} - Email verification`,
     html: output,

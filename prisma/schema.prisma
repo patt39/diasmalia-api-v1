@@ -204,7 +204,7 @@ model Location {
   id              String          @id @default(uuid())
   manger          Int
   through         Int
-  number          Int
+  code            String
   type            AnimalType
   squareMeter     Int
   productionPhase ProductionPhase

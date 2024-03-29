@@ -1,5 +1,5 @@
 import { config } from '../../../app/config/index';
-import { sendEmail } from '../email.service';
+import { sendEmail } from '../../integrations/email.service';
 
 export const authPasswordResetMail = async (options: {
   email: string;
@@ -470,6 +470,7 @@ export const authPasswordResetMail = async (options: {
       `;
   // create reusable transporter object using the default SMTP transport
   await sendEmail({
+    from: `${config.implementations.resendSMTP.noReplayFrom}`,
     to: [email],
     subject: `${config.datasite.name} - Reset password`,
     html: output,

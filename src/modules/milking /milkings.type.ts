@@ -41,7 +41,7 @@ export const MilkingSelect = {
       locationId: true,
       location: {
         select: {
-          number: true,
+          code: true,
         },
       },
       breedId: true,

@@ -254,7 +254,7 @@ export class SalesController {
         margin: [0, 10],
         display: 'flex',
         justifyContent: 'center',
-        flexDirection: 'row',
+        flexDirection: 'columns',
       });
 
       const sale = await this.salesService.createOne({

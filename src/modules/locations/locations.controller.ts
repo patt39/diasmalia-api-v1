@@ -71,24 +71,23 @@ export class LocationsController {
   ) {
     const { user } = req;
     console.log(user);
-    const { squareMeter, manger, through, number, type, productionPhase } =
-      body;
+    const { squareMeter, manger, through, code, type, productionPhase } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       type,
-      number,
+      code,
       productionPhase,
       organizationId: user?.organizationId,
     });
     if (findOneLocation)
       throw new HttpException(
-        `Location ${number} already exists please change`,
+        `Location ${code} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const location = await this.locationsService.createOne({
       type,
-      number,
+      code,
       manger,
       through,
       squareMeter,
@@ -117,23 +116,23 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, number, type } = body;
+    const { squareMeter, manger, through, code, type } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       type,
-      number,
+      code,
       locationId,
     });
     if (!findOneLocation)
       throw new HttpException(
-        `Location ${number} doesn't exists please change`,
+        `Location ${code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     const location = await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       {
         manger,
-        number,
+        code,
         through,
         squareMeter,
         organizationId: user?.organizationId,

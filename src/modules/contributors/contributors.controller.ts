@@ -331,7 +331,7 @@ export class ContributorsController {
     if (confirmation === 'NO') {
       await this.contributorsService.updateOne(
         { contributorId: findOneContributor?.id },
-        { deletedAt: new Date(), confirmedAt: null, confirmation: 'NO' },
+        { deletedAt: new Date(), confirmation: 'NO' },
       );
     }
 
