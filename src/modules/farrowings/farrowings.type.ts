@@ -41,7 +41,7 @@ export const FarrowingSelect = {
       type: true,
       location: {
         select: {
-          number: true,
+          code: true,
         },
       },
       breed: {

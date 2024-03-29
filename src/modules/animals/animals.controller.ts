@@ -121,7 +121,7 @@ export class AnimalsController {
 
     if (findOneLocation.productionPhase !== productionPhase)
       throw new HttpException(
-        `Animal can't be placed in this location ${findOneLocation.number} please change`,
+        `Animal can't be placed in this location ${findOneLocation.code} please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -233,7 +233,7 @@ export class AnimalsController {
 
     if (findOneLocation.productionPhase !== productionPhase)
       throw new HttpException(
-        `Animal can't be placed in this location ${findOneLocation.number} please change`,
+        `Animal can't be placed in this location ${findOneLocation.code} please change`,
         HttpStatus.NOT_FOUND,
       );
 

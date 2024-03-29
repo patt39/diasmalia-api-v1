@@ -373,7 +373,7 @@ export const contactNotification = async (options: {
   await sendEmail({
     from: `${config.implementations.resendSMTP.noReplayFrom}`,
     to: [email],
-    subject: `${config.datasite.name} - Resend code`,
+    subject: `${config.datasite.name} - Contact Notification`,
     html: output,
   });
 };

@@ -39,7 +39,7 @@ export const FeedingSelect = {
       locationId: true,
       location: {
         select: {
-          number: true,
+          code: true,
         },
       },
     },

@@ -38,7 +38,7 @@ export const WeaningSelect = {
       productionPhase: true,
       location: {
         select: {
-          number: true,
+          code: true,
         },
       },
       breed: {

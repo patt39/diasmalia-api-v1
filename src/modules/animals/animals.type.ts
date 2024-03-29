@@ -67,7 +67,7 @@ export const AnimalSelect = {
   },
   location: {
     select: {
-      number: true,
+      code: true,
       type: true,
       productionPhase: true,
     },
