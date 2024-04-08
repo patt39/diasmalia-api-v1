@@ -135,20 +135,21 @@ export class ContributorsController {
 
     const findOneUser = await this.usersService.findOneBy({
       email,
-      //organizationId: user?.organizationId,
     });
-
     if (!findOneUser)
       throw new HttpException(
         `User doesn't existes please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    // if (user?.email)
-    //   throw new HttpException(
-    //     `You are already a contributor`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
+    const findOneContributor = await this.contributorsService.findOneBy({
+      organizationId: user?.organizationId,
+    });
+    if (findOneContributor)
+      throw new HttpException(
+        `Contributor already exists please invite instead`,
+        HttpStatus.NOT_FOUND,
+      );
 
     await this.contributorsService.createOne({
       role: 'ADMIN',
@@ -341,6 +342,7 @@ export class ContributorsController {
     });
   }
 
+  /** Show Contributor */
   @Get(`/profile/show`)
   @UseGuards(UserAuthGuard)
   async getOneByProfileId(@Res() res, @Req() req) {
@@ -357,6 +359,7 @@ export class ContributorsController {
     return reply({ res, results: findOneProfile });
   }
 
+  /** Update Contributor profile */
   @Put(`/profile/update/`)
   @UseGuards(UserAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
@@ -441,7 +444,7 @@ export class ContributorsController {
     @Query() queryContributors: GetContributorsDto,
   ) {
     const { search } = query;
-    const { role, organizationId } = queryContributors;
+    const { role, userId, organizationId } = queryContributors;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -449,8 +452,42 @@ export class ContributorsController {
     const contributors = await this.contributorsService.findAll({
       role,
       search,
-      pagination,
+      userId,
       organizationId,
+      pagination,
+    });
+
+    return reply({ res, results: contributors });
+  }
+
+  /** Get contributor organizations */
+  @Get(`/:contributorId/organizations`)
+  @UseGuards(UserAuthGuard)
+  async findAllOrganizations(
+    @Res() res,
+    @Req() req,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+    @Param('contributorId', ParseUUIDPipe) contributorId: string,
+  ) {
+    const { user } = req;
+    const { search } = query;
+    const { take, page, sort } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({ page, take, sort });
+
+    const fineOnecontributor = await this.contributorsService.findOneBy({
+      contributorId,
+      organizationId: user?.organizationId,
+    });
+    if (!fineOnecontributor)
+      throw new HttpException(
+        `ContributorId: ${contributorId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const contributors = await this.contributorsService.findAll({
+      search,
+      pagination,
     });
 
     return reply({ res, results: contributors });

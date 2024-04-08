@@ -58,11 +58,6 @@ export const AnimalSelect = {
       logo: true,
       name: true,
       image: true,
-      currency: {
-        select: {
-          symbol: true,
-        },
-      },
     },
   },
   location: {

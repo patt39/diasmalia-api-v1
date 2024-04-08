@@ -4,7 +4,8 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetContributorsSelections = {
   search?: string;
   role?: RoleContributorRole;
-  organizationId: string;
+  organizationId?: string;
+  userId?: Contributor['userId'];
   pagination?: PaginationType;
 };
 
@@ -48,6 +49,7 @@ export const ContributorSelect = {
   organizationId: true,
   organization: {
     select: {
+      logo: true,
       name: true,
       description: true,
     },

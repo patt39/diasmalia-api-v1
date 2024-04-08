@@ -165,8 +165,17 @@ export class OrganizationsController {
     @Res() res,
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
   ) {
+    const findOrganization = await this.organizationsService.findOneBy({
+      organizationId,
+    });
+    if (!findOrganization)
+      throw new HttpException(
+        `OrganizationId: ${organizationId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     await this.organizationsService.updateOne(
-      { organizationId },
+      { organizationId: findOrganization.id },
       { deletedAt: new Date() },
     );
 

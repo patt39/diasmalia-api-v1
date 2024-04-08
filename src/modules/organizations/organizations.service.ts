@@ -50,7 +50,7 @@ export class OrganizationsService {
     return organization;
   }
 
-  /** Update one Organizations to the database. */
+  /** Update one Organization in database. */
   async updateOne(
     selections: UpdateOrganizationsSelections,
     options: UpdateOrganizationsOptions,

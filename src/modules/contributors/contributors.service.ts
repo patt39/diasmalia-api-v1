@@ -21,12 +21,11 @@ export class ContributorsService {
     selections: GetContributorsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereContributor = {} as Prisma.ContributorWhereInput;
-    const { pagination, search, role, organizationId } = selections;
+    const { pagination, search, role, userId, organizationId } = selections;
 
     if (search) {
       Object.assign(prismaWhereContributor, {
         OR: [
-          { role: { contains: search, mode: 'insensitive' } },
           { user: { email: { contains: search, mode: 'insensitive' } } },
           {
             user: {
@@ -44,6 +43,10 @@ export class ContributorsService {
 
     if (role) {
       Object.assign(prismaWhereContributor, { role });
+    }
+
+    if (userId) {
+      Object.assign(prismaWhereContributor, { userId });
     }
 
     if (organizationId) {
