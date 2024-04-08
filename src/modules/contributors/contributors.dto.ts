@@ -26,7 +26,12 @@ export class GetContributorsDto {
   @IsOptional()
   @IsString()
   @IsUUID()
-  organizationId: RoleContributorRole;
+  organizationId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  userId: string;
 }
 export class AddContributorUserDto {
   @IsNotEmpty()

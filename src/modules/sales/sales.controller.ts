@@ -17,6 +17,7 @@ import {
 import PdfPrinter from 'pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Readable, Writable } from 'stream';
+import { config } from '../../app/config/index';
 import { generateUUID } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
@@ -239,6 +240,9 @@ export class SalesController {
 
     const animalArrayPdf: any = [];
 
+    // Split QR codes into rows
+    const rows: any = [];
+
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         code: animal?.code,
@@ -248,14 +252,24 @@ export class SalesController {
           `Animal ${findOneAnimal?.code} doesn't exists or already SOLD please change`,
           HttpStatus.NOT_FOUND,
         );
+
       animalArrayPdf.push({
-        qr: `http://localhost:4900/api/v1/animals/view/${findOneAnimal?.id}`,
+        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/view/${findOneAnimal?.id}`,
         fit: 80,
-        margin: [0, 10],
+        margin: [0, 0, 0, 20],
         display: 'flex',
-        justifyContent: 'center',
-        flexDirection: 'columns',
+        alignment: 'center',
       });
+
+      // Split QR codes into rows
+      const rows: any = [];
+      const batchSize = 4; // Number of QR codes per row
+      for (let i = 0; i < animalArrayPdf.length; i += batchSize) {
+        const row = animalArrayPdf.slice(i, i + batchSize);
+        rows.push(row);
+      }
+
+      console.log('arrayRows====>', rows);
 
       const sale = await this.salesService.createOne({
         note,
@@ -288,6 +302,7 @@ export class SalesController {
         bolditalics: 'Helvetica-BoldOblique',
       },
     };
+
     const printer = new PdfPrinter(fonts);
     const docDefinition = {
       content: [
@@ -295,7 +310,7 @@ export class SalesController {
           text: `${user?.organization?.logo}`,
           alignment: 'center',
           style: { fontSize: 10 },
-          margin: [0, 0, 0, 20],
+          margin: [0, 10],
         },
         {
           text: `Bill for the sale/sales of ${type}`,
@@ -347,7 +362,7 @@ export class SalesController {
           style: { fontSize: 12 },
           margin: [0, 0, 0, 20],
         },
-        ...animalArrayPdf,
+        { columns: rows },
         {
           text: `Sold in ${method}, Price:  ${price} ${getCurrency.symbol}`,
           style: { fontSize: 12 },
