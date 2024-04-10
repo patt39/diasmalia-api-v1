@@ -31,9 +31,9 @@ export class SalesService {
     if (search) {
       Object.assign(prismaWhere, {
         OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
+          { animalCode: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { soldTo: { contains: search, mode: 'insensitive' } },
         ],
       });
     }
@@ -72,19 +72,19 @@ export class SalesService {
   /** Find one sale in database. */
   async findOneBy(selections: GetOneSaleSelections) {
     const prismaWhere = {} as Prisma.SaleWhereInput;
-    const { saleId, organizationId } = selections;
+    const { saleId, animalId, organizationId } = selections;
 
     if (saleId) {
       Object.assign(prismaWhere, { id: saleId });
     }
 
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
+    }
+
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
     }
-
-    // if (animalId) {
-    //   Object.assign(prismaWhere, { animalId });
-    // }
 
     const sale = await this.client.sale.findFirst({
       where: { ...prismaWhere, deletedAt: null },
@@ -101,12 +101,13 @@ export class SalesService {
       note,
       type,
       price,
+      phone,
+      email,
       soldTo,
       method,
       address,
-      phone,
-      email,
       animalId,
+      animalCode,
       organizationId,
       userCreatedId,
     } = options;
@@ -117,12 +118,13 @@ export class SalesService {
         note,
         type,
         price,
+        phone,
+        email,
         soldTo,
         method,
         address,
-        phone,
-        email,
         animalId,
+        animalCode,
         organizationId,
         userCreatedId,
       },
@@ -142,12 +144,13 @@ export class SalesService {
       note,
       price,
       type,
+      phone,
+      status,
       soldTo,
       method,
       address,
-      phone,
-      status,
       animalId,
+      animalCode,
       organizationId,
       userCreatedId,
       deletedAt,
@@ -162,12 +165,13 @@ export class SalesService {
         note,
         type,
         price,
+        phone,
+        status,
         soldTo,
         method,
         address,
-        phone,
-        status,
         animalId,
+        animalCode,
         organizationId,
         userCreatedId,
         deletedAt,
@@ -191,13 +195,15 @@ export class SalesService {
     worksheet.state = 'visible';
 
     worksheet.columns = [
-      { header: 'Date', key: 'date', width: 15 },
-      { header: 'Animal Code', key: 'animals', width: 12 },
-      { header: 'Phone number', key: 'phone', width: 40 },
-      { header: 'Price', key: 'price', width: 20 },
-      { header: 'Sold to', key: 'soldTo', width: 20 },
-      { header: 'Method', key: 'method', width: 20 },
+      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Animal Code', key: 'animalCode', width: 20 },
+      { header: 'Type', key: 'type', width: 12 },
+      { header: 'Price', key: 'price', width: 12 },
+      { header: 'Sold to', key: 'soldTo', width: 40 },
+      { header: 'Phone number', key: 'phone', width: 20 },
       { header: 'Email', key: 'email', width: 40 },
+      { header: 'Address', key: 'address', width: 40 },
+      { header: 'Method', key: 'method', width: 20 },
       { header: 'Status', key: 'status', width: 10 },
     ];
 
@@ -230,12 +236,15 @@ export class SalesService {
     for (const sale of sales) {
       worksheet.addRow({
         date: sale.date,
+        type: sale.type,
+        email: sale.email,
         phone: sale.phone,
         price: sale.price,
         soldTo: sale.soldTo,
         method: sale.method,
-        email: sale.email,
         status: sale.status,
+        address: sale.address,
+        animalCode: sale.animalCode,
       });
     }
 

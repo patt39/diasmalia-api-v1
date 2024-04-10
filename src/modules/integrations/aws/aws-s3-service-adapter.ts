@@ -34,7 +34,7 @@ export const awsS3ServiceAdapter = async (data: {
   return response;
 };
 
-export const getFileToAws = async (options: {
+export const getFileFromAws = async (options: {
   folder: string;
   fileName: string;
 }): Promise<{ fileBuffer: Buffer; contentType: string; imageUrl: string }> => {
