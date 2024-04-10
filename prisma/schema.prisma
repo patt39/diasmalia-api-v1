@@ -268,25 +268,25 @@ enum Gender {
 }
 
 enum AnimalStatus {
-  ACTIVE
   DEAD
   SOLD
+  ACTIVE
 }
 
 enum AnimalType {
   PIGS
-  BOVINES
   GOATS
+  BOVINES
   RABBITS
 }
 
 enum ProductionPhase {
   GROWTH
+  WEANING
   FATTENING
   GESTATION
   LACTATION
   REPRODUCTION
-  WEANING
 }
 
 model Treatment {
@@ -310,27 +310,27 @@ model Treatment {
 }
 
 enum MethodTreatment {
-  INJECTION
+  EYE
   ORAL
   NASAL
+  INJECTION
   FEEDANDWATER
-  EYE
 }
 
 enum MedicationTypes {
-  ANTIBIOTICS
-  ANTIPARASITICS
-  ANTIFUNGALS
+  VACCINS
   ANTIVIRALS
+  ANALGESICS
+  PROBIOTICS
+  ANTIBIOTICS
+  ANTIFUNGALS
   ANTHALMITICS
   COCCIDIOSTATS
-  VACCINS
-  ANALGESICS
-  CORTICOSTEROIDS
   BRONCODILATORS
-  PROBIOTICS
-  MINERALVITAMINS
   GROWTHPROMOTER
+  ANTIPARASITICS
+  MINERALVITAMINS
+  CORTICOSTEROIDS
   TROPICALTREATMENTS
   OTHERS
 }
@@ -491,16 +491,16 @@ model Feeding {
 }
 
 enum FeedType {
-  FORAGES
-  CONCENTRATES
-  ROUGHAGES
-  PROTEINS
-  MINERALSALTS
-  VITAMINS
-  COMPLETEFEED
   FIBERS
-  ENERGYSUPPLIMENTS
+  FORAGES
+  PROTEINS
+  VITAMINS
+  ROUGHAGES
   BYPRODUCTS
+  COMPLETEFEED
+  CONCENTRATES
+  MINERALSALTS
+  ENERGYSUPPLIMENTS
   SYNTHETICADICTIVES
   OTHERS
 }
@@ -518,6 +518,7 @@ model Sale {
   type           AnimalType
   price          Int?
   soldTo         String?
+  animalCode     String?
   status         AnimalStatus   @default(SOLD)
   method         sellingMethod?
   animalId       String         @unique
@@ -528,11 +529,11 @@ model Sale {
 }
 
 enum sellingMethod {
-  SOCIALMEDIA
   MARKET
   INFARM
   AUCTION
   CONTRACT
+  SOCIALMEDIA
   OTHER
 }
 

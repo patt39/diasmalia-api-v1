@@ -17,7 +17,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { reply } from '../../app/utils/reply';
 import { CurrenciesService } from '../currency/currency.service';
-import { getFileToAws } from '../integrations/aws/aws-s3-service-adapter';
+import { getFileFromAws } from '../integrations/aws/aws-s3-service-adapter';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
 import {
@@ -125,7 +125,7 @@ export class OrganizationsController {
   async getuploadedImage(@Res() res, @Param() params: GetOneUploadsDto) {
     const { name, folder } = params;
     try {
-      const { fileBuffer, contentType } = await getFileToAws({
+      const { fileBuffer, contentType } = await getFileFromAws({
         fileName: name,
         folder,
       });
@@ -144,7 +144,7 @@ export class OrganizationsController {
   async getUploadedLogo(@Res() res, @Param() params: GetOneUploadsDto) {
     const { name, folder } = params;
     try {
-      const { fileBuffer, contentType } = await getFileToAws({
+      const { fileBuffer, contentType } = await getFileFromAws({
         fileName: name,
         folder,
       });

@@ -31,7 +31,7 @@ import { CurrenciesService } from '../currency/currency.service';
 import { DeathsService } from '../death/deaths.service';
 import {
   awsS3ServiceAdapter,
-  getFileToAws,
+  getFileFromAws,
 } from '../integrations/aws/aws-s3-service-adapter';
 import { emailPDFAttachment } from '../users/mails/email-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
@@ -117,6 +117,7 @@ export class SalesController {
       soldTo,
       method,
       animalId: findOneAnimal?.id,
+      animalCode: findOneAnimal?.code,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -223,25 +224,24 @@ export class SalesController {
     const { user } = req;
     const {
       date,
-      email,
       note,
       type,
+      phone,
+      email,
       price,
       method,
       soldTo,
-      phone,
       animals,
       address,
     } = body;
+
+    const findOneUser = await this.usersService.findOneBy({ email });
 
     const getCurrency = await this.currenciesService.findOneBy({
       organizationId: user.organizationId,
     });
 
     const animalArrayPdf: any = [];
-
-    // Split QR codes into rows
-    const rows: any = [];
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
@@ -253,23 +253,30 @@ export class SalesController {
           HttpStatus.NOT_FOUND,
         );
 
+      const findOneAnimalSold = await this.salesService.findOneBy({
+        animalId: findOneAnimal?.id,
+      });
+      if (findOneAnimalSold)
+        throw new HttpException(
+          `Animal ${findOneAnimal?.code} already SOLD please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
       animalArrayPdf.push({
         qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/view/${findOneAnimal?.id}`,
         fit: 80,
         margin: [0, 0, 0, 20],
         display: 'flex',
+        width: '*',
         alignment: 'center',
       });
 
       // Split QR codes into rows
       const rows: any = [];
       const batchSize = 4; // Number of QR codes per row
-      for (let i = 0; i < animalArrayPdf.length; i += batchSize) {
-        const row = animalArrayPdf.slice(i, i + batchSize);
-        rows.push(row);
-      }
-
-      console.log('arrayRows====>', rows);
+      const row = animalArrayPdf.slice(0, 1 + batchSize);
+      rows.push(row);
+      console.log('arrayRows====>', row);
 
       const sale = await this.salesService.createOne({
         note,
@@ -282,6 +289,7 @@ export class SalesController {
         soldTo,
         address,
         animalId: findOneAnimal?.id,
+        animalCode: findOneAnimal?.code,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
@@ -305,6 +313,12 @@ export class SalesController {
 
     const printer = new PdfPrinter(fonts);
     const docDefinition = {
+      info: {
+        title: 'awesome Document',
+        author: 'john doe',
+        subject: 'subject of document',
+        keywords: 'keywords for document',
+      },
       content: [
         {
           text: `${user?.organization?.logo}`,
@@ -362,7 +376,7 @@ export class SalesController {
           style: { fontSize: 12 },
           margin: [0, 0, 0, 20],
         },
-        { columns: rows },
+        { columns: animalArrayPdf },
         {
           text: `Sold in ${method}, Price:  ${price} ${getCurrency.symbol}`,
           style: { fontSize: 12 },
@@ -375,11 +389,11 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         '\n',
-        {
-          text: `${new Date()}`,
-          style: { fontSize: 10 },
-          margin: [0, 0, 0, 20],
-        },
+        // {
+        //   text: `${new Date()}`,
+        //   style: { fontSize: 10 },
+        //   margin: [0, 0, 0, 20],
+        // },
       ],
       styles: {
         policyText: {
@@ -420,7 +434,6 @@ export class SalesController {
       file: Buffer.concat(chunks),
     });
 
-    const findOneUser = await this.usersService.findOneBy({ email });
     if (findOneUser) {
       await emailPDFAttachment({
         user,
@@ -429,7 +442,16 @@ export class SalesController {
         content: Buffer.concat(chunks),
       });
     }
-    return reply({ res, results: 'Saved' });
+
+    if (!findOneUser) {
+      await emailPDFAttachment({
+        user,
+        email: email,
+        filename: fileName,
+        content: Buffer.concat(chunks),
+      });
+    }
+    return reply({ res, results: 'Sale saved successfully' });
   }
 
   /** Get one Sale */
@@ -464,11 +486,6 @@ export class SalesController {
         'Content-Disposition',
         'attachment; filename= ' + 'SalesExport.xlsx',
       );
-
-      res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocuments.spreadsheetml.sheet',
-      );
     } catch (error) {
       console.error(error);
       res.status(500).send('Error during download.');
@@ -480,9 +497,9 @@ export class SalesController {
   async getOneUploadedPDF(@Res() res, @Param() params: GetOneUploadsDto) {
     const { name, folder } = params;
     try {
-      const { fileBuffer, contentType } = await getFileToAws({
-        fileName: name,
+      const { fileBuffer, contentType } = await getFileFromAws({
         folder,
+        fileName: name,
       });
       res.status(200);
       res.contentType(contentType);
@@ -499,10 +516,11 @@ export class SalesController {
   async downloadSale(@Res() res, @Param() params: GetOneUploadsDto) {
     const { name, folder } = params;
     try {
-      const { fileBuffer, contentType } = await getFileToAws({
+      const { fileBuffer, contentType } = await getFileFromAws({
         folder,
         fileName: name,
       });
+
       const readStream = Readable.from([fileBuffer]);
 
       res.status(200);

@@ -212,7 +212,6 @@ export class DeathsController {
 
     if (status === 'SOLD') {
       await this.salesService.createOne({
-        //animalId: findOneDeath?.animalId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
         status: 'SOLD',
