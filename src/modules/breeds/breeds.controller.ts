@@ -42,13 +42,11 @@ export class BreedsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { type } = queryTypes;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const breeds = await this.breedsService.findAll({
-      type,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -60,17 +58,11 @@ export class BreedsController {
   /** Post one breed */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateBreedsDto,
-  ) {
-    const { user } = req;
-    const { name, type } = body;
+  async createOne(@Res() res, @Body() body: CreateOrUpdateBreedsDto) {
+    const { name, animalTypeId } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({
       name,
-      type,
     });
     if (findOneBreed)
       throw new HttpException(
@@ -80,9 +72,7 @@ export class BreedsController {
 
     const breed = await this.breedsService.createOne({
       name,
-      type,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      animalTypeId,
     });
 
     return reply({ res, results: breed });
@@ -93,16 +83,13 @@ export class BreedsController {
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
-    @Req() req,
     @Body() body: CreateOrUpdateBreedsDto,
     @Param('breedId', ParseUUIDPipe) breedId: string,
   ) {
-    const { user } = req;
-    const { name, type } = body;
+    const { name, animalTypeId } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(
@@ -114,9 +101,7 @@ export class BreedsController {
       { breedId: findOneBreed?.id },
       {
         name,
-        type,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalTypeId,
       },
     );
 
@@ -134,7 +119,6 @@ export class BreedsController {
     const { user } = req;
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(
@@ -156,7 +140,6 @@ export class BreedsController {
     const { user } = req;
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(

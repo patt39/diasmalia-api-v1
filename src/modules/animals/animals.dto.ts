@@ -1,9 +1,4 @@
-import {
-  AnimalStatus,
-  AnimalType,
-  Gender,
-  ProductionPhase,
-} from '@prisma/client';
+import { AnimalStatus, Gender, ProductionPhase } from '@prisma/client';
 import {
   IsEnum,
   IsNotEmpty,
@@ -45,11 +40,6 @@ export class CreateOrUpdateAnimalsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
-
-  @IsNotEmpty()
-  @IsString()
   @MaxLength(100)
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
@@ -63,6 +53,11 @@ export class CreateOrUpdateAnimalsDto {
   @IsString()
   @IsUUID()
   locationId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 
   @IsNotEmpty()
   @IsString()
@@ -84,11 +79,11 @@ export class GetAnimalsQuery {
 
   @IsOptional()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
-
-  @IsOptional()
-  @IsString()
   @IsEnum(AnimalStatus)
   status: AnimalStatus;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

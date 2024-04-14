@@ -1,20 +1,19 @@
-import { AnimalType } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrUpdateBreedsDto {
   @IsNotEmpty()
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class GetBreedsTypeDto {
   @IsOptional()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
+  @IsUUID()
+  animalTypeId: string;
 }

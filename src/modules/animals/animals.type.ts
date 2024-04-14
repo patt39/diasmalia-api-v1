@@ -8,7 +8,7 @@ export type GetAnimalsSelections = {
   animalIds?: string[];
   code?: Animal['code'];
   status?: Animal['status'];
-  type?: Animal['type'];
+  animalTypeId?: Animal['animalTypeId'];
   gender?: Animal['gender'];
   productionPhase?: Animal['productionPhase'];
 };
@@ -18,7 +18,7 @@ export type GetOneAnimalsSelections = {
   code?: Animal['code'];
   gender?: Animal['gender'];
   electronicCode?: Animal['electronicCode'];
-  type?: Animal['type'];
+  animalTypeId?: Animal['animalTypeId'];
   isCastrated?: 'TRUE' | 'FALSE';
   isIsolated?: 'TRUE' | 'FALSE';
   deletedAt?: Animal['deletedAt'];

@@ -22,7 +22,7 @@ export class LocationsService {
     selections: GetLocationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.LocationWhereInput;
-    const { search, type, productionPhase, pagination } = selections;
+    const { search, animalTypeId, productionPhase, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -30,8 +30,8 @@ export class LocationsService {
       });
     }
 
-    if (type) {
-      Object.assign(prismaWhere, { type });
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (productionPhase) {
@@ -61,7 +61,7 @@ export class LocationsService {
   async findOneBy(selections: GetOneLocationsSelections) {
     const prismaWhere = {} as Prisma.LocationWhereInput;
 
-    const { locationId, type, code, productionPhase, organizationId } =
+    const { locationId, animalTypeId, code, productionPhase, organizationId } =
       selections;
 
     if (locationId) {
@@ -72,8 +72,8 @@ export class LocationsService {
       Object.assign(prismaWhere, { organizationId });
     }
 
-    if (type) {
-      Object.assign(prismaWhere, { type });
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (code) {
@@ -95,11 +95,11 @@ export class LocationsService {
   /** Create one location in database. */
   async createOne(options: CreateLocationsOptions): Promise<Location> {
     const {
-      type,
       code,
       manger,
       through,
       squareMeter,
+      animalTypeId,
       productionPhase,
       organizationId,
       userCreatedId,
@@ -107,11 +107,11 @@ export class LocationsService {
 
     const location = this.client.location.create({
       data: {
-        type,
         code,
         manger,
         through,
         squareMeter,
+        animalTypeId,
         productionPhase,
         organizationId,
         userCreatedId,
@@ -128,11 +128,11 @@ export class LocationsService {
   ): Promise<Location> {
     const { locationId } = selections;
     const {
-      type,
       code,
       manger,
       through,
       squareMeter,
+      animalTypeId,
       productionPhase,
       organizationId,
       deletedAt,
@@ -143,11 +143,11 @@ export class LocationsService {
         id: locationId,
       },
       data: {
-        type,
         code,
         manger,
         through,
         squareMeter,
+        animalTypeId,
         productionPhase,
         organizationId,
         deletedAt,

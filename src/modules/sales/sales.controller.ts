@@ -15,6 +15,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import PdfPrinter from 'pdfmake';
+import pdfMake from 'pdfmake/build/pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Readable, Writable } from 'stream';
 import { config } from '../../app/config/index';
@@ -81,53 +82,6 @@ export class SalesController {
     });
 
     return reply({ res, results: sales });
-  }
-
-  /** Post one Sales */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateSalesDto,
-  ) {
-    const { user } = req;
-    const { note, price, date, code, method, soldTo, phone } = body;
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-    });
-    if (findOneAnimal?.status === 'SOLD')
-      throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists or it's already SOLD please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneSale = await this.salesService.findOneBy({
-      organizationId: user?.organizationId,
-    });
-    if (findOneSale)
-      throw new HttpException(`Animal already sold`, HttpStatus.NOT_FOUND);
-
-    const sale = await this.salesService.createOne({
-      note,
-      date,
-      phone,
-      price,
-      soldTo,
-      method,
-      animalId: findOneAnimal?.id,
-      animalCode: findOneAnimal?.code,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
-    });
-
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      { status: 'SOLD' },
-    );
-
-    return reply({ res, results: sale });
   }
 
   /** Update one Sale */
@@ -241,7 +195,10 @@ export class SalesController {
       organizationId: user.organizationId,
     });
 
-    const animalArrayPdf: any = [];
+    const newAnimalArrayPdf: any = [];
+    const animalArrayPdfCodes: any = [];
+    const animalArrayPdfWeights: any = [];
+    const animalArrayPdfGenders: any = [];
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
@@ -262,26 +219,25 @@ export class SalesController {
           HttpStatus.NOT_FOUND,
         );
 
-      animalArrayPdf.push({
+      newAnimalArrayPdf.push({
         qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/view/${findOneAnimal?.id}`,
         fit: 80,
         margin: [0, 0, 0, 20],
         display: 'flex',
         width: '*',
         alignment: 'center',
+        //foreground: 'red',
+        //background: 'yellow',
+        eccLevel: 'L',
       });
 
-      // Split QR codes into rows
-      const rows: any = [];
-      const batchSize = 4; // Number of QR codes per row
-      const row = animalArrayPdf.slice(0, 1 + batchSize);
-      rows.push(row);
-      console.log('arrayRows====>', row);
+      animalArrayPdfCodes.push(findOneAnimal?.code);
+      animalArrayPdfWeights.push(findOneAnimal?.weight);
+      animalArrayPdfGenders.push(findOneAnimal?.gender);
 
       const sale = await this.salesService.createOne({
         note,
         date,
-        type,
         email,
         price,
         phone,
@@ -313,12 +269,28 @@ export class SalesController {
 
     const printer = new PdfPrinter(fonts);
     const docDefinition = {
+      watermark: {
+        text: `${user?.organization?.name}`,
+        color: 'blue',
+        opacity: 0.1,
+        bold: true,
+        italics: false,
+      },
       info: {
         title: 'awesome Document',
         author: 'john doe',
         subject: 'subject of document',
         keywords: 'keywords for document',
       },
+      footer: function (currentPage, pageCount) {
+        return {
+          text: 'Page ' + currentPage.toString() + ' of ' + pageCount,
+          alignment: 'right',
+          style: 'normalText',
+          margin: [10, 10, 10, 10],
+        };
+      },
+
       content: [
         {
           text: `${user?.organization?.logo}`,
@@ -327,74 +299,119 @@ export class SalesController {
           margin: [0, 10],
         },
         {
-          text: `Bill for the sale/sales of ${type}`,
+          text: `Animals sale reciept`,
           alignment: 'center',
           bold: true,
           style: { fontSize: 20 },
-          margin: [0, 0, 0, 20],
+          margin: [0, 0, 0, 10],
         },
         {
-          text: `Agreement between ${user?.organization?.name}`,
+          text: `Agreement between`,
           alignment: 'center',
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
         },
         {
-          text: `Located at: ${user?.profile?.address}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
+          text: `Seller: ${user?.organization?.name}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Address: ${user?.profile?.address}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
         },
         {
           text: `Email: ${user?.email},  Phone:  ${user?.profile?.phone}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
         },
         {
           text: `- AND -`,
           alignment: 'center',
           bold: true,
-          style: { fontSize: 15 },
-          margin: [0, 0, 0, 20],
+          style: { fontSize: 16 },
+          margin: [0, 0, 0, 10],
         },
         {
-          text: `Buyer name: ${soldTo}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
+          text: `Buyer: ${soldTo}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
         },
         {
           text: `Adresse: ${address}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
         },
         {
           text: `Email: ${email},  Phone:  ${phone}`,
-          style: { fontSize: 13 },
-          margin: [0, 0, 0, 20],
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
         },
+        '\n',
         {
-          text: `Below are the QRCodes of your animals you can have access to them through our organization by simply scanning them anytime`,
+          text: `Below are the QRCodes of your animals and a sample of your animals informations you can have access to them through our organization by simply scanning them anytime`,
           style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          table: {
+            body: [
+              ['QRCodes', 'Description'],
+              [
+                newAnimalArrayPdf,
+                [
+                  note,
+                  {
+                    table: {
+                      body: [
+                        ['Codes', 'Weight', 'Gender'],
+                        [
+                          animalArrayPdfCodes,
+                          animalArrayPdfWeights,
+                          animalArrayPdfGenders,
+                        ],
+                      ],
+                    },
+                  },
+                ],
+              ],
+            ],
+          },
+        },
+        '\n',
+        {
+          text: `Quantity: ${animals.length} animals`,
+          style: { fontSize: 12 },
+          bold: true,
           margin: [0, 0, 0, 20],
         },
-        { columns: animalArrayPdf },
         {
-          text: `Sold in ${method}, Price:  ${price} ${getCurrency.symbol}`,
+          text: `Price:  ${price} ${getCurrency.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
         },
         {
           text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues thanks`,
-          style: { fontSize: 11 },
+          style: { fontSize: 12 },
           margin: [0, 0, 0, 20],
         },
         '\n',
-        // {
-        //   text: `${new Date()}`,
-        //   style: { fontSize: 10 },
-        //   margin: [0, 0, 0, 20],
-        // },
+        {
+          text: `Sold in ${method}, ${date}`,
+          style: { fontSize: 10 },
+          margin: [0, 0, 0, 20],
+        },
       ],
+      patterns: {
+        stripe45d: {
+          boundingBox: [1, 1, 4, 4],
+          xStep: 3,
+          yStep: 3,
+          pattern: '1 w 0 1 m 4 5 l s 2 0 m 5 3 l s',
+        },
+      },
       styles: {
         policyText: {
           //fontSize: 20,
@@ -426,6 +443,9 @@ export class SalesController {
       pdfDoc.pipe(stream);
       pdfDoc.end();
     });
+    // const pdf = printer.createPdfKitDocument(docDefinition);
+    // pdf.pipe(fs.createWriteStream(`${nameFile}.pdf`));
+    // pdf.end();
 
     await awsS3ServiceAdapter({
       fileName: fileName,
@@ -441,6 +461,13 @@ export class SalesController {
         filename: fileName,
         content: Buffer.concat(chunks),
       });
+    }
+
+    if (email === null) {
+      const pdfNoEmail = pdfMake
+        .createPdf(docDefinition)
+        .download(`${nameFile}.pdf`);
+      console.log('pdf===>', pdfNoEmail);
     }
 
     if (!findOneUser) {

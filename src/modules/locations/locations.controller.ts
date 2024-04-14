@@ -45,13 +45,12 @@ export class LocationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { type, productionPhase } = queryLocations;
+    const { productionPhase } = queryLocations;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const locations = await this.locationsService.findAll({
-      type,
       search,
       pagination,
       productionPhase,
@@ -70,11 +69,9 @@ export class LocationsController {
     @Body() body: CreateOrUpdateLocationsDto,
   ) {
     const { user } = req;
-    console.log(user);
-    const { squareMeter, manger, through, code, type, productionPhase } = body;
+    const { squareMeter, manger, through, code, productionPhase } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
-      type,
       code,
       productionPhase,
       organizationId: user?.organizationId,
@@ -86,7 +83,6 @@ export class LocationsController {
       );
 
     const location = await this.locationsService.createOne({
-      type,
       code,
       manger,
       through,
@@ -116,10 +112,9 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, code, type } = body;
+    const { squareMeter, manger, through, code } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
-      type,
       code,
       locationId,
     });
@@ -131,8 +126,8 @@ export class LocationsController {
     const location = await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       {
-        manger,
         code,
+        manger,
         through,
         squareMeter,
         organizationId: user?.organizationId,
