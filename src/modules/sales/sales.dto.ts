@@ -1,4 +1,4 @@
-import { AnimalStatus, AnimalType, sellingMethod } from '@prisma/client';
+import { AnimalStatus, sellingMethod } from '@prisma/client';
 import {
   IsArray,
   IsEnum,
@@ -95,8 +95,7 @@ export class BulkSalesDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
+  type: string;
 }
 export class SaleMethodDto {
   @IsOptional()
@@ -105,10 +104,9 @@ export class SaleMethodDto {
   @IsEnum(sellingMethod)
   method: sellingMethod;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum(AnimalType)
-  type: AnimalType;
+  type: string;
 }
 
 export class GetOneUploadsDto {

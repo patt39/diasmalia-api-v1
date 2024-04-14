@@ -108,6 +108,7 @@ export class SalesService {
       address,
       animalId,
       animalCode,
+      animalTypeId,
       organizationId,
       userCreatedId,
     } = options;
@@ -125,6 +126,7 @@ export class SalesService {
         address,
         animalId,
         animalCode,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -142,8 +144,8 @@ export class SalesService {
     const {
       date,
       note,
-      price,
       type,
+      price,
       phone,
       status,
       soldTo,
@@ -151,6 +153,7 @@ export class SalesService {
       address,
       animalId,
       animalCode,
+      animalTypeId,
       organizationId,
       userCreatedId,
       deletedAt,
@@ -172,6 +175,7 @@ export class SalesService {
         address,
         animalId,
         animalCode,
+        animalTypeId,
         organizationId,
         userCreatedId,
         deletedAt,
@@ -197,7 +201,7 @@ export class SalesService {
     worksheet.columns = [
       { header: 'Date', key: 'date', width: 12 },
       { header: 'Animal Code', key: 'animalCode', width: 20 },
-      { header: 'Type', key: 'type', width: 12 },
+      { header: 'Animal Type', key: 'type', width: 12 },
       { header: 'Price', key: 'price', width: 12 },
       { header: 'Sold to', key: 'soldTo', width: 40 },
       { header: 'Phone number', key: 'phone', width: 20 },
@@ -236,7 +240,6 @@ export class SalesService {
     for (const sale of sales) {
       worksheet.addRow({
         date: sale.date,
-        type: sale.type,
         email: sale.email,
         phone: sale.phone,
         price: sale.price,
@@ -244,6 +247,7 @@ export class SalesService {
         method: sale.method,
         status: sale.status,
         address: sale.address,
+        animalType: sale.type,
         animalCode: sale.animalCode,
       });
     }

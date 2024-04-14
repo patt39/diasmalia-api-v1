@@ -52,16 +52,16 @@ export class AnimalsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { status, type, gender, productionPhase } = queryAnimal;
+    const { status, animalTypeId, gender, productionPhase } = queryAnimal;
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const animals = await this.animalsService.findAll({
-      type,
       gender,
       status,
       search,
       pagination,
+      animalTypeId,
       productionPhase,
       organizationId: user?.organizationId,
     });
@@ -80,7 +80,6 @@ export class AnimalsController {
     const { user } = req;
     const {
       code,
-      type,
       weight,
       gender,
       breedId,
@@ -88,6 +87,7 @@ export class AnimalsController {
       locationId,
       codeFather,
       codeMother,
+      animalTypeId,
       electronicCode,
       productionPhase,
     } = body;
@@ -115,7 +115,17 @@ export class AnimalsController {
     });
     if (!findOneLocation)
       throw new HttpException(
-        `LocationId: ${locationId} doesn't exists or isn't the correct productionPhase or Type please change`,
+        `LocationId: ${locationId} doesn't exists or isn't the correct productionPhase please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneType = await this.locationsService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneType)
+      throw new HttpException(
+        `AnimalTypeId: ${animalTypeId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -125,7 +135,7 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation.type !== type)
+    if (findOneLocation.type !== findOneType.type)
       throw new HttpException(
         `Animal location ${findOneLocation.type} isn't valid please change`,
         HttpStatus.NOT_FOUND,
@@ -133,7 +143,6 @@ export class AnimalsController {
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(
@@ -154,7 +163,6 @@ export class AnimalsController {
 
     const animal = await this.animalsService.createOne({
       code,
-      type,
       weight,
       gender,
       birthday,
@@ -162,6 +170,7 @@ export class AnimalsController {
       codeMother,
       productionPhase,
       electronicCode,
+      animalTypeId: findOneType.id,
       locationId: findOneLocation?.id,
       breedId: findOneBreed?.id,
       organizationId: user?.organizationId,
@@ -192,7 +201,6 @@ export class AnimalsController {
     const { user } = req;
     const {
       code,
-      type,
       weight,
       gender,
       breedId,
@@ -200,6 +208,7 @@ export class AnimalsController {
       codeFather,
       codeMother,
       locationId,
+      animalTypeId,
       electronicCode,
       productionPhase,
     } = body;
@@ -248,15 +257,14 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation.type !== type)
-      throw new HttpException(
-        `Animal location ${findOneLocation.type} isn't valid please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    // if (findOneLocation.type !== type)
+    //   throw new HttpException(
+    //     `Animal location ${findOneLocation.type} isn't valid please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
-      organizationId: user?.organizationId,
     });
     if (!findOneBreed)
       throw new HttpException(
@@ -268,7 +276,6 @@ export class AnimalsController {
       { animalId: findOneAnimal?.id },
       {
         code,
-        type,
         weight,
         gender,
         birthday,
@@ -277,6 +284,7 @@ export class AnimalsController {
         electronicCode,
         productionPhase,
         photo: fileName,
+        animalTypeId,
         locationId: findOneLocation?.id,
         breedId: findOneBreed?.id,
         organizationId: user?.organizationId,

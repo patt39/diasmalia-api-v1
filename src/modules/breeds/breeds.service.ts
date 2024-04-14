@@ -22,7 +22,7 @@ export class BreedsService {
     selections: GetBreedsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.BreedWhereInput;
-    const { search, type, pagination } = selections;
+    const { search, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -32,10 +32,6 @@ export class BreedsService {
           },
         ],
       });
-    }
-
-    if (type) {
-      Object.assign(prismaWhere, { type });
     }
 
     const breeds = await this.client.breed.findMany({
@@ -61,18 +57,10 @@ export class BreedsService {
   async findOneBy(selections: GetOneBreedsSelections) {
     const prismaWhere = {} as Prisma.BreedWhereInput;
 
-    const { breedId, type, name, organizationId } = selections;
+    const { breedId, name } = selections;
 
     if (breedId) {
       Object.assign(prismaWhere, { id: breedId });
-    }
-
-    if (organizationId) {
-      Object.assign(prismaWhere, { organizationId });
-    }
-
-    if (type) {
-      Object.assign(prismaWhere, { type });
     }
 
     if (name) {
@@ -88,14 +76,12 @@ export class BreedsService {
 
   /** Create one breed in database. */
   async createOne(options: CreateBreedsOptions): Promise<Breed> {
-    const { name, type, organizationId, userCreatedId } = options;
+    const { name, animalTypeId } = options;
 
     const breed = this.client.breed.create({
       data: {
         name,
-        type,
-        organizationId,
-        userCreatedId,
+        animalTypeId,
       },
     });
 

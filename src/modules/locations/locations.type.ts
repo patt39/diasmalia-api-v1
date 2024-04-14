@@ -5,7 +5,7 @@ export type GetLocationsSelections = {
   search?: string;
   locationId?: Location['id'];
   pagination?: PaginationType;
-  type?: Location['type'];
+  animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
 };
@@ -13,7 +13,7 @@ export type GetLocationsSelections = {
 export type GetOneLocationsSelections = {
   locationId?: Location['id'];
   code?: Location['code'];
-  type?: Location['type'];
+  animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
 };

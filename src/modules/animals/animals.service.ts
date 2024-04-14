@@ -24,10 +24,10 @@ export class AnimalsService {
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
     const {
-      type,
       search,
       status,
       gender,
+      animalTypeId,
       productionPhase,
       organizationId,
       pagination,
@@ -57,8 +57,8 @@ export class AnimalsService {
       Object.assign(prismaWhere, { status });
     }
 
-    if (type) {
-      Object.assign(prismaWhere, { type });
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (gender) {
@@ -93,12 +93,12 @@ export class AnimalsService {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
     const {
       code,
-      type,
       gender,
       status,
       animalId,
       isIsolated,
       isCastrated,
+      animalTypeId,
       organizationId,
       electronicCode,
       productionPhase,
@@ -128,8 +128,8 @@ export class AnimalsService {
       Object.assign(prismaWhere, { electronicCode });
     }
 
-    if (type) {
-      Object.assign(prismaWhere, { type });
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (code) {
@@ -160,7 +160,6 @@ export class AnimalsService {
   async createOne(options: CreateAnimalsOptions): Promise<Animal> {
     const {
       code,
-      type,
       status,
       weight,
       gender,
@@ -169,6 +168,7 @@ export class AnimalsService {
       locationId,
       codeFather,
       codeMother,
+      animalTypeId,
       productionPhase,
       electronicCode,
       organizationId,
@@ -178,7 +178,6 @@ export class AnimalsService {
     const animal = this.client.animal.create({
       data: {
         code,
-        type,
         status,
         weight,
         gender,
@@ -187,6 +186,7 @@ export class AnimalsService {
         locationId,
         codeFather,
         codeMother,
+        animalTypeId,
         productionPhase,
         electronicCode,
         organizationId,
@@ -205,7 +205,6 @@ export class AnimalsService {
     const { animalId } = selections;
     const {
       code,
-      type,
       photo,
       weight,
       gender,
@@ -214,6 +213,7 @@ export class AnimalsService {
       birthday,
       codeFather,
       codeMother,
+      animalTypeId,
       productionPhase,
       electronicCode,
       locationId,
@@ -226,7 +226,6 @@ export class AnimalsService {
       },
       data: {
         code,
-        type,
         photo,
         weight,
         gender,
@@ -235,6 +234,7 @@ export class AnimalsService {
         birthday,
         codeFather,
         codeMother,
+        animalTypeId,
         productionPhase,
         electronicCode,
         locationId,
@@ -310,15 +310,15 @@ export class AnimalsService {
       // Assuming data starts from the second row
       if (row.number !== 0) {
         const animal: Animal = {
-          code: row.getCell(1).value,
-          codeFather: row.getCell(2).value,
-          codeMother: row.getCell(3).value,
-          gender: row.getCell(4).value,
-          weight: row.getCell(5).value,
-          electronicCode: row.getCell(6).value,
-          type: row.getCell(7).value,
-          productionPhase: row.getCell(8).value,
-          birthday: row.getCell(9).value,
+          // code: row.getCell(1).value,
+          // codeFather: row.getCell(2).value,
+          // codeMother: row.getCell(3).value,
+          // gender: row.getCell(4).value,
+          // weight: row.getCell(5).value,
+          // electronicCode: row.getCell(6).value,
+          // type: row.getCell(7).value,
+          // productionPhase: row.getCell(8).value,
+          // birthday: row.getCell(9).value,
         } as Animal;
 
         data.push(animal);
