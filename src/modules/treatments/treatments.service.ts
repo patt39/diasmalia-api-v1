@@ -23,16 +23,16 @@ export class TreatmentsService {
     selections: GetTreatmentsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTreatment = {} as Prisma.TreatmentWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, animalTypeId, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhereTreatment, {
-        OR: [
-          {
-            name: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhereTreatment, { animalTypeId });
     }
 
     if (organizationId) {
@@ -61,7 +61,7 @@ export class TreatmentsService {
   /** Find one treatment in database. */
   async findOneBy(selections: GetOneTreatmentsSelections) {
     const prismaWhereTreatment = {} as Prisma.TreatmentWhereInput;
-    const { treatmentId, organizationId } = selections;
+    const { treatmentId, animalTypeId, organizationId } = selections;
 
     if (treatmentId) {
       Object.assign(prismaWhereTreatment, { id: treatmentId });
@@ -69,6 +69,10 @@ export class TreatmentsService {
 
     if (organizationId) {
       Object.assign(prismaWhereTreatment, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhereTreatment, { animalTypeId });
     }
 
     const treatment = await this.client.treatment.findFirst({
@@ -88,7 +92,9 @@ export class TreatmentsService {
       date,
       method,
       diagnosis,
+      medication,
       animalId,
+      animalTypeId,
       organizationId,
       userCreatedId,
     } = options;
@@ -103,6 +109,8 @@ export class TreatmentsService {
         method,
         animalId,
         diagnosis,
+        medication,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -125,6 +133,7 @@ export class TreatmentsService {
       method,
       animalId,
       diagnosis,
+      animalTypeId,
       organizationId,
       deletedAt,
     } = options;
@@ -141,6 +150,7 @@ export class TreatmentsService {
         method,
         animalId,
         diagnosis,
+        animalTypeId,
         organizationId,
         deletedAt,
       },

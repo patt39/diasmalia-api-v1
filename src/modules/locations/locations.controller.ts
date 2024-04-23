@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateLocationsDto,
@@ -31,7 +32,10 @@ import { LocationsService } from './locations.service';
 
 @Controller('locations')
 export class LocationsController {
-  constructor(private readonly locationsService: LocationsService) {}
+  constructor(
+    private readonly locationsService: LocationsService,
+    private readonly assignTypesService: AssignTypesService,
+  ) {}
 
   /** Get all locations */
   @Get(`/`)
@@ -45,7 +49,7 @@ export class LocationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { productionPhase } = queryLocations;
+    const { productionPhase, animalTypeId } = queryLocations;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -53,6 +57,7 @@ export class LocationsController {
     const locations = await this.locationsService.findAll({
       search,
       pagination,
+      animalTypeId,
       productionPhase,
       organizationId: user?.organizationId,
     });
@@ -82,12 +87,23 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const location = await this.locationsService.createOne({
       code,
       manger,
       through,
       squareMeter,
       productionPhase,
+      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -114,23 +130,35 @@ export class LocationsController {
     const { user } = req;
     const { squareMeter, manger, through, code } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneLocation = await this.locationsService.findOneBy({
       code,
       locationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneLocation)
       throw new HttpException(
         `Location ${code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
+
     const location = await this.locationsService.updateOne(
-      { locationId: findOneLocation?.id },
+      { locationId: findOneLocation.id },
       {
         code,
         manger,
         through,
         squareMeter,
-        organizationId: user?.organizationId,
+        organizationId: user.organizationId,
       },
     );
 
@@ -153,9 +181,21 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user?.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneLocation)
       throw new HttpException(
@@ -175,8 +215,20 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
+      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findOneLocation)

@@ -5,12 +5,14 @@ export type GetCastrationsSelections = {
   search?: string;
   method?: Castration['method'];
   organizationId?: string;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneCastrationsSelections = {
   castrationId?: Castration['id'];
-  organizationId?: Castration['id'];
+  animalTypeId?: Castration['animalTypeId'];
+  organizationId?: Castration['organizationId'];
 };
 
 export type UpdateCastrationsSelections = {
@@ -27,11 +29,24 @@ export const castrationsSelect = {
   date: true,
   note: true,
   method: true,
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
+    },
+  },
   animalId: true,
   animal: {
     select: {
       code: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       status: true,
       gender: true,
       weight: true,

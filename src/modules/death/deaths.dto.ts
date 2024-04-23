@@ -3,15 +3,15 @@ import {
   IsArray,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateOrUpdateDeathsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -20,19 +20,21 @@ export class CreateOrUpdateDeathsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   codeAnimal: string;
 
   @IsOptional()
   @IsString()
   @IsEnum(AnimalStatus)
   status: AnimalStatus;
+
+  @IsNotEmpty()
+  @IsNumber()
+  number: number;
 }
 
 export class BulkDeathsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -42,4 +44,11 @@ export class BulkDeathsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+}
+
+export class DeathQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

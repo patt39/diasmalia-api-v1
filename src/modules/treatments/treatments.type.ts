@@ -3,12 +3,14 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetTreatmentsSelections = {
   search?: string;
-  organizationId: string;
+  organizationId?: string;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneTreatmentsSelections = {
   treatmentId?: Treatment['id'];
+  animalTypeId?: Treatment['animalTypeId'];
   organizationId?: Treatment['organizationId'];
 };
 
@@ -28,6 +30,7 @@ export const TreatmentSelect = {
   dose: true,
   name: true,
   date: true,
+  medication: true,
   diagnosis: true,
   animalId: true,
   animal: {
@@ -38,7 +41,13 @@ export const TreatmentSelect = {
       electronicCode: true,
       status: true,
       gender: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       location: {
         select: {
           code: true,
@@ -49,6 +58,13 @@ export const TreatmentSelect = {
           name: true,
         },
       },
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
   organizationId: true,

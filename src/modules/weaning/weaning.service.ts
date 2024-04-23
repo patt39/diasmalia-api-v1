@@ -22,16 +22,16 @@ export class WeaningsService {
     selections: GetWeaningsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.WeaningWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, animalTypeId, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (organizationId) {
@@ -92,6 +92,7 @@ export class WeaningsService {
       litter,
       animalId,
       farrowingId,
+      animalTypeId,
       organizationId,
       userCreatedId,
     } = options;
@@ -103,6 +104,7 @@ export class WeaningsService {
         litter,
         animalId,
         farrowingId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -117,8 +119,15 @@ export class WeaningsService {
     options: UpdateWeaningsOptions,
   ): Promise<Weaning> {
     const { weaningId } = selections;
-    const { note, litter, date, organizationId, userCreatedId, animalId } =
-      options;
+    const {
+      note,
+      litter,
+      date,
+      organizationId,
+      userCreatedId,
+      animalTypeId,
+      animalId,
+    } = options;
 
     const weaning = this.client.weaning.update({
       where: {
@@ -129,6 +138,7 @@ export class WeaningsService {
         date,
         litter,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },

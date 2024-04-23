@@ -17,6 +17,7 @@ export type GetOneAnimalsSelections = {
   animalId?: Animal['id'];
   code?: Animal['code'];
   gender?: Animal['gender'];
+  quantity?: Animal['quantity'];
   electronicCode?: Animal['electronicCode'];
   animalTypeId?: Animal['animalTypeId'];
   isCastrated?: 'TRUE' | 'FALSE';
@@ -42,16 +43,15 @@ export const AnimalSelect = {
   createdAt: true,
   id: true,
   code: true,
-  type: true,
   gender: true,
   weight: true,
   status: true,
+  quantity: true,
   birthday: true,
   codeFather: true,
   codeMother: true,
   productionPhase: true,
   electronicCode: true,
-  locationId: true,
   organizationId: true,
   organization: {
     select: {
@@ -60,16 +60,23 @@ export const AnimalSelect = {
       image: true,
     },
   },
+  locationId: true,
   location: {
     select: {
       code: true,
-      type: true,
       productionPhase: true,
     },
   },
   breedId: true,
   breed: {
     select: {
+      name: true,
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
       name: true,
     },
   },

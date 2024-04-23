@@ -22,9 +22,14 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { SalesService } from '../sales/sales.service';
 import { UserAuthGuard } from '../users/middleware';
-import { BulkDeathsDto, CreateOrUpdateDeathsDto } from './deaths.dto';
+import {
+  BulkDeathsDto,
+  CreateOrUpdateDeathsDto,
+  DeathQueryDto,
+} from './deaths.dto';
 import { DeathsService } from './deaths.service';
 
 @Controller('deaths')
@@ -33,6 +38,7 @@ export class DeathsController {
     private readonly deathsService: DeathsService,
     private readonly animalsService: AnimalsService,
     private readonly salesService: SalesService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all deaths */
@@ -43,9 +49,11 @@ export class DeathsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryDeath: DeathQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { animalTypeId } = queryDeath;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -53,13 +61,14 @@ export class DeathsController {
     const deaths = await this.deathsService.findAll({
       search,
       pagination,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
 
     return reply({ res, results: deaths });
   }
 
-  /** Post one death */
+  /** Post birds death */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
   async createOne(
@@ -68,28 +77,35 @@ export class DeathsController {
     @Body() body: CreateOrUpdateDeathsDto,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note } = body;
+    const { date, codeAnimal, note, number } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeAnimal,
     });
-    if (findOneAnimal.status === 'DEAD')
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
       throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists or animal already death, please change`,
+        `AnimalType not assigned please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const death = await this.deathsService.createOne({
       date,
       note,
-      animalId: findOneAnimal?.id,
-      organizationId: findOneAnimal?.organizationId,
-      userCreatedId: user?.id,
+      number,
+      animalId: findOneAnimal.id,
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: findOneAnimal.organizationId,
+      userCreatedId: user.id,
     });
 
     await this.animalsService.updateOne(
       { animalId: death?.animalId },
-      { status: 'DEAD' },
+      { quantity: findOneAnimal.quantity - number },
     );
 
     return reply({ res, results: death });
@@ -102,21 +118,33 @@ export class DeathsController {
     const { user } = req;
     const { date, animals, note } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         code: animal?.code,
+        animalTypeId: findOneAssignType.animalTypeId,
       });
-      if (findOneAnimal?.status === 'DEAD')
+      if (findOneAnimal.status === 'DEAD')
         throw new HttpException(
-          `Animal ${findOneAnimal?.code} doesn't exists or animal already death, please change`,
+          `Animal ${findOneAnimal.code} doesn't exists or already death, please change`,
           HttpStatus.NOT_FOUND,
         );
 
       const death = await this.deathsService.createOne({
         date,
         note,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
+        animalId: findOneAnimal.id,
+        organizationId: user.organizationId,
+        animalTypeId: findOneAssignType.animalTypeId,
         userCreatedId: user?.id,
       });
 
@@ -138,9 +166,21 @@ export class DeathsController {
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneDeadAnimal = await this.deathsService.findOneBy({
       deathId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneDeadAnimal)
       throw new HttpException(
@@ -161,11 +201,11 @@ export class DeathsController {
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note, status } = body;
+    const { date, codeAnimal, note, status, number } = body;
 
     const findOneDeath = await this.deathsService.findOneBy({
       deathId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneDeath)
       throw new HttpException(
@@ -187,13 +227,14 @@ export class DeathsController {
         date,
         note,
         status,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        number,
+        animalId: findOneAnimal.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
       });
 
       await this.animalsService.updateOne(
-        { animalId: findOneDeath?.animalId },
+        { animalId: findOneDeath.animalId },
         { status: status },
       );
     }
@@ -205,26 +246,31 @@ export class DeathsController {
       );
 
       await this.deathsService.updateOne(
-        { deathId: findOneDeath?.id },
+        { deathId: findOneDeath.id },
         { deletedAt: new Date(), status: 'DEAD' },
       );
     }
 
     if (status === 'SOLD') {
       await this.salesService.createOne({
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
         status: 'SOLD',
       });
 
       await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
+        { animalId: findOneAnimal.id },
         { status: status },
       );
 
       await this.salesService.updateOne(
-        { saleId: findOneDeath?.id },
+        { saleId: findOneDeath.id },
         { deletedAt: new Date(), status: 'SOLD' },
+      );
+
+      await this.animalsService.updateOne(
+        { animalId: findOneDeath.id },
+        { quantity: findOneAnimal.quantity - number },
       );
     }
 
@@ -240,9 +286,21 @@ export class DeathsController {
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneDeadAnimal = await this.deathsService.findOneBy({
       deathId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneDeadAnimal)
       throw new HttpException(
@@ -251,7 +309,7 @@ export class DeathsController {
       );
 
     const death = await this.deathsService.updateOne(
-      { deathId: findOneDeadAnimal?.id },
+      { deathId: findOneDeadAnimal.id },
       { deletedAt: new Date() },
     );
 

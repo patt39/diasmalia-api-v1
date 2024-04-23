@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetMilkingsSelections = {
   search?: string;
+  animalTypeId?: string;
   method?: MethodMilking;
   organizationId?: string;
   pagination?: PaginationType;
@@ -10,6 +11,7 @@ export type GetMilkingsSelections = {
 
 export type GetOneMilkingsSelections = {
   milkingId?: Milking['id'];
+  animalTypeId?: Milking['animalTypeId'];
   organizationId?: Milking['organizationId'];
 };
 
@@ -34,7 +36,13 @@ export const MilkingSelect = {
       productionPhase: true,
       weight: true,
       status: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       birthday: true,
       gender: true,
       code: true,
@@ -56,6 +64,13 @@ export const MilkingSelect = {
           name: true,
         },
       },
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
   userCreatedId: true,

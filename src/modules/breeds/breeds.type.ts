@@ -4,6 +4,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetBreedsSelections = {
   search?: string;
   organizationId?: string;
+  animalTypeId?: Breed['animalTypeId'];
   pagination?: PaginationType;
 };
 
@@ -25,6 +26,11 @@ export const BreedsSelect = {
   createdAt: true,
   id: true,
   name: true,
-  type: true,
-  userCreatedId: true,
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
+    },
+  },
 };

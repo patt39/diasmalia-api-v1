@@ -13,11 +13,6 @@ export class CreateOrUpdateCheckPregnanciesDto {
   @IsString()
   date: Date;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
-  codeFemale: string;
-
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -53,4 +48,9 @@ export class checkPregancyQueryDto {
   @IsString()
   @IsEnum(ResultCheckPregnancy)
   result: ResultCheckPregnancy;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

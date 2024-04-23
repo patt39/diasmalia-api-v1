@@ -3,13 +3,15 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetWeaningsSelections = {
   search?: string;
-  organizationId: string;
+  organizationId?: string;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneWeaningSelections = {
   weaningId?: Weaning['id'];
   organizationId?: Weaning['id'];
+  animalTypeId?: Weaning['animalTypeId'];
 };
 
 export type UpdateWeaningsSelections = {
@@ -30,7 +32,13 @@ export const WeaningSelect = {
   animal: {
     select: {
       code: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       status: true,
       gender: true,
       weight: true,
@@ -57,7 +65,13 @@ export const WeaningSelect = {
   organizationId: true,
   organization: {
     select: {
-      date: true,
+      name: true,
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
       name: true,
     },
   },

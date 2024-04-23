@@ -7,7 +7,6 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -53,17 +52,14 @@ export class ContactUsController {
   @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
-    @Req() req,
     @Body() createOrUpdateContactUsDto: CreateOrUpdateCurrenciesDto,
   ) {
-    const { user } = req;
     const { code, name, symbol } = createOrUpdateContactUsDto;
 
     const currency = await this.currenciesService.createOne({
       code,
       name,
       symbol,
-      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: currency });

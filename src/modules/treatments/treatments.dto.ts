@@ -1,14 +1,13 @@
 import { MedicationTypes, MethodTreatment } from '@prisma/client';
 
 import {
-  IsDate,
+  IsArray,
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateTreatmentsDto {
@@ -26,7 +25,6 @@ export class CreateOrUpdateTreatmentsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsDate()
   date: Date;
 
   @IsNotEmpty()
@@ -40,13 +38,54 @@ export class CreateOrUpdateTreatmentsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(MethodTreatment)
   method: MethodTreatment;
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(MedicationTypes)
   medication: MedicationTypes;
+}
+
+export class BulkTreatmentsDto {
+  @IsOptional()
+  @IsString()
+  note: string;
+
+  @IsOptional()
+  @IsString()
+  diagnosis: string;
+
+  @IsOptional()
+  @IsString()
+  dose: number;
+
+  @IsOptional()
+  @IsString()
+  name: string;
+
+  @IsNotEmpty()
+  @IsString()
+  date: Date;
+
+  @IsNotEmpty()
+  @IsArray()
+  animals: any;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(MethodTreatment)
+  method: MethodTreatment;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(MedicationTypes)
+  medication: MedicationTypes;
+}
+
+export class TreatmentDto {
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

@@ -95,6 +95,7 @@ export class AnimalsService {
       code,
       gender,
       status,
+      quantity,
       animalId,
       isIsolated,
       isCastrated,
@@ -140,6 +141,10 @@ export class AnimalsService {
       Object.assign(prismaWhere, { status });
     }
 
+    if (quantity) {
+      Object.assign(prismaWhere, { quantity });
+    }
+
     if (productionPhase) {
       Object.assign(prismaWhere, { productionPhase });
     }
@@ -165,6 +170,7 @@ export class AnimalsService {
       gender,
       birthday,
       breedId,
+      quantity,
       locationId,
       codeFather,
       codeMother,
@@ -183,6 +189,7 @@ export class AnimalsService {
         gender,
         birthday,
         breedId,
+        quantity,
         locationId,
         codeFather,
         codeMother,
@@ -211,6 +218,7 @@ export class AnimalsService {
       status,
       breedId,
       birthday,
+      quantity,
       codeFather,
       codeMother,
       animalTypeId,
@@ -232,6 +240,7 @@ export class AnimalsService {
         status,
         breedId,
         birthday,
+        quantity,
         codeFather,
         codeMother,
         animalTypeId,

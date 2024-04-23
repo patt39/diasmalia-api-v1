@@ -22,20 +22,24 @@ export class FeedingsService {
     selections: GetFeedingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FeedingWhereInput;
-    const { search, feedType, organizationId, pagination } = selections;
+    const { search, feedType, organizationId, animalTypeId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
+          { animal: { code: { contains: search, mode: 'insensitive' } } },
+          { feedType: { contains: search, mode: 'insensitive' } },
         ],
       });
     }
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (feedType) {
@@ -64,7 +68,7 @@ export class FeedingsService {
   /** Find one feeding in database. */
   async findOneBy(selections: GetOneFeedingSelections) {
     const prismaWhere = {} as Prisma.FeedingWhereInput;
-    const { feedingId, organizationId } = selections;
+    const { feedingId, animalTypeId, organizationId } = selections;
 
     if (feedingId) {
       Object.assign(prismaWhere, { id: feedingId });
@@ -72,6 +76,10 @@ export class FeedingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const feeding = await this.client.feeding.findFirst({
@@ -86,25 +94,27 @@ export class FeedingsService {
   async createOne(options: CreateFeedingsOptions): Promise<Feeding> {
     const {
       date,
+      note,
       quantity,
       feedType,
       animalId,
+      animalTypeId,
       productionPhase,
       organizationId,
       userCreatedId,
-      note,
     } = options;
 
     const feeding = this.client.feeding.create({
       data: {
         date,
+        note,
         quantity,
         feedType,
         productionPhase,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
-        note,
       },
     });
 
@@ -122,9 +132,10 @@ export class FeedingsService {
       note,
       quantity,
       feedType,
+      animalId,
       productionPhase,
       organizationId,
-      animalId,
+      animalTypeId,
       userCreatedId,
       deletedAt,
     } = options;
@@ -138,9 +149,10 @@ export class FeedingsService {
         note,
         quantity,
         feedType,
-        productionPhase,
         animalId,
+        productionPhase,
         organizationId,
+        animalTypeId,
         userCreatedId,
         deletedAt,
       },

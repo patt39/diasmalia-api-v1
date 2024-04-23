@@ -23,8 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateFarrowingsDto } from './farrowings.dto';
+import {
+  CreateOrUpdateFarrowingsDto,
+  FarrowingQueryDto,
+} from './farrowings.dto';
 import { FarrowingsService } from './farrowings.service';
 
 @Controller('farrowings')
@@ -32,6 +36,7 @@ export class FarrowingsController {
   constructor(
     private readonly farrowingsService: FarrowingsService,
     private readonly animalsService: AnimalsService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all farrowings */
@@ -42,9 +47,11 @@ export class FarrowingsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryFarrowing: FarrowingQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { animalTypeId } = queryFarrowing;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -52,6 +59,7 @@ export class FarrowingsController {
     const farrowings = await this.farrowingsService.findAll({
       search,
       pagination,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
 
@@ -69,15 +77,27 @@ export class FarrowingsController {
     const { user } = req;
     const { litter, note, date, codeFemale } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      isIsolated: 'FALSE',
       productionPhase: 'GESTATION',
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFemale) {
       throw new HttpException(
-        `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
+        `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -86,10 +106,16 @@ export class FarrowingsController {
       date,
       note,
       litter,
-      animalId: findOneFemale?.id,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      animalId: findOneFemale.id,
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
+
+    await this.animalsService.updateOne(
+      { animalId: findOneFemale.id },
+      { productionPhase: 'LACTATION' },
+    );
 
     return reply({
       res,
@@ -114,8 +140,20 @@ export class FarrowingsController {
     const { user } = req;
     const { litter, note, date, codeFemale } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFarrowing)
       throw new HttpException(
@@ -127,6 +165,7 @@ export class FarrowingsController {
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
+      isIsolated: 'FALSE',
       productionPhase: 'GESTATION',
     });
     if (!findOneFemale)
@@ -136,15 +175,20 @@ export class FarrowingsController {
       );
 
     const farrowing = await this.farrowingsService.updateOne(
-      { farrowingId: findOneFarrowing?.id },
+      { farrowingId: findOneFarrowing.id },
       {
         note,
         date,
         litter,
-        animalId: findOneFemale?.id,
-        organizationId: user?.organizationId,
+        animalId: findOneFemale.id,
+        organizationId: user.organizationId,
         userCreatedId: user?.id,
       },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneFemale.id },
+      { productionPhase: 'LACTATION' },
     );
 
     return reply({
@@ -165,9 +209,21 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const farrowing = await this.farrowingsService.findOneBy({
       farrowingId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!farrowingId)
       throw new HttpException(
@@ -187,9 +243,21 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFarrowing)
       throw new HttpException(

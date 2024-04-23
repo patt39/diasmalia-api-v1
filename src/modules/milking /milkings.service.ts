@@ -22,16 +22,17 @@ export class MilkingsService {
     selections: GetMilkingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.MilkingWhereInput;
-    const { search, method, organizationId, pagination } = selections;
+    const { search, method, animalTypeId, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (organizationId) {
@@ -64,7 +65,7 @@ export class MilkingsService {
   /** Find one milking in database. */
   async findOneBy(selections: GetOneMilkingsSelections) {
     const prismaWhere = {} as Prisma.MilkingWhereInput;
-    const { milkingId, organizationId } = selections;
+    const { milkingId, animalTypeId, organizationId } = selections;
 
     if (milkingId) {
       Object.assign(prismaWhere, { id: milkingId });
@@ -72,6 +73,10 @@ export class MilkingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const milking = await this.client.milking.findFirst({
@@ -90,6 +95,7 @@ export class MilkingsService {
       method,
       quantity,
       animalId,
+      animalTypeId,
       organizationId,
       userCreatedId,
     } = options;
@@ -101,6 +107,7 @@ export class MilkingsService {
         method,
         quantity,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -121,6 +128,7 @@ export class MilkingsService {
       method,
       quantity,
       animalId,
+      animalTypeId,
       organizationId,
       userCreatedId,
       deletedAt,
@@ -136,6 +144,7 @@ export class MilkingsService {
         method,
         quantity,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
         deletedAt,

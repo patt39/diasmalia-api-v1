@@ -1,0 +1,136 @@
+import { Injectable } from '@nestjs/common';
+import { AssignType, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
+import {
+  WithPaginationResponse,
+  withPagination,
+} from '../../app/utils/pagination';
+import {
+  AllAssignedTypeSelect,
+  CreateAssignTypesOptions,
+  GetAssignTypesSelections,
+  GetOneAssignTypeSelections,
+  UpdateAssignTypesOptions,
+  UpdateAssignTypesSelections,
+} from './assigne-type.type';
+
+@Injectable()
+export class AssignTypesService {
+  constructor(private readonly client: DatabaseService) {}
+
+  async findAll(
+    selections: GetAssignTypesSelections,
+  ): Promise<WithPaginationResponse | null> {
+    const prismaWhereAssignTask = {} as Prisma.AssignTypeWhereInput;
+    const { search, animalTypeId, userId, organizationId, pagination } =
+      selections;
+
+    if (search) {
+      Object.assign(prismaWhereAssignTask, {
+        OR: [
+          {
+            contributor: { contains: search, mode: 'insensitive' },
+          },
+        ],
+      });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhereAssignTask, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhereAssignTask, { animalTypeId });
+    }
+
+    if (userId) {
+      Object.assign(prismaWhereAssignTask, { userId });
+    }
+
+    const assignType = await this.client.assignType.findMany({
+      where: { ...prismaWhereAssignTask, deletedAt: null },
+      take: pagination.take,
+      skip: pagination.skip,
+      select: AllAssignedTypeSelect,
+      orderBy: pagination.orderBy,
+    });
+
+    const rowCount = await this.client.assignType.count({
+      where: { ...prismaWhereAssignTask, deletedAt: null },
+    });
+
+    return withPagination({
+      pagination,
+      rowCount,
+      value: assignType,
+    });
+  }
+
+  /** Find one assignedType in database. */
+  async findOneBy(selections: GetOneAssignTypeSelections) {
+    const prismaWhere = {} as Prisma.AssignTypeWhereInput;
+
+    const { status, assignTypeId, animalTypeId, organizationId } = selections;
+
+    if (assignTypeId) {
+      Object.assign(prismaWhere, { id: assignTypeId });
+    }
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    const assignType = await this.client.assignType.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
+      select: AllAssignedTypeSelect,
+    });
+
+    return assignType;
+  }
+
+  /** Create one assignedType in database. */
+  async createOne(options: CreateAssignTypesOptions): Promise<AssignType> {
+    const { animalTypeId, userId, organizationId, userCreatedId } = options;
+
+    const assignTask = this.client.assignType.create({
+      data: {
+        userId,
+        animalTypeId,
+        organizationId,
+        userCreatedId,
+      },
+    });
+
+    return assignTask;
+  }
+
+  /** Update one assignedType in database. */
+  async updateOne(
+    selections: UpdateAssignTypesSelections,
+    options: UpdateAssignTypesOptions,
+  ): Promise<AssignType> {
+    const { assignTypeId } = selections;
+    const { animalTypeId, status, userId, deletedAt } = options;
+
+    const assignType = this.client.assignType.update({
+      where: {
+        id: assignTypeId,
+      },
+      data: {
+        userId,
+        status,
+        animalTypeId,
+        deletedAt,
+      },
+    });
+
+    return assignType;
+  }
+}

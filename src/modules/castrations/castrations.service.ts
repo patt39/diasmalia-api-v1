@@ -22,20 +22,20 @@ export class CastrationsService {
     selections: GetCastrationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.CastrationWhereInput;
-    const { search, method, pagination } = selections;
+    const { search, method, animalTypeId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            maleCode: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
     }
 
     if (method) {
       Object.assign(prismaWhere, { method });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const castrations = await this.client.castration.findMany({
@@ -61,7 +61,7 @@ export class CastrationsService {
   async findOneBy(selections: GetOneCastrationsSelections) {
     const prismaWhere = {} as Prisma.CastrationWhereInput;
 
-    const { castrationId, organizationId } = selections;
+    const { castrationId, animalTypeId, organizationId } = selections;
 
     if (castrationId) {
       Object.assign(prismaWhere, { id: castrationId });
@@ -69,6 +69,10 @@ export class CastrationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const castration = await this.client.castration.findFirst({
@@ -80,8 +84,15 @@ export class CastrationsService {
 
   /** Create one castration in database. */
   async createOne(options: CreateCastrationsOptions): Promise<Castration> {
-    const { date, animalId, method, note, organizationId, userCreatedId } =
-      options;
+    const {
+      note,
+      date,
+      method,
+      animalId,
+      animalTypeId,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const castration = this.client.castration.create({
       data: {
@@ -89,6 +100,7 @@ export class CastrationsService {
         note,
         method,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -103,13 +115,29 @@ export class CastrationsService {
     options: UpdateCastrationsOptions,
   ): Promise<Castration> {
     const { castrationId } = selections;
-    const { date, note, method, animalId, organizationId, deletedAt } = options;
+    const {
+      date,
+      note,
+      method,
+      animalId,
+      animalTypeId,
+      organizationId,
+      deletedAt,
+    } = options;
 
     const castration = this.client.castration.update({
       where: {
         id: castrationId,
       },
-      data: { date, note, method, animalId, organizationId, deletedAt },
+      data: {
+        date,
+        note,
+        method,
+        animalId,
+        animalTypeId,
+        organizationId,
+        deletedAt,
+      },
     });
 
     return castration;

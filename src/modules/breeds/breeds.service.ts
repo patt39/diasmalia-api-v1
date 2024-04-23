@@ -22,16 +22,16 @@ export class BreedsService {
     selections: GetBreedsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.BreedWhereInput;
-    const { search, pagination } = selections;
+    const { search, animalTypeId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            name: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ name: { contains: search, mode: 'insensitive' } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const breeds = await this.client.breed.findMany({

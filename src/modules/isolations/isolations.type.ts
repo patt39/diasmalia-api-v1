@@ -4,11 +4,13 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetIsolationsSelections = {
   search?: string;
   organizationId?: string;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneIsolationsSelections = {
   isolationId?: Isolation['id'];
+  animalTypeId?: Isolation['animalTypeId'];
   organizationId?: Isolation['id'];
 };
 
@@ -29,7 +31,13 @@ export const isolationsSelect = {
   animal: {
     select: {
       code: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       status: true,
       gender: true,
       weight: true,
@@ -45,6 +53,13 @@ export const isolationsSelect = {
           name: true,
         },
       },
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
   userCreatedId: true,

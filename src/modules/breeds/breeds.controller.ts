@@ -22,13 +22,17 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalTypesService } from '../animal-type/animal-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateBreedsDto, GetBreedsTypeDto } from './breeds.dto';
 import { BreedsService } from './breeds.service';
 
 @Controller('breeds')
 export class BreedsController {
-  constructor(private readonly breedsService: BreedsService) {}
+  constructor(
+    private readonly breedsService: BreedsService,
+    private readonly animalTypesService: AnimalTypesService,
+  ) {}
 
   /** Get all breeds */
   @Get(`/`)
@@ -42,6 +46,7 @@ export class BreedsController {
   ) {
     const { user } = req;
     const { search } = query;
+    const { animalTypeId } = queryTypes;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -49,6 +54,7 @@ export class BreedsController {
     const breeds = await this.breedsService.findAll({
       search,
       pagination,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
 
@@ -58,7 +64,12 @@ export class BreedsController {
   /** Post one breed */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(@Res() res, @Body() body: CreateOrUpdateBreedsDto) {
+  async createOne(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateBreedsDto,
+  ) {
+    const { user } = req;
     const { name, animalTypeId } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({

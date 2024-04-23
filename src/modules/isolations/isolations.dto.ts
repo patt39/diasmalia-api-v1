@@ -3,7 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  MaxLength,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateOrUpdateIsolationsDto {
@@ -23,7 +23,6 @@ export class CreateOrUpdateIsolationsDto {
 export class BulkIsolationsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -33,4 +32,11 @@ export class BulkIsolationsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+}
+
+export class IsolationsQueryDto {
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

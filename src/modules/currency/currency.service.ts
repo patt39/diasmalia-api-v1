@@ -77,10 +77,10 @@ export class CurrenciesService {
 
   /** Create one currency in database. */
   async createOne(options: CreateCurrenciesOptions): Promise<Currency> {
-    const { code, name, symbol, organizationId } = options;
+    const { code, name, symbol } = options;
 
     const currency = this.client.currency.create({
-      data: { code, name, symbol, organizationId },
+      data: { code, name, symbol },
     });
 
     return currency;

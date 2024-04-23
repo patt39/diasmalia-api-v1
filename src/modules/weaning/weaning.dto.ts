@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateWeaningsDto {
@@ -14,7 +13,6 @@ export class CreateOrUpdateWeaningsDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -29,4 +27,11 @@ export class CreateOrUpdateWeaningsDto {
   @IsString()
   @IsUUID()
   farrowingId: string;
+}
+
+export class WeaningDto {
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

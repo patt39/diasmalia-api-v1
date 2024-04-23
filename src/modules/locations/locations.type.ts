@@ -33,7 +33,13 @@ export const LocationsSelect = {
   squareMeter: true,
   through: true,
   manger: true,
-  type: true,
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
+    },
+  },
   userCreatedId: true,
   productionPhase: true,
   organizationId: true,

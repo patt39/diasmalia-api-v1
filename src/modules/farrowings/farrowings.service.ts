@@ -22,16 +22,16 @@ export class FarrowingsService {
     selections: GetFarrowingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FarrowingWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, organizationId, animalTypeId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            codeFemale: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (organizationId) {
@@ -60,14 +60,14 @@ export class FarrowingsService {
   /** Find one farrowing in database. */
   async findOneBy(selections: GetOneFarrowingsSelections) {
     const prismaWhere = {} as Prisma.FarrowingWhereInput;
-    const { farrowingId, litter } = selections;
+    const { farrowingId, animalTypeId } = selections;
 
     if (farrowingId) {
       Object.assign(prismaWhere, { id: farrowingId });
     }
 
-    if (litter) {
-      Object.assign(prismaWhere, { litter });
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const farrowing = await this.client.farrowing.findFirst({
@@ -80,8 +80,15 @@ export class FarrowingsService {
 
   /** Create one farrowing in database. */
   async createOne(options: CreateFarrowingsOptions): Promise<Farrowing> {
-    const { note, litter, date, organizationId, userCreatedId, animalId } =
-      options;
+    const {
+      note,
+      date,
+      litter,
+      animalId,
+      animalTypeId,
+      userCreatedId,
+      organizationId,
+    } = options;
 
     const farrowing = this.client.farrowing.create({
       data: {
@@ -89,6 +96,7 @@ export class FarrowingsService {
         date,
         litter,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -108,6 +116,7 @@ export class FarrowingsService {
       date,
       litter,
       animalId,
+      animalTypeId,
       organizationId,
       userCreatedId,
       deletedAt,
@@ -122,6 +131,7 @@ export class FarrowingsService {
         date,
         litter,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
         deletedAt,

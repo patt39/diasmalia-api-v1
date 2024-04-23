@@ -34,21 +34,22 @@ export class BreedingsService {
       animalId,
       checkStatus,
       pagination,
+      animalTypeId,
       organizationId,
     } = selections;
 
     if (search) {
       Object.assign(prismaWhereBreeding, {
-        OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
     }
 
     if (organizationId) {
       Object.assign(prismaWhereBreeding, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhereBreeding, { animalTypeId });
     }
 
     if (checkStatus) {
@@ -125,7 +126,8 @@ export class BreedingsService {
   async findOneBy(selections: GetOneBreedingsSelections) {
     const prismaWhere = {} as Prisma.BreedingWhereInput;
 
-    const { breedingId, organizationId, checkStatus } = selections;
+    const { breedingId, animalTypeId, organizationId, checkStatus } =
+      selections;
 
     if (breedingId) {
       Object.assign(prismaWhere, { id: breedingId });
@@ -137,6 +139,10 @@ export class BreedingsService {
 
     if (checkStatus) {
       Object.assign(prismaWhere, { checkStatus });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const breeding = await this.client.breeding.findFirst({
@@ -184,6 +190,7 @@ export class BreedingsService {
       date,
       note,
       method,
+      animalTypeId,
       animalFemaleId,
       animalMaleId,
       organizationId,
@@ -195,6 +202,7 @@ export class BreedingsService {
         date,
         note,
         method,
+        animalTypeId,
         animalFemaleId,
         animalMaleId,
         organizationId,
@@ -216,6 +224,7 @@ export class BreedingsService {
       note,
       method,
       checkStatus,
+      animalTypeId,
       animalFemaleId,
       animalMaleId,
       deletedAt,
@@ -230,6 +239,7 @@ export class BreedingsService {
         note,
         method,
         checkStatus,
+        animalTypeId,
         animalFemaleId,
         animalMaleId,
         deletedAt,

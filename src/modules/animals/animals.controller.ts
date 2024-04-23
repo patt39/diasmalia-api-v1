@@ -24,6 +24,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { LocationsService } from '../locations/locations.service';
@@ -37,6 +38,7 @@ export class AnimalsController {
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
     private readonly breedsService: BreedsService,
+    private readonly assignTypesService: AssignTypesService,
     private readonly uploadsUtil: UploadsUtil,
   ) {}
 
@@ -84,10 +86,10 @@ export class AnimalsController {
       gender,
       breedId,
       birthday,
-      locationId,
-      codeFather,
+      quantity,
       codeMother,
-      animalTypeId,
+      codeFather,
+      locationId,
       electronicCode,
       productionPhase,
     } = body;
@@ -99,45 +101,40 @@ export class AnimalsController {
     });
     if (findOneAnimal)
       throw new HttpException(
-        `Animal code: ${code} already exists please change`,
+        `Animal code: ${code} or ${electronicCode} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneAnimal)
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
       throw new HttpException(
-        `Animal electronicCode: ${electronicCode} already exists please change`,
+        `AnimalType not assigned please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneLocation)
       throw new HttpException(
-        `LocationId: ${locationId} doesn't exists or isn't the correct productionPhase please change`,
+        `LocationId: ${locationId} doesn't exists or isn't in the correct productionPhase please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneType = await this.locationsService.findOneBy({
-      animalTypeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneType)
-      throw new HttpException(
-        `AnimalTypeId: ${animalTypeId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    // if (findOneLocation?.productionPhase !== productionPhase)
+    //   throw new HttpException(
+    //     `Animal can't be placed in this location code: ${findOneLocation.code} please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
-    if (findOneLocation.productionPhase !== productionPhase)
+    if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
       throw new HttpException(
-        `Animal can't be placed in this location ${findOneLocation.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneLocation.type !== findOneType.type)
-      throw new HttpException(
-        `Animal location ${findOneLocation.type} isn't valid please change`,
+        `Animal can't be created in this type`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -165,15 +162,16 @@ export class AnimalsController {
       code,
       weight,
       gender,
+      quantity,
       birthday,
       codeFather,
       codeMother,
-      productionPhase,
       electronicCode,
-      animalTypeId: findOneType.id,
-      locationId: findOneLocation?.id,
-      breedId: findOneBreed?.id,
-      organizationId: user?.organizationId,
+      productionPhase,
+      breedId: findOneBreed.id,
+      locationId: findOneLocation.id,
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user.organizationId,
       userCreatedId: user?.id,
     });
 
@@ -208,7 +206,6 @@ export class AnimalsController {
       codeFather,
       codeMother,
       locationId,
-      animalTypeId,
       electronicCode,
       productionPhase,
     } = body;
@@ -233,14 +230,29 @@ export class AnimalsController {
       locationId,
       organizationId: user?.organizationId,
     });
-
     if (!findOneLocation)
       throw new HttpException(
         `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     if (findOneLocation.productionPhase !== productionPhase)
+      throw new HttpException(
+        `Animal can't be placed in this location ${findOneLocation.code} please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
       throw new HttpException(
         `Animal can't be placed in this location ${findOneLocation.code} please change`,
         HttpStatus.NOT_FOUND,
@@ -256,12 +268,6 @@ export class AnimalsController {
         `Male animalId: ${animalId} can't be in this phase please change`,
         HttpStatus.NOT_FOUND,
       );
-
-    // if (findOneLocation.type !== type)
-    //   throw new HttpException(
-    //     `Animal location ${findOneLocation.type} isn't valid please change`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
@@ -284,10 +290,10 @@ export class AnimalsController {
         electronicCode,
         productionPhase,
         photo: fileName,
-        animalTypeId,
-        locationId: findOneLocation?.id,
-        breedId: findOneBreed?.id,
-        organizationId: user?.organizationId,
+        animalTypeId: findOneAssignType.id,
+        locationId: findOneLocation.id,
+        breedId: findOneBreed.id,
+        organizationId: user.organizationId,
         userCreatedId: user?.id,
       },
     );

@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -39,7 +40,6 @@ export class CreateOrUpdateMilkingsDto {
 export class BulkMilkingsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -56,15 +56,18 @@ export class BulkMilkingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(MethodMilking)
   method: MethodMilking;
 }
 
-export class GetMilkingsByMethod {
+export class GetMilkingsQueryDto {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(MethodMilking)
   method: MethodMilking;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

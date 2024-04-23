@@ -5,6 +5,7 @@ export type GetCheckPregnanciesSelections = {
   search?: string;
   organizationId: string;
   pagination?: PaginationType;
+  animalTypeId?: string;
   method?: CheckPregnancy['method'];
   result?: CheckPregnancy['result'];
 };
@@ -12,7 +13,8 @@ export type GetCheckPregnanciesSelections = {
 export type GetOneCheckPregnanciesSelections = {
   checkPregnancyId?: CheckPregnancy['id'];
   result?: CheckPregnancy['result'];
-  farrowingDate?: CheckPregnancy['farrowingDate'];
+  breedingId?: CheckPregnancy['breedingId'];
+  animalTypeId?: CheckPregnancy['animalTypeId'];
   organizationId?: CheckPregnancy['organizationId'];
 };
 
@@ -28,10 +30,8 @@ export const CheckPregnancySelect = {
   createdAt: true,
   id: true,
   date: true,
-  note: true,
   method: true,
   result: true,
-  farrowingDate: true,
   organizationId: true,
   organization: {
     select: {
@@ -45,6 +45,13 @@ export const CheckPregnancySelect = {
       date: true,
       method: true,
       checkStatus: true,
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
 };
