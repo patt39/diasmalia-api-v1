@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -64,14 +65,18 @@ export class BulkFeedingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 }
 
-export class GetFeedTypeDts {
+export class GetFeedQueryDto {
   @IsOptional()
   @IsString()
   @IsEnum(FeedType)
   feedType: FeedType;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

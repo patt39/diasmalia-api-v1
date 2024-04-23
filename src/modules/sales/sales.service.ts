@@ -6,7 +6,6 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { AnimalsService } from '../animals/animals.service';
 import {
   CreateSalesOptions,
   GetOneSaleSelections,
@@ -17,10 +16,7 @@ import {
 } from './sales.type';
 @Injectable()
 export class SalesService {
-  constructor(
-    private readonly client: DatabaseService,
-    private readonly animalsService: AnimalsService,
-  ) {}
+  constructor(private readonly client: DatabaseService) {}
 
   async findAll(
     selections: GetSalesSelections,
@@ -31,9 +27,10 @@ export class SalesService {
     if (search) {
       Object.assign(prismaWhere, {
         OR: [
-          { animalCode: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
           { soldTo: { contains: search, mode: 'insensitive' } },
+          { animalCode: { contains: search, mode: 'insensitive' } },
+          { animalType: { name: { contains: search, mode: 'insensitive' } } },
         ],
       });
     }
@@ -107,6 +104,7 @@ export class SalesService {
       method,
       address,
       animalId,
+      quantity,
       animalCode,
       animalTypeId,
       organizationId,
@@ -125,6 +123,7 @@ export class SalesService {
         method,
         address,
         animalId,
+        quantity,
         animalCode,
         animalTypeId,
         organizationId,
@@ -152,6 +151,7 @@ export class SalesService {
       method,
       address,
       animalId,
+      quantity,
       animalCode,
       animalTypeId,
       organizationId,
@@ -174,6 +174,7 @@ export class SalesService {
         method,
         address,
         animalId,
+        quantity,
         animalCode,
         animalTypeId,
         organizationId,

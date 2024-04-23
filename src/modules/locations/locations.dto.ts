@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateOrUpdateLocationsDto {
@@ -24,7 +25,7 @@ export class CreateOrUpdateLocationsDto {
   @IsString()
   code: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
@@ -34,4 +35,9 @@ export class GetLocationsQueryDto {
   @IsString()
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

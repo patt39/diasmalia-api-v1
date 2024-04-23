@@ -28,6 +28,7 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { CurrenciesService } from '../currency/currency.service';
 import { DeathsService } from '../death/deaths.service';
 import {
@@ -42,7 +43,7 @@ import {
   BulkSalesDto,
   CreateOrUpdateSalesDto,
   GetOneUploadsDto,
-  SaleMethodDto,
+  SalesDto,
 } from './sales.dto';
 import { SalesService } from './sales.service';
 
@@ -54,6 +55,7 @@ export class SalesController {
     private readonly deathsService: DeathsService,
     private readonly usersService: UsersService,
     private readonly currenciesService: CurrenciesService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all Sales */
@@ -64,7 +66,7 @@ export class SalesController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() querySaleMethod: SaleMethodDto,
+    @Query() querySaleMethod: SalesDto,
   ) {
     const { user } = req;
     const { search } = query;
@@ -94,7 +96,8 @@ export class SalesController {
     @Param('saleId', ParseUUIDPipe) saleId: string,
   ) {
     const { user } = req;
-    const { note, status, price, date, code, method, soldTo, phone } = body;
+    const { note, status, price, date, animalCode, method, soldTo, phone } =
+      body;
 
     const findOneSale = await this.salesService.findOneBy({
       saleId,
@@ -106,11 +109,11 @@ export class SalesController {
       );
 
     const findOneAnimal = await this.animalsService.findOneBy({
-      code,
+      code: animalCode,
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        `Animal ${findOneAnimal.code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -125,7 +128,7 @@ export class SalesController {
           status,
           method,
           soldTo,
-          animalId: findOneAnimal?.id,
+          animalId: findOneAnimal.id,
           organizationId: user?.organizationId,
           userCreatedId: user?.id,
         },
@@ -139,21 +142,21 @@ export class SalesController {
 
     if (status === 'ACTIVE') {
       await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
+        { animalId: findOneAnimal.id },
         { status: status },
       );
 
       await this.salesService.updateOne(
-        { saleId: findOneSale?.id },
+        { saleId: findOneSale.id },
         { deletedAt: new Date(), status: 'SOLD' },
       );
     }
 
     if (status === 'DEAD') {
       await this.deathsService.createOne({
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalId: findOneAnimal.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
         status: 'DEAD',
       });
 
@@ -163,7 +166,7 @@ export class SalesController {
       );
 
       await this.salesService.updateOne(
-        { saleId: findOneSale?.id },
+        { saleId: findOneSale.id },
         { deletedAt: new Date(), status: 'SOLD' },
       );
     }
@@ -179,7 +182,6 @@ export class SalesController {
     const {
       date,
       note,
-      type,
       phone,
       email,
       price,
@@ -187,31 +189,39 @@ export class SalesController {
       soldTo,
       animals,
       address,
+      animalTypeId,
     } = body;
 
-    const findOneUser = await this.usersService.findOneBy({ email });
-
-    const getCurrency = await this.currenciesService.findOneBy({
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
       organizationId: user.organizationId,
     });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneUser = await this.usersService.findOneBy({ email });
 
     const newAnimalArrayPdf: any = [];
     const animalArrayPdfCodes: any = [];
     const animalArrayPdfWeights: any = [];
     const animalArrayPdfGenders: any = [];
+    const animalArrayPdfTypes: any = [];
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
-        code: animal?.code,
+        code: animal.code,
       });
-      if (findOneAnimal?.status === 'SOLD')
+      if (findOneAnimal.status === 'SOLD')
         throw new HttpException(
           `Animal ${findOneAnimal?.code} doesn't exists or already SOLD please change`,
           HttpStatus.NOT_FOUND,
         );
 
       const findOneAnimalSold = await this.salesService.findOneBy({
-        animalId: findOneAnimal?.id,
+        animalId: findOneAnimal.id,
       });
       if (findOneAnimalSold)
         throw new HttpException(
@@ -234,6 +244,7 @@ export class SalesController {
       animalArrayPdfCodes.push(findOneAnimal?.code);
       animalArrayPdfWeights.push(findOneAnimal?.weight);
       animalArrayPdfGenders.push(findOneAnimal?.gender);
+      animalArrayPdfTypes.push(findOneAnimal?.animalType.name);
 
       const sale = await this.salesService.createOne({
         note,
@@ -244,8 +255,10 @@ export class SalesController {
         method,
         soldTo,
         address,
-        animalId: findOneAnimal?.id,
-        animalCode: findOneAnimal?.code,
+        animalId: findOneAnimal.id,
+        animalCode: findOneAnimal.code,
+        type: findOneAssignType.animalType.name,
+        animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
@@ -365,11 +378,12 @@ export class SalesController {
                   {
                     table: {
                       body: [
-                        ['Codes', 'Weight', 'Gender'],
+                        ['Codes', 'Weight', 'Gender', 'Type'],
                         [
                           animalArrayPdfCodes,
                           animalArrayPdfWeights,
                           animalArrayPdfGenders,
+                          animalArrayPdfTypes,
                         ],
                       ],
                     },
@@ -387,7 +401,7 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         {
-          text: `Price:  ${price} ${getCurrency.symbol}`,
+          text: `Price:  ${price} ${user.organization.currency.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
@@ -464,10 +478,16 @@ export class SalesController {
     }
 
     if (email === null) {
-      const pdfNoEmail = pdfMake
-        .createPdf(docDefinition)
-        .download(`${nameFile}.pdf`);
-      console.log('pdf===>', pdfNoEmail);
+      try {
+        pdfMake.createPdf(docDefinition);
+        res.setHeader(
+          'Content-Disposition',
+          'attachment; filename= ' + `${nameFile}.xlsx`,
+        );
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Error during download.');
+      }
     }
 
     if (!findOneUser) {
@@ -478,6 +498,277 @@ export class SalesController {
         content: Buffer.concat(chunks),
       });
     }
+    return reply({ res, results: 'Sale saved successfully' });
+  }
+
+  /** Post Bulk Bird sale */
+  @Post(`/birds/create`)
+  @UseGuards(UserAuthGuard)
+  async createOneBird(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateSalesDto,
+  ) {
+    const { user } = req;
+    const {
+      date,
+      note,
+      phone,
+      email,
+      price,
+      method,
+      soldTo,
+      address,
+      quantity,
+      animalCode,
+    } = body;
+
+    const findOneUser = await this.usersService.findOneBy({ email });
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code: animalCode,
+      organizationId: user.organizationId,
+    });
+    console.log(findOneAnimal);
+    // if (!findOneAnimal)
+    //   throw new HttpException(
+    //     `Animal ${animalCode} doesn't exists or already SOLD please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
+
+    await this.salesService.createOne({
+      note,
+      date,
+      email,
+      price,
+      phone,
+      method,
+      soldTo,
+      address,
+      quantity,
+      animalCode,
+      animalId: findOneAnimal.id,
+      type: findOneAnimal.animalType.name,
+      animalTypeId: findOneAnimal.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
+    });
+
+    const fonts = {
+      Helvetica: {
+        normal: 'Helvetica',
+        bold: 'Helvetica-Bold',
+        italics: 'Helvetica-Oblique',
+        bolditalics: 'Helvetica-BoldOblique',
+      },
+    };
+
+    const printer = new PdfPrinter(fonts);
+    const docDefinition = {
+      watermark: {
+        text: `${user?.organization?.name}`,
+        color: 'blue',
+        opacity: 0.1,
+        bold: true,
+        italics: false,
+      },
+      info: {
+        title: 'awesome Document',
+        author: 'john doe',
+        subject: 'subject of document',
+        keywords: 'keywords for document',
+      },
+      footer: function (currentPage, pageCount) {
+        return {
+          text: 'Page ' + currentPage.toString() + ' of ' + pageCount,
+          alignment: 'right',
+          style: 'normalText',
+          margin: [10, 10, 10, 10],
+        };
+      },
+
+      content: [
+        {
+          text: `${user?.organization?.logo}`,
+          alignment: 'center',
+          style: { fontSize: 10 },
+          margin: [0, 10],
+        },
+        {
+          text: `Animals sale reciept`,
+          alignment: 'center',
+          bold: true,
+          style: { fontSize: 20 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Agreement between`,
+          alignment: 'center',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Seller: ${user?.organization?.name}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Address: ${user?.profile?.address}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Email: ${user?.email},  Phone:  ${user?.profile?.phone}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `- AND -`,
+          alignment: 'center',
+          bold: true,
+          style: { fontSize: 16 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Buyer: ${soldTo}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Adresse: ${address}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Email: ${email},  Phone:  ${phone}`,
+          style: { fontSize: 14 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Below are the QRCodes of your animals and a sample of your animals informations you can have access to them through our organization by simply scanning them anytime`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          table: {
+            body: [
+              ['Type', 'Weight', 'Number'],
+              [findOneAnimal.animalType.name, findOneAnimal.weight, quantity],
+            ],
+          },
+        },
+        '\n',
+        {
+          text: `Quantity: ${quantity}`,
+          style: { fontSize: 12 },
+          bold: true,
+          margin: [0, 0, 0, 20],
+        },
+        {
+          text: `Price:  ${price} ${user.organization.currency?.symbol}`,
+          style: { fontSize: 12 },
+          bold: true,
+          margin: [0, 0, 0, 20],
+        },
+        {
+          text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues thanks`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 20],
+        },
+        '\n',
+        {
+          text: `Sold in ${method}, ${date}`,
+          style: { fontSize: 10 },
+          margin: [0, 0, 0, 20],
+        },
+      ],
+      patterns: {
+        stripe45d: {
+          boundingBox: [1, 1, 4, 4],
+          xStep: 3,
+          yStep: 3,
+          pattern: '1 w 0 1 m 4 5 l s 2 0 m 5 3 l s',
+        },
+      },
+      styles: {
+        policyText: {
+          //fontSize: 20,
+          // bold: true,
+        },
+      },
+      defaultStyle: {
+        //columnGap: 30,
+        //bold: true,
+        font: 'Helvetica',
+      },
+    } as TDocumentDefinitions;
+
+    const nameFile = `${formateNowDateYYMMDD(new Date())}-${generateUUID()}`;
+    const fileName = `${nameFile}.pdf`;
+    const pdfDoc = printer.createPdfKitDocument(docDefinition);
+    pdfDoc.compress = true;
+    const chunks = [] as any;
+    await new Promise((resolve, reject) => {
+      const stream = new Writable({
+        write: (chunk, _, next) => {
+          chunks.push(chunk);
+          next();
+        },
+      });
+      stream.once('error', (err) => reject(err));
+      stream.once('close', () => resolve('ok'));
+
+      pdfDoc.pipe(stream);
+      pdfDoc.end();
+    });
+    // const pdf = printer.createPdfKitDocument(docDefinition);
+    // pdf.pipe(fs.createWriteStream(`${nameFile}.pdf`));
+    // pdf.end();
+
+    await awsS3ServiceAdapter({
+      fileName: fileName,
+      mimeType: 'application/pdf',
+      folder: 'sales-pdf',
+      file: Buffer.concat(chunks),
+    });
+
+    if (findOneUser) {
+      await emailPDFAttachment({
+        user,
+        email: findOneUser?.email,
+        filename: fileName,
+        content: Buffer.concat(chunks),
+      });
+    }
+
+    if (email === null) {
+      try {
+        pdfMake.createPdf(docDefinition);
+        res.setHeader(
+          'Content-Disposition',
+          'attachment; filename= ' + `${nameFile}.xlsx`,
+        );
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Error during download.');
+      }
+    }
+
+    if (!findOneUser) {
+      await emailPDFAttachment({
+        user,
+        email: email,
+        filename: fileName,
+        content: Buffer.concat(chunks),
+      });
+    }
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal.id },
+      { quantity: findOneAnimal.quantity - quantity },
+    );
+
     return reply({ res, results: 'Sale saved successfully' });
   }
 

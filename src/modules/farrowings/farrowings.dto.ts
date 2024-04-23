@@ -3,7 +3,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateOrUpdateFarrowingsDto {
@@ -13,7 +13,6 @@ export class CreateOrUpdateFarrowingsDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -22,6 +21,12 @@ export class CreateOrUpdateFarrowingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   codeFemale: string;
+}
+
+export class FarrowingQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

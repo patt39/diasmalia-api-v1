@@ -23,11 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkCastrationsDto,
   CreateOrUpdateCastrationsDto,
-  GetCastrationsByMethodDto,
+  GetCastrationsQueryDto,
 } from './castrations.dto';
 import { CastrationsService } from './castrations.service';
 
@@ -36,6 +37,7 @@ export class CastrationsController {
   constructor(
     private readonly castrationsService: CastrationsService,
     private readonly animalsService: AnimalsService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all castrations */
@@ -46,11 +48,11 @@ export class CastrationsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryMethod: GetCastrationsByMethodDto,
+    @Query() queryCastration: GetCastrationsQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { method } = queryMethod;
+    const { method, animalTypeId } = queryCastration;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -59,44 +61,11 @@ export class CastrationsController {
       search,
       method,
       pagination,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: castrations });
-  }
-
-  /** Post one castration */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateCastrationsDto,
-  ) {
-    const { user } = req;
-    const { date, method, note, maleCode } = body;
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code: maleCode,
-      gender: 'MALE',
-      status: 'ACTIVE',
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `Animal doesn't exists or isn't MALE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const castration = await this.castrationsService.createOne({
-      date,
-      note,
-      method,
-      animalId: findOneAnimal?.id,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
-    });
-
-    return reply({ res, results: castration });
   }
 
   /** Post one Bulk castration */
@@ -110,11 +79,22 @@ export class CastrationsController {
     const { user } = req;
     const { date, method, animals, note } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     for (const animal of animals) {
       const findOneMale = await this.animalsService.findOneBy({
         status: 'ACTIVE',
         code: animal?.code,
         gender: 'MALE',
+        animalTypeId: findOneAssignType.animalTypeId,
       });
       if (!findOneMale)
         throw new HttpException(
@@ -126,8 +106,9 @@ export class CastrationsController {
         note,
         date,
         method,
-        animalId: findOneMale?.id,
-        organizationId: user?.organizationId,
+        animalId: findOneMale.id,
+        animalTypeId: findOneAssignType.animalTypeId,
+        organizationId: user.organizationId,
         userCreatedId: user?.id,
       });
     }
@@ -147,9 +128,20 @@ export class CastrationsController {
     const { user } = req;
     const { date, note, method, maleCode } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneCastration = await this.castrationsService.findOneBy({
       castrationId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneCastration)
       throw new HttpException(
@@ -169,18 +161,51 @@ export class CastrationsController {
       );
 
     const castration = await this.castrationsService.updateOne(
-      { castrationId: findOneCastration?.id },
+      { castrationId: findOneCastration.id },
       {
         date,
         note,
         method,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
+        animalId: findOneAnimal.id,
+        organizationId: user.organizationId,
         userCreatedId: user?.id,
       },
     );
 
     return reply({ res, results: castration });
+  }
+
+  /** Get one castration */
+  @Get(`/view/:castrationId`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdBreed(
+    @Res() res,
+    @Req() req,
+    @Param('castrationId') castrationId: string,
+  ) {
+    const { user } = req;
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneCastration = await this.castrationsService.findOneBy({
+      castrationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
+    });
+    if (!findOneCastration)
+      throw new HttpException(
+        `CastrationId: ${castrationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneCastration });
   }
 
   /** Delete one castration */
@@ -193,9 +218,20 @@ export class CastrationsController {
   ) {
     const { user } = req;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneCastration = await this.castrationsService.findOneBy({
       castrationId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneCastration)
       throw new HttpException(

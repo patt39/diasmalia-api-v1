@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { AnimalTypesService } from '../animal-type/animal-type.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
 import { CastrationsService } from '../castrations/castrations.service';
 import { UploadsUtil } from '../integrations/integration.utils';
@@ -16,6 +18,8 @@ import { AnimalsService } from './animals.service';
     UploadsUtil,
     IsolationsService,
     CastrationsService,
+    AnimalTypesService,
+    AssignTypesService,
   ],
 })
 export class AnimalsModule {}

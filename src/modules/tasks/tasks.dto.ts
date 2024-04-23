@@ -5,13 +5,11 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateTasksDto {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   title: string;
 
   @IsNotEmpty()
@@ -24,7 +22,6 @@ export class CreateOrUpdateTasksDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   @IsEnum(TaskStatus)
   status: TaskStatus;
 
@@ -37,7 +34,6 @@ export class CreateOrUpdateTasksDto {
 export class TasksQueryDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   @IsEnum(TaskStatus)
   status: TaskStatus;
 }

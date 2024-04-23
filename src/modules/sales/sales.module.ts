@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { CurrenciesService } from '../currency/currency.service';
 import { DeathsService } from '../death/deaths.service';
 import { UsersService } from '../users/users.service';
@@ -14,6 +15,7 @@ import { SalesService } from './sales.service';
     DeathsService,
     UsersService,
     CurrenciesService,
+    AssignTypesService,
   ],
 })
 export class SalesModule {}

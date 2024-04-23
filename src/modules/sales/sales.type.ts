@@ -5,8 +5,8 @@ export type GetSalesSelections = {
   search?: string;
   organizationId: string;
   pagination?: PaginationType;
-  method: Sale['method'];
-  type: Sale['type'];
+  method?: Sale['method'];
+  type?: Sale['type'];
 };
 
 export type GetOneSaleSelections = {
@@ -32,7 +32,7 @@ export const SalesSelect = {
   soldTo: true,
   phone: true,
   note: true,
-  type: true,
+  quantity: true,
   animalCode: true,
   animalId: true,
   method: true,
@@ -41,6 +41,13 @@ export const SalesSelect = {
     select: {
       name: true,
       logo: true,
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
   userCreatedId: true,

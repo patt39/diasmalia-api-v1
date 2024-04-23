@@ -23,11 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkMilkingsDto,
   CreateOrUpdateMilkingsDto,
-  GetMilkingsByMethod,
+  GetMilkingsQueryDto,
 } from './milkings.dto';
 import { MilkingsService } from './milkings.service';
 
@@ -36,6 +37,7 @@ export class MilkingsController {
   constructor(
     private readonly milkingsService: MilkingsService,
     private readonly animalsService: AnimalsService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all milkings */
@@ -46,11 +48,11 @@ export class MilkingsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryMethod: GetMilkingsByMethod,
+    @Query() queryMethod: GetMilkingsQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { method } = queryMethod;
+    const { method, animalTypeId } = queryMethod;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -59,6 +61,7 @@ export class MilkingsController {
       search,
       method,
       pagination,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
 
@@ -89,12 +92,23 @@ export class MilkingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const milking = await this.milkingsService.createOne({
       note,
       date,
       method,
       quantity,
-      animalId: findOneFemale?.id,
+      animalId: findOneFemale.id,
+      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -108,6 +122,16 @@ export class MilkingsController {
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkMilkingsDto) {
     const { user } = req;
     const { date, method, quantity, animals, note } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     for (const animal of animals) {
       const findOneFemale = await this.animalsService.findOneBy({
@@ -129,6 +153,7 @@ export class MilkingsController {
         method,
         quantity,
         animalId: findOneFemale?.id,
+        animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
@@ -149,8 +174,19 @@ export class MilkingsController {
     const { user } = req;
     const { note, date, quantity, method, femaleCode } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneMilking)
       throw new HttpException(
@@ -196,9 +232,19 @@ export class MilkingsController {
     @Query('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
     const { user } = req;
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user?.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneMilking)
       throw new HttpException(
@@ -219,9 +265,19 @@ export class MilkingsController {
   ) {
     const { user } = req;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user?.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneMilking)
       throw new HttpException(

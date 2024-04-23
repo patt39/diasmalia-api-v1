@@ -4,12 +4,15 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetGestationsSelections = {
   search?: string;
   organizationId: string;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneGestationSelections = {
   gestationId?: Gestation['id'];
+  animalId?: Gestation['animalId'];
   organizationId?: Gestation['id'];
+  animalTypeId?: Gestation['animalTypeId'];
 };
 
 export type UpdateGestationsSelections = {
@@ -32,7 +35,12 @@ export const GestationSelect = {
       electronicCode: true,
       status: true,
       gender: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          name: true,
+        },
+      },
       location: {
         select: {
           code: true,
@@ -45,11 +53,11 @@ export const GestationSelect = {
       },
     },
   },
-  checkPregnancyId: true,
-  checkPregnancy: {
+  animalTypeId: true,
+  animalType: {
     select: {
-      farrowingDate: true,
-      result: true,
+      icon: true,
+      name: true,
     },
   },
   organizationId: true,

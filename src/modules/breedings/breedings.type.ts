@@ -6,6 +6,7 @@ export type GetBreedingsSelections = {
   organizationId?: string;
   pagination?: PaginationType;
   animalId?: string;
+  animalTypeId?: string;
   gender?: Animal['gender'];
   method?: Breeding['method'];
   checkStatus?: Breeding['checkStatus'];
@@ -15,6 +16,7 @@ export type GetOneBreedingsSelections = {
   breedingId?: Breeding['id'];
   checkStatus?: Breeding['checkStatus'];
   animalId?: Animal['id'];
+  animalTypeId?: Animal['animalTypeId'];
   gender?: Animal['gender'];
   organizationId?: Breeding['organizationId'];
 };
@@ -36,6 +38,13 @@ export const BreedingSelect = {
   animalMaleId: true,
   method: true,
   checkStatus: true,
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
+    },
+  },
   organizationId: true,
   organization: {
     select: {

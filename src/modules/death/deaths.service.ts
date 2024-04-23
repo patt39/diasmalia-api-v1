@@ -26,16 +26,16 @@ export class DeathsService {
     selections: GetDeathsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.DeathWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, animalTypeId, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (organizationId) {
@@ -64,7 +64,7 @@ export class DeathsService {
   /** Find one death in database. */
   async findOneBy(selections: GetOneDeathSelections) {
     const prismaWhere = {} as Prisma.DeathWhereInput;
-    const { deathId, organizationId } = selections;
+    const { deathId, animalTypeId, organizationId } = selections;
 
     if (deathId) {
       Object.assign(prismaWhere, { id: deathId });
@@ -72,6 +72,10 @@ export class DeathsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const death = await this.client.death.findFirst({
@@ -84,13 +88,23 @@ export class DeathsService {
 
   /** Create one death in database. */
   async createOne(options: CreateDeathsOptions): Promise<Death> {
-    const { date, animalId, organizationId, userCreatedId, note } = options;
+    const {
+      date,
+      note,
+      number,
+      animalId,
+      animalTypeId,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const death = this.client.death.create({
       data: {
         date,
         note,
+        number,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -106,12 +120,14 @@ export class DeathsService {
   ): Promise<Death> {
     const { deathId } = selections;
     const {
+      note,
       date,
       status,
+      number,
       animalId,
+      animalTypeId,
       organizationId,
       userCreatedId,
-      note,
       deletedAt,
     } = options;
 
@@ -122,8 +138,10 @@ export class DeathsService {
       data: {
         date,
         note,
+        number,
         status,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
         deletedAt,

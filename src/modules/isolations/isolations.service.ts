@@ -22,16 +22,16 @@ export class IsolationsService {
     selections: GetIsolationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.IsolationWhereInput;
-    const { search, pagination } = selections;
+    const { search, animalTypeId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const isolations = await this.client.isolation.findMany({
@@ -57,7 +57,7 @@ export class IsolationsService {
   async findOneBy(selections: GetOneIsolationsSelections) {
     const prismaWhere = {} as Prisma.IsolationWhereInput;
 
-    const { isolationId, organizationId } = selections;
+    const { isolationId, animalTypeId, organizationId } = selections;
 
     if (isolationId) {
       Object.assign(prismaWhere, { id: isolationId });
@@ -65,6 +65,10 @@ export class IsolationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const isolation = await this.client.isolation.findFirst({
@@ -77,13 +81,21 @@ export class IsolationsService {
 
   /** Create one isolation in database. */
   async createOne(options: CreateIsolationsOptions): Promise<Isolation> {
-    const { date, animalId, note, organizationId, userCreatedId } = options;
+    const {
+      date,
+      note,
+      animalId,
+      animalTypeId,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const isolation = this.client.isolation.create({
       data: {
         date,
         note,
         animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },

@@ -3,12 +3,14 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetDeathsSelections = {
   search?: string;
-  organizationId: string;
+  organizationId?: string;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneDeathSelections = {
   deathId?: Death['id'];
+  animalTypeId?: Death['animalTypeId'];
   organizationId?: Death['organizationId'];
 };
 
@@ -26,11 +28,18 @@ export const DeathSelect = {
   date: true,
   note: true,
   status: true,
+  quantity: true,
   animalId: true,
   animal: {
     select: {
       code: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       status: true,
       gender: true,
       weight: true,
@@ -46,6 +55,13 @@ export const DeathSelect = {
           name: true,
         },
       },
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
   organizationId: true,

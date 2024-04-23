@@ -22,16 +22,16 @@ export class GestationsService {
     selections: GetGestationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.GestationWhereInput;
-    const { search, organizationId, pagination } = selections;
+    const { search, animalTypeId, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            code: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (organizationId) {
@@ -59,12 +59,24 @@ export class GestationsService {
 
   /** Find one Gestation in database. */
   async findOneBy(selections: GetOneGestationSelections) {
-    const { gestationId } = selections;
-    const gestation = await this.client.gestation.findUnique({
+    const prismaWhere = {} as Prisma.GestationWhereInput;
+    const { gestationId, animalId, animalTypeId } = selections;
+
+    if (gestationId) {
+      Object.assign(prismaWhere, { id: gestationId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    const gestation = await this.client.gestation.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: GestationSelect,
-      where: {
-        id: gestationId,
-      },
     });
 
     return gestation;
@@ -72,15 +84,22 @@ export class GestationsService {
 
   /** Create one Gestation in database. */
   async createOne(options: CreateGestationsOptions): Promise<Gestation> {
-    const { animalId, organizationId, userCreatedId, checkPregnancyId, note } =
-      options;
+    const {
+      note,
+      animalId,
+      organizationId,
+      farrowingDate,
+      userCreatedId,
+      animalTypeId,
+    } = options;
 
     const gestation = this.client.gestation.create({
       data: {
         note,
         animalId,
+        farrowingDate,
+        animalTypeId,
         organizationId,
-        checkPregnancyId,
         userCreatedId,
       },
     });
@@ -97,9 +116,10 @@ export class GestationsService {
     const {
       note,
       animalId,
-      organizationId,
+      farrowingDate,
+      animalTypeId,
       userCreatedId,
-      checkPregnancyId,
+      organizationId,
       deletedAt,
     } = options;
 
@@ -110,9 +130,10 @@ export class GestationsService {
       data: {
         note,
         animalId,
+        farrowingDate,
+        animalTypeId,
         organizationId,
         userCreatedId,
-        checkPregnancyId,
         deletedAt,
       },
     });

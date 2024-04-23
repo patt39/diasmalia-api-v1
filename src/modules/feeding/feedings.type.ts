@@ -5,11 +5,13 @@ export type GetFeedingsSelections = {
   search?: string;
   organizationId?: string;
   feedType?: FeedType;
+  animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneFeedingSelections = {
   feedingId?: Feeding['id'];
+  animalTypeId?: Feeding['animalTypeId'];
   organizationId?: Feeding['organizationId'];
 };
 
@@ -35,13 +37,26 @@ export const FeedingSelect = {
       weight: true,
       productionPhase: true,
       gender: true,
-      type: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
       locationId: true,
       location: {
         select: {
           code: true,
         },
       },
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      icon: true,
+      name: true,
     },
   },
   organizationId: true,

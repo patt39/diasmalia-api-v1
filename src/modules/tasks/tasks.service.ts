@@ -32,6 +32,16 @@ export class TasksService {
             title: { contains: search, mode: 'insensitive' },
             description: { contains: search, mode: 'insensitive' },
           },
+          {
+            contributor: {
+              profile: { firstName: { contains: search, mode: 'insensitive' } },
+            },
+          },
+          {
+            contributor: {
+              profile: { lastName: { contains: search, mode: 'insensitive' } },
+            },
+          },
         ],
       });
     }

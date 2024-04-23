@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -47,9 +48,14 @@ export class BulkCastrationsDto {
   method: CastrationMethod;
 }
 
-export class GetCastrationsByMethodDto {
-  @IsNotEmpty()
+export class GetCastrationsQueryDto {
+  @IsOptional()
   @IsString()
   @IsEnum(CastrationMethod)
   method: CastrationMethod;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }

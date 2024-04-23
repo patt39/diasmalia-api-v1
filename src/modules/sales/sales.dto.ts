@@ -7,33 +7,42 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateSalesDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  code: string;
+  animalCode: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   soldTo: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   phone: string;
+
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
+
+  @IsOptional()
+  @IsString()
+  email: string;
 
   @IsNotEmpty()
   @IsNumber()
   price: number;
+
+  @IsOptional()
+  @IsString()
+  address: string;
 
   @IsNotEmpty()
   @IsString()
@@ -41,7 +50,6 @@ export class CreateOrUpdateSalesDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   @IsEnum(sellingMethod)
   method: sellingMethod;
 
@@ -49,12 +57,16 @@ export class CreateOrUpdateSalesDto {
   @IsString()
   @IsEnum(AnimalStatus)
   status: AnimalStatus;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkSalesDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -63,7 +75,6 @@ export class BulkSalesDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   soldTo: string;
 
   @IsOptional()
@@ -76,7 +87,6 @@ export class BulkSalesDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   phone: string;
 
   @IsNotEmpty()
@@ -96,8 +106,13 @@ export class BulkSalesDto {
   @IsNotEmpty()
   @IsString()
   type: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
-export class SaleMethodDto {
+export class SalesDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)

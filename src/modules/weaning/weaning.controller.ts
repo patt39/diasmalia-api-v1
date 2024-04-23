@@ -23,9 +23,10 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { FarrowingsService } from '../farrowings/farrowings.service';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateWeaningsDto } from './weaning.dto';
+import { CreateOrUpdateWeaningsDto, WeaningDto } from './weaning.dto';
 import { WeaningsService } from './weaning.service';
 
 @Controller('weanings')
@@ -34,6 +35,7 @@ export class WeaningsController {
     private readonly weaningsService: WeaningsService,
     private readonly animalsService: AnimalsService,
     private readonly farrowingsService: FarrowingsService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   @Get(`/`)
@@ -43,9 +45,11 @@ export class WeaningsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryWeaning: WeaningDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { animalTypeId } = queryWeaning;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -53,7 +57,8 @@ export class WeaningsController {
     const weanings = await this.weaningsService.findAll({
       search,
       pagination,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: weanings });
@@ -70,11 +75,23 @@ export class WeaningsController {
     const { user } = req;
     const { litter, date, note, codeFemale, farrowingId } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -96,11 +113,17 @@ export class WeaningsController {
       note,
       date,
       litter,
-      animalId: findOneFemale?.id,
-      farrowingId: findOneFarrowing?.id,
-      organizationId: user?.organizationId,
+      animalId: findOneFemale.id,
+      farrowingId: findOneFarrowing.id,
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user.organizationId,
       userCreatedId: user?.id,
     });
+
+    await this.animalsService.updateOne(
+      { animalId: findOneFemale.id },
+      { productionPhase: 'REPRODUCTION' },
+    );
 
     return reply({ res, results: weaning });
   }
@@ -117,8 +140,19 @@ export class WeaningsController {
     const { user } = req;
     const { litter, date, note, codeFemale, farrowingId } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
+      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
@@ -174,13 +208,24 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
-        `${weaningId} doesn't exists, please change`,
+        `WeaningId: ${weaningId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -196,13 +241,24 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
+      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
-        `${weaningId} doesn't exists, please change`,
+        `WeaningId: ${weaningId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 

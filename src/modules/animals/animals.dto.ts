@@ -29,24 +29,26 @@ export class CreateOrUpdateAnimalsDto {
   @IsNumber()
   weight: number;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
+
+  @IsOptional()
   @IsString()
   birthday: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(Gender)
   gender: Gender;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(100)
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   electronicCode: string;
 
   @IsNotEmpty()
@@ -54,12 +56,7 @@ export class CreateOrUpdateAnimalsDto {
   @IsUUID()
   locationId: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
-
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsUUID()
   breedId: string;
@@ -82,7 +79,7 @@ export class GetAnimalsQuery {
   @IsEnum(AnimalStatus)
   status: AnimalStatus;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsUUID()
   animalTypeId: string;

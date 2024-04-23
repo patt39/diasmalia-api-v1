@@ -1,15 +1,8 @@
-import {
-  IsString,
-  IsNotEmpty,
-  MaxLength,
-  IsOptional,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrUpdateGestationsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -18,6 +11,12 @@ export class CreateOrUpdateGestationsDto {
 
   @IsNotEmpty()
   @IsString()
+  farrowingDate: Date;
+}
+
+export class GestationsQueryDto {
+  @IsOptional()
+  @IsString()
   @IsUUID()
-  checkPregnancyId: string;
+  animalTypeId: string;
 }

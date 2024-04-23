@@ -22,8 +22,13 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
-import { BulkFeedingsDto, CreateOrUpdateFeedingsDto } from './feedings.dto';
+import {
+  BulkFeedingsDto,
+  CreateOrUpdateFeedingsDto,
+  GetFeedQueryDto,
+} from './feedings.dto';
 import { FeedingsService } from './feedings.service';
 
 @Controller('feedings')
@@ -31,6 +36,7 @@ export class FeedingsController {
   constructor(
     private readonly feedingsService: FeedingsService,
     private readonly animalsService: AnimalsService,
+    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all Feedings */
@@ -41,9 +47,11 @@ export class FeedingsController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryFeeding: GetFeedQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
+    const { animalTypeId } = queryFeeding;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -51,6 +59,7 @@ export class FeedingsController {
     const feedings = await this.feedingsService.findAll({
       search,
       pagination,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
 
@@ -68,9 +77,20 @@ export class FeedingsController {
     const { user } = req;
     const { date, quantity, feedType, productionPhase, code, note } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
       status: 'ACTIVE',
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -84,7 +104,8 @@ export class FeedingsController {
       quantity,
       feedType,
       productionPhase,
-      animalId: findOneAnimal?.id,
+      animalId: findOneAnimal.id,
+      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
@@ -98,6 +119,16 @@ export class FeedingsController {
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
     const { user } = req;
     const { date, feedType, productionPhase, quantity, animals, note } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
@@ -116,8 +147,9 @@ export class FeedingsController {
         quantity,
         feedType,
         productionPhase,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
+        animalId: findOneAnimal.id,
+        animalTypeId: findOneAssignType.animalTypeId,
+        organizationId: user.organizationId,
         userCreatedId: user?.id,
       });
     }
@@ -137,9 +169,19 @@ export class FeedingsController {
     const { user } = req;
     const { date, quantity, feedType, code, note, productionPhase } = body;
 
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -149,7 +191,8 @@ export class FeedingsController {
 
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFeeding)
       throw new HttpException(
@@ -158,15 +201,15 @@ export class FeedingsController {
       );
 
     const feed = await this.feedingsService.updateOne(
-      { feedingId: findOneFeeding?.id },
+      { feedingId: findOneFeeding.id },
       {
         date,
         note,
         quantity,
         feedType,
         productionPhase,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
+        animalId: findOneAnimal.id,
+        organizationId: user.organizationId,
         userCreatedId: user?.id,
       },
     );
@@ -183,9 +226,21 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFeeding)
       throw new HttpException(
@@ -205,9 +260,20 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      status: true,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFeeding)
       throw new HttpException(
