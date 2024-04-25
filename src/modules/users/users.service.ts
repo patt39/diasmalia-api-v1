@@ -76,7 +76,10 @@ export class UsersService {
 
     const user = await this.client.user.findFirst({
       where: { ...prismaWhereUser, deletedAt: null },
-      include: { profile: true, organization: true },
+      include: {
+        profile: true,
+        organization: { select: { name: true, logo: true, currency: true } },
+      },
     });
 
     return user;

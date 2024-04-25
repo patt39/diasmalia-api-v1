@@ -81,6 +81,7 @@ export class TreatmentsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -90,7 +91,7 @@ export class TreatmentsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -108,7 +109,6 @@ export class TreatmentsController {
       medication,
       animalId: findOneAnimal.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 

@@ -110,13 +110,13 @@ export class IsolationsService {
     options: UpdateIsolationsOptions,
   ): Promise<Isolation> {
     const { isolationId } = selections;
-    const { date, note, animalId, organizationId, deletedAt } = options;
+    const { date, note, animalId, deletedAt } = options;
 
     const isolation = this.client.isolation.update({
       where: {
         id: isolationId,
       },
-      data: { date, note, animalId, organizationId, deletedAt },
+      data: { date, note, animalId, deletedAt },
     });
 
     return isolation;

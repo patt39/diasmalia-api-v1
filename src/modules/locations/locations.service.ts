@@ -127,16 +127,8 @@ export class LocationsService {
     options: UpdateLocationsOptions,
   ): Promise<Location> {
     const { locationId } = selections;
-    const {
-      code,
-      manger,
-      through,
-      squareMeter,
-      animalTypeId,
-      productionPhase,
-      organizationId,
-      deletedAt,
-    } = options;
+    const { code, manger, through, squareMeter, productionPhase, deletedAt } =
+      options;
 
     const location = this.client.location.update({
       where: {
@@ -147,9 +139,7 @@ export class LocationsService {
         manger,
         through,
         squareMeter,
-        animalTypeId,
         productionPhase,
-        organizationId,
         deletedAt,
       },
     });

@@ -119,15 +119,7 @@ export class WeaningsService {
     options: UpdateWeaningsOptions,
   ): Promise<Weaning> {
     const { weaningId } = selections;
-    const {
-      note,
-      litter,
-      date,
-      organizationId,
-      userCreatedId,
-      animalTypeId,
-      animalId,
-    } = options;
+    const { note, litter, date, animalId, userCreatedId } = options;
 
     const weaning = this.client.weaning.update({
       where: {
@@ -138,8 +130,6 @@ export class WeaningsService {
         date,
         litter,
         animalId,
-        animalTypeId,
-        organizationId,
         userCreatedId,
       },
     });

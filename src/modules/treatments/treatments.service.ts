@@ -125,18 +125,8 @@ export class TreatmentsService {
     options: UpdateTreatmentsOptions,
   ): Promise<Treatment> {
     const { treatmentId } = selections;
-    const {
-      note,
-      name,
-      dose,
-      date,
-      method,
-      animalId,
-      diagnosis,
-      animalTypeId,
-      organizationId,
-      deletedAt,
-    } = options;
+    const { note, name, dose, date, method, animalId, diagnosis, deletedAt } =
+      options;
 
     const treatment = this.client.treatment.update({
       where: {
@@ -150,8 +140,6 @@ export class TreatmentsService {
         method,
         animalId,
         diagnosis,
-        animalTypeId,
-        organizationId,
         deletedAt,
       },
     });

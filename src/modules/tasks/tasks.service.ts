@@ -129,11 +129,11 @@ export class TasksService {
   ): Promise<Task> {
     const { taskId } = selections;
     const {
-      title,
       slug,
-      description,
-      dueDate,
+      title,
       status,
+      dueDate,
+      description,
       contributorId,
       deletedAt,
     } = options;
@@ -143,11 +143,11 @@ export class TasksService {
         id: taskId,
       },
       data: {
-        title,
         slug,
-        description,
-        dueDate: new Date(dueDate),
+        title,
         status,
+        dueDate: new Date(dueDate),
+        description,
         contributorId,
         deletedAt,
       },

@@ -212,13 +212,13 @@ export class AnimalsController {
 
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
       file,
-      userId: user?.id,
+      userId: user.id,
       folder: 'photos',
     });
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -228,7 +228,7 @@ export class AnimalsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneLocation)
       throw new HttpException(
@@ -290,7 +290,6 @@ export class AnimalsController {
         electronicCode,
         productionPhase,
         photo: fileName,
-        animalTypeId: findOneAssignType.id,
         locationId: findOneLocation.id,
         breedId: findOneBreed.id,
         organizationId: user.organizationId,

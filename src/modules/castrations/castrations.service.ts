@@ -115,15 +115,7 @@ export class CastrationsService {
     options: UpdateCastrationsOptions,
   ): Promise<Castration> {
     const { castrationId } = selections;
-    const {
-      date,
-      note,
-      method,
-      animalId,
-      animalTypeId,
-      organizationId,
-      deletedAt,
-    } = options;
+    const { date, note, method, animalId, deletedAt } = options;
 
     const castration = this.client.castration.update({
       where: {
@@ -134,8 +126,6 @@ export class CastrationsService {
         note,
         method,
         animalId,
-        animalTypeId,
-        organizationId,
         deletedAt,
       },
     });

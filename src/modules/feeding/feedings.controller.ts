@@ -209,8 +209,7 @@ export class FeedingsController {
         feedType,
         productionPhase,
         animalId: findOneAnimal.id,
-        organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 

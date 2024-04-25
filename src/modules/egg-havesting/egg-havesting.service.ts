@@ -97,6 +97,7 @@ export class EggHavestingsService {
       size,
       method,
       quantity,
+      animalId,
       animalTypeId,
       organizationId,
       userCreatedId,
@@ -109,6 +110,7 @@ export class EggHavestingsService {
         size,
         method,
         quantity,
+        animalId,
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -124,16 +126,7 @@ export class EggHavestingsService {
     options: UpdateEggHavestingsOptions,
   ): Promise<EggHavesting> {
     const { eggHavestingId } = selections;
-    const {
-      note,
-      date,
-      size,
-      method,
-      quantity,
-      animalTypeId,
-      organizationId,
-      userCreatedId,
-    } = options;
+    const { note, date, size, method, quantity, userCreatedId } = options;
 
     const eggHavesting = this.client.eggHavesting.update({
       where: {
@@ -145,8 +138,6 @@ export class EggHavestingsService {
         size,
         method,
         quantity,
-        animalTypeId,
-        organizationId,
         userCreatedId,
       },
     });

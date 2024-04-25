@@ -22,17 +22,13 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { AnimalTypesService } from '../animal-type/animal-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateBreedsDto, GetBreedsTypeDto } from './breeds.dto';
 import { BreedsService } from './breeds.service';
 
 @Controller('breeds')
 export class BreedsController {
-  constructor(
-    private readonly breedsService: BreedsService,
-    private readonly animalTypesService: AnimalTypesService,
-  ) {}
+  constructor(private readonly breedsService: BreedsService) {}
 
   /** Get all breeds */
   @Get(`/`)
@@ -64,12 +60,7 @@ export class BreedsController {
   /** Post one breed */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateBreedsDto,
-  ) {
-    const { user } = req;
+  async createOne(@Res() res, @Body() body: CreateOrUpdateBreedsDto) {
     const { name, animalTypeId } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({

@@ -77,7 +77,7 @@ export class WeaningsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -91,7 +91,7 @@ export class WeaningsController {
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -101,12 +101,18 @@ export class WeaningsController {
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneFarrowing)
       throw new HttpException(
         `FarrowingId: ${farrowingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
+      );
+
+    if (litter > findOneFarrowing.litter)
+      throw new HttpException(
+        `Weaning litter: ${litter} can't be greater than farrowing litter: ${findOneFarrowing.litter}`,
+        HttpStatus.AMBIGUOUS,
       );
 
     const weaning = await this.weaningsService.createOne({
@@ -117,7 +123,7 @@ export class WeaningsController {
       farrowingId: findOneFarrowing.id,
       animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
-      userCreatedId: user?.id,
+      userCreatedId: user.id,
     });
 
     await this.animalsService.updateOne(
@@ -142,7 +148,7 @@ export class WeaningsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -153,7 +159,7 @@ export class WeaningsController {
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
@@ -166,6 +172,7 @@ export class WeaningsController {
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
+      organizationId: user.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -189,10 +196,9 @@ export class WeaningsController {
         note,
         date,
         litter,
-        animalId: findOneFemale?.id,
-        farrowingId: findOneFarrowing?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalId: findOneFemale.id,
+        farrowingId: findOneFarrowing.id,
+        userCreatedId: user.id,
       },
     );
 
@@ -210,7 +216,7 @@ export class WeaningsController {
     const { user } = req;
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -221,7 +227,7 @@ export class WeaningsController {
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
@@ -243,7 +249,7 @@ export class WeaningsController {
     const { user } = req;
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -254,7 +260,7 @@ export class WeaningsController {
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
@@ -263,7 +269,7 @@ export class WeaningsController {
       );
 
     await this.weaningsService.updateOne(
-      { weaningId: findOneWeaning?.id },
+      { weaningId: findOneWeaning.id },
       { deletedAt: new Date() },
     );
 

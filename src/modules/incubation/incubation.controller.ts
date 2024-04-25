@@ -23,6 +23,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
+import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateEggHavestingsDto,
@@ -35,6 +36,7 @@ export class IncubationsController {
   constructor(
     private readonly incubationsService: IncubationsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly eggHavestingsService: EggHavestingsService,
   ) {}
 
   @Get(`/`)
@@ -57,7 +59,7 @@ export class IncubationsController {
       search,
       pagination,
       animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: eggHavestings });
@@ -72,11 +74,12 @@ export class IncubationsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { quantity, date, dueDate, note } = body;
+    const { quantityEnd, quantityStart, date, dueDate, note, eggHavestingId } =
+      body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -84,11 +87,29 @@ export class IncubationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
+      eggHavestingId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneEggHavesting)
+      throw new HttpException(
+        `EggHavesting: ${eggHavestingId} doesn't exists`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (quantityEnd > quantityStart)
+      throw new HttpException(
+        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
+        HttpStatus.AMBIGUOUS,
+      );
+
     const incubation = await this.incubationsService.createOne({
       note,
       date,
       dueDate,
-      quantity,
+      quantityEnd,
+      quantityStart,
+      eggHavestingId: findOneEggHavesting.id,
       animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -107,15 +128,22 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const { quantity, date, dueDate, note } = body;
+    const { quantityEnd, quantityStart, date, dueDate, note } = body;
 
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
+      organizationId: user.organizationId,
     });
     if (!findOneIncubation)
       throw new HttpException(
         `IncubationId: ${incubationId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
+      );
+
+    if (quantityEnd > quantityStart)
+      throw new HttpException(
+        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
+        HttpStatus.AMBIGUOUS,
       );
 
     const incubation = await this.incubationsService.updateOne(
@@ -124,9 +152,9 @@ export class IncubationsController {
         note,
         date,
         dueDate,
-        quantity,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        quantityEnd,
+        quantityStart,
+        userCreatedId: user.id,
       },
     );
 
@@ -145,7 +173,7 @@ export class IncubationsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -178,7 +206,7 @@ export class IncubationsController {
     const { user } = req;
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -198,7 +226,7 @@ export class IncubationsController {
       );
 
     await this.incubationsService.updateOne(
-      { incubationId: findOneIncubation?.id },
+      { incubationId: findOneIncubation.id },
       { deletedAt: new Date() },
     );
 

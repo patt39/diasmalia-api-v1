@@ -203,8 +203,7 @@ export class CheckPregnanciesController {
         result,
         breedingId: findOneBreeding.id,
         animalFemaleId: findOneBreeding.animalFemaleId,
-        organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 

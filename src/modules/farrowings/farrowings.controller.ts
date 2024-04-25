@@ -167,6 +167,7 @@ export class FarrowingsController {
       status: 'ACTIVE',
       isIsolated: 'FALSE',
       productionPhase: 'GESTATION',
+      organizationId: user.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -181,7 +182,6 @@ export class FarrowingsController {
         date,
         litter,
         animalId: findOneFemale.id,
-        organizationId: user.organizationId,
         userCreatedId: user?.id,
       },
     );

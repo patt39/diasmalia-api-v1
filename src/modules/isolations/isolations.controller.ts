@@ -187,6 +187,7 @@ export class IsolationsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
       status: 'ACTIVE',
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -199,9 +200,8 @@ export class IsolationsController {
       {
         date,
         note,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalId: findOneAnimal.id,
+        userCreatedId: user.id,
       },
     );
 

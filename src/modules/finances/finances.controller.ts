@@ -94,7 +94,7 @@ export class FinanceController {
 
     const findOneFinance = await this.financeService.findOneBy({
       financeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneFinance)
       throw new HttpException(
@@ -110,8 +110,7 @@ export class FinanceController {
         type,
         amount,
         detail,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 
@@ -126,7 +125,7 @@ export class FinanceController {
 
     const findOneFinance = await this.financeService.findOneBy({
       slug,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneFinance)
       throw new HttpException(
@@ -149,7 +148,7 @@ export class FinanceController {
 
     const findOneFinance = await this.financeService.findOneBy({
       financeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneFinance)
       throw new HttpException(

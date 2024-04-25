@@ -4,6 +4,7 @@ import { DatabaseService } from '../../app/database/database.service';
 import {
   CreateOrganizationsOptions,
   GetOneOrganizationsSelections,
+  OrganizationSelect,
   UpdateOrganizationsOptions,
   UpdateOrganizationsSelections,
 } from './organizations.type';
@@ -27,6 +28,7 @@ export class OrganizationsService {
 
     const organization = await this.client.organization.findFirst({
       where: { ...prismaWhereOrganization, deletedAt: null },
+      select: OrganizationSelect,
     });
 
     return organization;

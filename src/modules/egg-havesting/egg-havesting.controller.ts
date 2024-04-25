@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
@@ -35,6 +36,7 @@ export class EggHavestingsController {
   constructor(
     private readonly eggHavestingsService: EggHavestingsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly animalsService: AnimalsService,
   ) {}
 
   @Get(`/`)
@@ -74,7 +76,7 @@ export class EggHavestingsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { size, quantity, date, note, method } = body;
+    const { size, quantity, date, note, method, code } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
@@ -86,15 +88,25 @@ export class EggHavestingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${findOneAnimal.code} doesn't exists`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const eggHavesting = await this.eggHavestingsService.createOne({
       note,
       date,
       size,
       method,
       quantity,
+      animalId: findOneAnimal.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
 
     return reply({ res, results: eggHavesting });
@@ -124,6 +136,7 @@ export class EggHavestingsController {
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneEggHavesting)
@@ -140,8 +153,7 @@ export class EggHavestingsController {
         size,
         method,
         quantity,
-        organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 
@@ -169,6 +181,7 @@ export class EggHavestingsController {
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneEggHavesting)
@@ -201,6 +214,7 @@ export class EggHavestingsController {
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneEggHavesting)

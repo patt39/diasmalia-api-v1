@@ -130,7 +130,7 @@ export class CastrationsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -153,6 +153,7 @@ export class CastrationsController {
       code: maleCode,
       gender: 'MALE',
       status: 'ACTIVE',
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -167,8 +168,7 @@ export class CastrationsController {
         note,
         method,
         animalId: findOneAnimal.id,
-        organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 

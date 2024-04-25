@@ -113,15 +113,7 @@ export class GestationsService {
     options: UpdateGestationsOptions,
   ): Promise<Gestation> {
     const { gestationId } = selections;
-    const {
-      note,
-      animalId,
-      farrowingDate,
-      animalTypeId,
-      userCreatedId,
-      organizationId,
-      deletedAt,
-    } = options;
+    const { note, animalId, farrowingDate, userCreatedId, deletedAt } = options;
 
     const gestation = this.client.gestation.update({
       where: {
@@ -131,8 +123,6 @@ export class GestationsService {
         note,
         animalId,
         farrowingDate,
-        animalTypeId,
-        organizationId,
         userCreatedId,
         deletedAt,
       },

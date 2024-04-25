@@ -142,8 +142,7 @@ export class CheckPregnanciesService {
     options: UpdateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
     const { checkPregnancyId } = selections;
-    const { date, method, result, breedingId, animalTypeId, deletedAt } =
-      options;
+    const { date, method, result, breedingId, deletedAt } = options;
 
     const checkPregnancy = this.client.checkPregnancy.update({
       where: {
@@ -154,7 +153,6 @@ export class CheckPregnanciesService {
         method,
         result,
         breedingId,
-        animalTypeId,
         deletedAt,
       },
     });

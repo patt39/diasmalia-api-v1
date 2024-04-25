@@ -134,8 +134,6 @@ export class FeedingsService {
       feedType,
       animalId,
       productionPhase,
-      organizationId,
-      animalTypeId,
       userCreatedId,
       deletedAt,
     } = options;
@@ -151,8 +149,6 @@ export class FeedingsService {
         feedType,
         animalId,
         productionPhase,
-        organizationId,
-        animalTypeId,
         userCreatedId,
         deletedAt,
       },
