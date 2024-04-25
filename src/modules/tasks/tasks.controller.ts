@@ -23,6 +23,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ContributorsService } from '../contributors/contributors.service';
+import { taskNotification } from '../users/mails/task-notification-mail';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateTasksDto, TasksQueryDto } from './tasks.dto';
 import { TasksService } from './tasks.service';
@@ -74,6 +75,7 @@ export class TasksController {
 
     const findOneContributor = await this.contributorsService.findOneBy({
       contributorId,
+      organizationId: user.organizationId,
     });
     if (!findOneContributor)
       throw new HttpException(
@@ -91,9 +93,15 @@ export class TasksController {
       title,
       dueDate,
       description,
-      contributorId: findOneContributor?.id,
-      organizationId: user?.organizationId,
+      contributorId: findOneContributor.id,
+      organizationId: user.organizationId,
       userCreatedId: user?.id,
+    });
+
+    await taskNotification({
+      email: findOneContributor.user.email,
+      user,
+      slug: task.slug,
     });
 
     return reply({ res, results: task });
@@ -113,7 +121,7 @@ export class TasksController {
 
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -124,7 +132,7 @@ export class TasksController {
 
     const findOneContributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneContributor)
       throw new HttpException(
@@ -133,8 +141,8 @@ export class TasksController {
       );
 
     if (
-      findOneContributor?.role === 'ADMIN' &&
-      findOneTask?.userCreatedId !== user?.id
+      findOneContributor.role === 'ADMIN' &&
+      findOneTask.userCreatedId !== user.id
     )
       throw new HttpException(
         `ContributorId: ${contributorId} can't update this task`,
@@ -148,9 +156,8 @@ export class TasksController {
         status,
         dueDate,
         description,
-        contributorId: findOneContributor?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        contributorId: findOneContributor.id,
+        userCreatedId: user.id,
       },
     );
 

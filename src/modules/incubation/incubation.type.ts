@@ -12,13 +12,14 @@ export type GetOneIncubationSelections = {
   incubationId?: Incubation['id'];
   organizationId?: Incubation['id'];
   animalTypeId?: Incubation['animalTypeId'];
+  eggHavestingId?: Incubation['eggHavestingId'];
 };
 
 export type UpdateIncubationsSelections = {
   incubationId: Incubation['id'];
 };
 
-export type CreateEggHavestingsOptions = Partial<Incubation>;
+export type CreateIncubationsOptions = Partial<Incubation>;
 
 export type UpdateIncubationsOptions = Partial<Incubation>;
 

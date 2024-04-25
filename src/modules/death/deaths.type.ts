@@ -27,7 +27,6 @@ export const DeathSelect = {
   id: true,
   date: true,
   note: true,
-  status: true,
   quantity: true,
   animalId: true,
   animal: {

@@ -19,3 +19,21 @@ export type UpdateOrganizationsSelections = {
 export type CreateOrganizationsOptions = Partial<Organization>;
 
 export type UpdateOrganizationsOptions = Partial<Organization>;
+
+export const OrganizationSelect = {
+  createdAt: true,
+  id: true,
+  organization: {
+    select: {
+      logo: true,
+      name: true,
+      image: true,
+      description: true,
+      currency: {
+        select: {
+          symbol: true,
+        },
+      },
+    },
+  },
+};

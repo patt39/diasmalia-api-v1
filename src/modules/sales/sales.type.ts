@@ -28,8 +28,8 @@ export const SalesSelect = {
   id: true,
   date: true,
   price: true,
-  status: true,
   soldTo: true,
+  type: true,
   phone: true,
   note: true,
   quantity: true,
@@ -41,6 +41,11 @@ export const SalesSelect = {
     select: {
       name: true,
       logo: true,
+      currency: {
+        select: {
+          symbol: true,
+        },
+      },
     },
   },
   animalTypeId: true,

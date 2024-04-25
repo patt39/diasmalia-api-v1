@@ -6,7 +6,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import {
-  CreateEggHavestingsOptions,
+  CreateIncubationsOptions,
   GetOneIncubationSelections,
   IncubationsSelections,
   UpdateIncubationsOptions,
@@ -57,7 +57,8 @@ export class IncubationsService {
   /** Find one incubation in database. */
   async findOneBy(selections: GetOneIncubationSelections) {
     const prismaWhere = {} as Prisma.IncubationWhereInput;
-    const { incubationId, animalTypeId, organizationId } = selections;
+    const { incubationId, eggHavestingId, animalTypeId, organizationId } =
+      selections;
 
     if (incubationId) {
       Object.assign(prismaWhere, { id: incubationId });
@@ -65,6 +66,10 @@ export class IncubationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (eggHavestingId) {
+      Object.assign(prismaWhere, { eggHavestingId });
     }
 
     if (animalTypeId) {
@@ -79,13 +84,15 @@ export class IncubationsService {
   }
 
   /** Create one incubation in database. */
-  async createOne(options: CreateEggHavestingsOptions): Promise<Incubation> {
+  async createOne(options: CreateIncubationsOptions): Promise<Incubation> {
     const {
       note,
       date,
       dueDate,
-      quantity,
+      quantityEnd,
+      quantityStart,
       animalTypeId,
+      eggHavestingId,
       organizationId,
       userCreatedId,
     } = options;
@@ -95,8 +102,10 @@ export class IncubationsService {
         note,
         date,
         dueDate,
-        quantity,
+        quantityEnd,
+        quantityStart,
         animalTypeId,
+        eggHavestingId,
         organizationId,
         userCreatedId,
       },
@@ -115,7 +124,8 @@ export class IncubationsService {
       note,
       date,
       dueDate,
-      quantity,
+      quantityEnd,
+      quantityStart,
       animalTypeId,
       organizationId,
       userCreatedId,
@@ -129,8 +139,9 @@ export class IncubationsService {
         note,
         date,
         dueDate,
-        quantity,
         animalTypeId,
+        quantityEnd,
+        quantityStart,
         organizationId,
         userCreatedId,
       },

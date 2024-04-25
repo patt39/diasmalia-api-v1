@@ -94,7 +94,7 @@ export class MilkingsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -109,8 +109,8 @@ export class MilkingsController {
       quantity,
       animalId: findOneFemale.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
 
     return reply({ res, results: milking });
@@ -200,6 +200,7 @@ export class MilkingsController {
       status: 'ACTIVE',
       isIsolated: 'FALSE',
       productionPhase: 'LACTATION',
+      organizationId: user.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -208,15 +209,14 @@ export class MilkingsController {
       );
 
     const milking = await this.milkingsService.updateOne(
-      { milkingId: findOneMilking?.id },
+      { milkingId: findOneMilking.id },
       {
         note,
         date,
         method,
         quantity,
-        animalId: findOneFemale?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalId: findOneFemale.id,
+        userCreatedId: user.id,
       },
     );
 
@@ -234,7 +234,7 @@ export class MilkingsController {
     const { user } = req;
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -267,7 +267,7 @@ export class MilkingsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(

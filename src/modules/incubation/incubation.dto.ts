@@ -9,7 +9,11 @@ import {
 export class CreateOrUpdateEggHavestingsDto {
   @IsNotEmpty()
   @IsNumber()
-  quantity: number;
+  quantityEnd: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  quantityStart: number;
 
   @IsOptional()
   @IsString()
@@ -26,7 +30,7 @@ export class CreateOrUpdateEggHavestingsDto {
   @IsOptional()
   @IsString()
   @IsUUID()
-  animalId: string;
+  eggHavestingId: string;
 }
 
 export class IncubationQueryDto {

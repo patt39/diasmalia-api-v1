@@ -214,7 +214,7 @@ export class BreedingsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -225,6 +225,7 @@ export class BreedingsController {
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
       checkStatus: false,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneBreeding)
@@ -240,6 +241,7 @@ export class BreedingsController {
       isCastrated: 'FALSE',
       isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
+      organizationId: user.organizationId,
     });
     if (!findOneMale)
       throw new HttpException(
@@ -254,6 +256,7 @@ export class BreedingsController {
       isCastrated: 'FALSE',
       isIsolated: 'FALSE',
       productionPhase: 'REPRODUCTION',
+      organizationId: user.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -262,7 +265,7 @@ export class BreedingsController {
       );
 
     /** This is to check that animals are of same type */
-    if (findOneMale?.animalType.name !== findOneFemale?.animalType.name)
+    if (findOneMale.animalType.name !== findOneFemale.animalType.name)
       throw new HttpException(
         `Unable to perform breeding animals aren't of same type please change`,
         HttpStatus.BAD_REQUEST,
@@ -288,15 +291,14 @@ export class BreedingsController {
     }
 
     const breeding = await this.breedingsService.updateOne(
-      { breedingId: findOneBreeding?.id },
+      { breedingId: findOneBreeding.id },
       {
         date,
         note,
         method,
-        animalMaleId: findOneMale?.id,
-        animalFemaleId: findOneFemale?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalMaleId: findOneMale.id,
+        animalFemaleId: findOneFemale.id,
+        userCreatedId: user.id,
       },
     );
 

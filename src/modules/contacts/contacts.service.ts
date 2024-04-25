@@ -80,14 +80,13 @@ export class ContactsService {
     options: UpdateContactsOptions,
   ): Promise<Contact> {
     const { contactId } = selections;
-    const { subject, description, organizationId, userCreatedId, deletedAt } =
-      options;
+    const { subject, description, userCreatedId, deletedAt } = options;
 
     const contact = this.client.contact.update({
       where: {
         id: contactId,
       },
-      data: { subject, description, organizationId, userCreatedId, deletedAt },
+      data: { subject, description, userCreatedId, deletedAt },
     });
 
     return contact;

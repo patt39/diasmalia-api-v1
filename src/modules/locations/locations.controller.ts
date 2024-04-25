@@ -104,8 +104,8 @@ export class LocationsController {
       squareMeter,
       productionPhase,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
 
     return reply({
@@ -132,7 +132,7 @@ export class LocationsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -143,6 +143,7 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       code,
       locationId,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneLocation)
@@ -158,7 +159,7 @@ export class LocationsController {
         manger,
         through,
         squareMeter,
-        organizationId: user.organizationId,
+        userCreatedId: user.id,
       },
     );
 
@@ -184,7 +185,7 @@ export class LocationsController {
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(

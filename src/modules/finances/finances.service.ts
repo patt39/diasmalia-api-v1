@@ -27,11 +27,7 @@ export class FinancesService {
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            detail: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ detail: { contains: search, mode: 'insensitive' } }],
       });
     }
 
@@ -112,16 +108,8 @@ export class FinancesService {
     options: UpdateFinancesOptions,
   ): Promise<Finance> {
     const { financeId } = selections;
-    const {
-      date,
-      note,
-      type,
-      amount,
-      detail,
-      organizationId,
-      userCreatedId,
-      deletedAt,
-    } = options;
+    const { date, note, type, amount, detail, userCreatedId, deletedAt } =
+      options;
 
     const finance = this.client.finance.update({
       where: {
@@ -133,7 +121,6 @@ export class FinancesService {
         type,
         amount,
         detail,
-        organizationId,
         userCreatedId,
         deletedAt,
       },

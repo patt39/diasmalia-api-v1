@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Res } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Prisma, Sale } from '@prisma/client';
 import * as ExcelJS from 'exceljs';
 import { DatabaseService } from '../../app/database/database.service';
@@ -146,15 +152,12 @@ export class SalesService {
       type,
       price,
       phone,
-      status,
       soldTo,
       method,
       address,
       animalId,
       quantity,
       animalCode,
-      animalTypeId,
-      organizationId,
       userCreatedId,
       deletedAt,
     } = options;
@@ -169,15 +172,12 @@ export class SalesService {
         type,
         price,
         phone,
-        status,
         soldTo,
         method,
         address,
         animalId,
         quantity,
         animalCode,
-        animalTypeId,
-        organizationId,
         userCreatedId,
         deletedAt,
       },
@@ -186,7 +186,8 @@ export class SalesService {
     return sale;
   }
 
-  async downloadToExcel(@Res() res) {
+  async downloadToExcel(@Res() res, @Req() req) {
+    const { user } = req;
     const prismaWhere = {} as Prisma.SaleWhereInput;
 
     const sales = await this.client.sale.findMany({
@@ -209,7 +210,6 @@ export class SalesService {
       { header: 'Email', key: 'email', width: 40 },
       { header: 'Address', key: 'address', width: 40 },
       { header: 'Method', key: 'method', width: 20 },
-      { header: 'Status', key: 'status', width: 10 },
     ];
 
     worksheet.getRow(1).height = 20;
@@ -246,7 +246,6 @@ export class SalesService {
         price: sale.price,
         soldTo: sale.soldTo,
         method: sale.method,
-        status: sale.status,
         address: sale.address,
         animalType: sale.type,
         animalCode: sale.animalCode,
@@ -255,7 +254,7 @@ export class SalesService {
 
     workbook.xlsx.write(res);
 
-    workbook.creator = 'me';
+    workbook.creator = user.profile.firstName;
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();

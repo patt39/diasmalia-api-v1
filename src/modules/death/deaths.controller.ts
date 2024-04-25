@@ -226,10 +226,8 @@ export class DeathsController {
       await this.deathsService.createOne({
         date,
         note,
-        status,
         number,
         animalId: findOneAnimal.id,
-        organizationId: user.organizationId,
         userCreatedId: user.id,
       });
 
@@ -241,13 +239,13 @@ export class DeathsController {
 
     if (status === 'ACTIVE') {
       await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
+        { animalId: findOneAnimal.id },
         { status: status },
       );
 
       await this.deathsService.updateOne(
         { deathId: findOneDeath.id },
-        { deletedAt: new Date(), status: 'DEAD' },
+        { deletedAt: new Date() },
       );
     }
 
@@ -255,7 +253,6 @@ export class DeathsController {
       await this.salesService.createOne({
         organizationId: user.organizationId,
         userCreatedId: user.id,
-        status: 'SOLD',
       });
 
       await this.animalsService.updateOne(
@@ -265,7 +262,7 @@ export class DeathsController {
 
       await this.salesService.updateOne(
         { saleId: findOneDeath.id },
-        { deletedAt: new Date(), status: 'SOLD' },
+        { deletedAt: new Date() },
       );
 
       await this.animalsService.updateOne(

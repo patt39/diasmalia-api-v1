@@ -69,8 +69,8 @@ export class ContactsController {
       await this.contactsService.createOne({
         subject,
         description,
-        userCreatedId: user?.id,
-        organizationId: user?.organizationId,
+        userCreatedId: user.id,
+        organizationId: user.organizationId,
       });
 
       await contactNotification({ email: user?.email, user });

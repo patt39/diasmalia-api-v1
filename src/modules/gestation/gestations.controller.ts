@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Post,
   Put,
   Query,
   Req,
@@ -67,68 +66,6 @@ export class GestationsController {
     return reply({ res, results: gestations });
   }
 
-  /** Post one gestation */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateGestationsDto,
-  ) {
-    const { user } = req;
-    const { note, codeFemale } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneCheckPregnancy = await this.checkPregnanciesService.findOneBy({
-      result: 'PREGNANT',
-      organizationId: user?.organization,
-    });
-    if (!findOneCheckPregnancy)
-      throw new HttpException(
-        `Animal ${codeFemale} is not PREGNANT please change it's production phase`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      productionPhase: 'GESTATION',
-      animalTypeId: findOneAssignType.animalTypeId,
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const gestation = await this.gestationsService.createOne({
-      note,
-      animalId: findOneFemale.id,
-      animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
-    });
-
-    return reply({
-      res,
-      results: {
-        status: HttpStatus.CREATED,
-        data: gestation,
-        message: 'Gestation created successfully',
-      },
-    });
-  }
-
   /** Update one gestation */
   @Put(`/:gestationId`)
   @UseGuards(UserAuthGuard)
@@ -139,7 +76,7 @@ export class GestationsController {
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const { note, farrowingDate } = body;
+    const { note, farrowingDate, codeFemale } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
@@ -163,14 +100,26 @@ export class GestationsController {
       );
     }
 
+    const findOneFemale = await this.animalsService.findOneBy({
+      code: codeFemale,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      productionPhase: 'GESTATION',
+      animalTypeId: findOneAssignType.animalTypeId,
+    });
+    if (!findOneFemale)
+      throw new HttpException(
+        `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const gestation = await this.gestationsService.updateOne(
       { gestationId: findOneGestation?.id },
       {
         note,
         farrowingDate,
-        animalTypeId: findOneAssignType.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        animalId: findOneFemale.id,
+        userCreatedId: user.id,
       },
     );
 

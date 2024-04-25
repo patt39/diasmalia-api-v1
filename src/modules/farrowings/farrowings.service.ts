@@ -111,16 +111,7 @@ export class FarrowingsService {
     options: UpdateFarrowingsOptions,
   ): Promise<Farrowing> {
     const { farrowingId } = selections;
-    const {
-      note,
-      date,
-      litter,
-      animalId,
-      animalTypeId,
-      organizationId,
-      userCreatedId,
-      deletedAt,
-    } = options;
+    const { note, date, litter, animalId, userCreatedId, deletedAt } = options;
 
     const farrowing = this.client.farrowing.update({
       where: {
@@ -131,8 +122,6 @@ export class FarrowingsService {
         date,
         litter,
         animalId,
-        animalTypeId,
-        organizationId,
         userCreatedId,
         deletedAt,
       },

@@ -278,6 +278,7 @@ model Animal {
   feedings        Feeding[]
   isolations      Isolation[]
   castration      Castration?
+  eggHavestings   EggHavesting[]
 }
 
 model AnimalType {
@@ -491,7 +492,6 @@ model Death {
   date           DateTime?
   number         Int?
   note           String?      @db.Text
-  status         AnimalStatus @default(DEAD)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -573,7 +573,6 @@ model Sale {
   quantity       Int?
   soldTo         String
   animalCode     String
-  status         AnimalStatus   @default(SOLD)
   method         sellingMethod?
   animalTypeId   String
   animalType     AnimalType     @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
@@ -667,11 +666,14 @@ model EggHavesting {
   quantity       Int
   size           Size
   method         PickingMethod
+  animalId       String
+  animal         Animal        @relation(fields: [animalId], references: [id], onDelete: Cascade)
   animalTypeId   String
   animalType     AnimalType    @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+  Incubations    Incubation[]
 }
 
 enum Size {
@@ -692,8 +694,11 @@ model Incubation {
   id             String       @id @default(uuid())
   date           DateTime?
   note           String?      @db.Text
-  quantity       Int
+  quantityStart  Int
+  quantityEnd    Int
   dueDate        DateTime
+  eggHavestingId String
+  eggHavesting   EggHavesting @relation(fields: [eggHavestingId], references: [id], onDelete: Cascade)
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
