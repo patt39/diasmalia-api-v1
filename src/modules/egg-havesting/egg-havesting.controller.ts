@@ -76,7 +76,7 @@ export class EggHavestingsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { size, quantity, date, note, method, code } = body;
+    const { size, quantity, date, note, method, code, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
@@ -169,20 +169,10 @@ export class EggHavestingsController {
     @Param('eggHavestingId', ParseUUIDPipe) eggHavestingId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneEggHavesting)
       throw new HttpException(
@@ -202,20 +192,10 @@ export class EggHavestingsController {
     @Param('eggHavestingId', ParseUUIDPipe) eggHavestingId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneEggHavesting)
       throw new HttpException(

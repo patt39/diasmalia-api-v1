@@ -76,8 +76,17 @@ export class TreatmentsController {
     @Body() body: CreateOrUpdateTreatmentsDto,
   ) {
     const { user } = req;
-    const { note, dose, name, date, method, medication, diagnosis, animalId } =
-      body;
+    const {
+      note,
+      dose,
+      name,
+      date,
+      method,
+      medication,
+      diagnosis,
+      animalId,
+      animalTypeId,
+    } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
@@ -120,11 +129,20 @@ export class TreatmentsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkTreatmentsDto) {
     const { user } = req;
-    const { date, animals, note, name, dose, diagnosis, medication } = body;
+    const {
+      date,
+      animals,
+      note,
+      name,
+      dose,
+      diagnosis,
+      medication,
+      animalTypeId,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -205,7 +223,7 @@ export class TreatmentsController {
       );
 
     const treatment = await this.treatmentsService.updateOne(
-      { treatmentId: findOneTreatement?.id },
+      { treatmentId: findOneTreatement.id },
       {
         note,
         date,
@@ -232,20 +250,9 @@ export class TreatmentsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneTreatement)
       throw new HttpException(
@@ -266,20 +273,9 @@ export class TreatmentsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneTreatement)
       throw new HttpException(
@@ -288,7 +284,7 @@ export class TreatmentsController {
       );
 
     await this.treatmentsService.updateOne(
-      { treatmentId: findOneTreatement?.id },
+      { treatmentId: findOneTreatement.id },
       { deletedAt: new Date() },
     );
 

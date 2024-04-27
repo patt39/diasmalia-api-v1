@@ -73,10 +73,10 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, date, note, codeFemale, farrowingId } = body;
+    const { litter, date, note, codeFemale, farrowingId, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -144,10 +144,10 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const { litter, date, note, codeFemale, farrowingId } = body;
+    const { litter, date, note, codeFemale, farrowingId, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -191,7 +191,7 @@ export class WeaningsController {
       );
 
     const weaning = await this.weaningsService.updateOne(
-      { weaningId: findOneWeaning?.id },
+      { weaningId: findOneWeaning.id },
       {
         note,
         date,
@@ -214,19 +214,9 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneWeaning)
@@ -247,19 +237,9 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneWeaning)

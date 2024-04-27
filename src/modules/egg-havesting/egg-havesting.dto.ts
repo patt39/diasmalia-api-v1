@@ -34,6 +34,11 @@ export class CreateOrUpdateEggHavestingsDto {
   @IsNotEmpty()
   @IsString()
   code: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class EggHavestingQueryDto {

@@ -30,6 +30,11 @@ export class CreateOrUpdateDeathsDto {
   @IsNotEmpty()
   @IsNumber()
   number: number;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkDeathsDto {
@@ -44,6 +49,11 @@ export class BulkDeathsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class DeathQueryDto {

@@ -27,6 +27,11 @@ export class CreateOrUpdateWeaningsDto {
   @IsString()
   @IsUUID()
   farrowingId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class WeaningDto {

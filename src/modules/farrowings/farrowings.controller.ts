@@ -138,7 +138,7 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, date, codeFemale } = body;
+    const { litter, note, date, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
@@ -210,20 +210,9 @@ export class FarrowingsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const farrowing = await this.farrowingsService.findOneBy({
       farrowingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!farrowingId)
       throw new HttpException(
@@ -244,20 +233,9 @@ export class FarrowingsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFarrowing)
       throw new HttpException(

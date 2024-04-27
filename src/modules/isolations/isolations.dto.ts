@@ -18,6 +18,11 @@ export class CreateOrUpdateIsolationsDto {
   @IsNotEmpty()
   @IsString()
   code: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkIsolationsDto {
@@ -32,6 +37,11 @@ export class BulkIsolationsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class IsolationsQueryDto {
