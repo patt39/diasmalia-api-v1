@@ -38,6 +38,11 @@ export class CreateOrUpdateFeedingsDto {
   @MaxLength(100)
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkFeedingsDto {
@@ -67,6 +72,11 @@ export class BulkFeedingsDto {
   @IsString()
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class GetFeedQueryDto {

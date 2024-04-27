@@ -142,20 +142,10 @@ export class GestationsController {
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneGestation = await this.gestationsService.findOneBy({
       gestationId,
       organizationId: user.organization,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneGestation) {
       throw new HttpException(
@@ -177,20 +167,9 @@ export class GestationsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneGestation = await this.gestationsService.findOneBy({
       gestationId,
       organizationId: user.organization,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneGestation) {
       throw new HttpException(

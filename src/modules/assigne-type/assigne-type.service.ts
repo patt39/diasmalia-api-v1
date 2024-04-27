@@ -117,7 +117,7 @@ export class AssignTypesService {
     options: UpdateAssignTypesOptions,
   ): Promise<AssignType> {
     const { assignTypeId } = selections;
-    const { animalTypeId, status, userId, deletedAt } = options;
+    const { animalTypeId, userId, deletedAt } = options;
 
     const assignType = this.client.assignType.update({
       where: {
@@ -125,7 +125,6 @@ export class AssignTypesService {
       },
       data: {
         userId,
-        status,
         animalTypeId,
         deletedAt,
       },

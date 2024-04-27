@@ -45,6 +45,11 @@ export class CreateOrUpdateTreatmentsDto {
   @IsString()
   @IsEnum(MedicationTypes)
   medication: MedicationTypes;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkTreatmentsDto {
@@ -81,6 +86,11 @@ export class BulkTreatmentsDto {
   @IsString()
   @IsEnum(MedicationTypes)
   medication: MedicationTypes;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class TreatmentDto {

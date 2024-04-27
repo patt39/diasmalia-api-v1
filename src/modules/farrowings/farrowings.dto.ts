@@ -22,6 +22,11 @@ export class CreateOrUpdateFarrowingsDto {
   @IsNotEmpty()
   @IsString()
   codeFemale: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class FarrowingQueryDto {

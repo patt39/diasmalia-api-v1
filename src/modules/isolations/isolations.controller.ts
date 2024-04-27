@@ -76,7 +76,7 @@ export class IsolationsController {
     @Body() body: CreateOrUpdateIsolationsDto,
   ) {
     const { user } = req;
-    const { date, note, code } = body;
+    const { date, note, code, animalTypeId } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
@@ -208,6 +208,29 @@ export class IsolationsController {
     return reply({ res, results: isolation });
   }
 
+  /** Get one incubation */
+  @Get(`/view/:isolationId`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdWeaning(
+    @Res() res,
+    @Req() req,
+    @Param('isolationId', ParseUUIDPipe) isolationId: string,
+  ) {
+    const { user } = req;
+
+    const findOneIsolation = await this.isolationsService.findOneBy({
+      isolationId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneIsolation)
+      throw new HttpException(
+        `IsolationId: ${isolationId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneIsolation });
+  }
+
   /** Delete one isolation */
   @Delete(`/delete/:isolationId`)
   @UseGuards(UserAuthGuard)
@@ -218,20 +241,9 @@ export class IsolationsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneIsolation)
       throw new HttpException(

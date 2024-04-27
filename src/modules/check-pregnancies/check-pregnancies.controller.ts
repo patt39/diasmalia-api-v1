@@ -81,7 +81,15 @@ export class CheckPregnanciesController {
     @Body() body: CreateOrUpdateCheckPregnanciesDto,
   ) {
     const { user } = req;
-    const { date, note, result, method, breedingId, farrowingDate } = body;
+    const {
+      date,
+      note,
+      result,
+      method,
+      breedingId,
+      farrowingDate,
+      animalTypeId,
+    } = body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
@@ -90,7 +98,7 @@ export class CheckPregnanciesController {
     });
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -112,8 +120,8 @@ export class CheckPregnanciesController {
         breedingId: findOneBreeding.id,
         animalFemaleId: findOneBreeding.animalFemaleId,
         animalTypeId: findOneAssignType.animalTypeId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
       });
     } else {
       throw new HttpException(
@@ -138,8 +146,8 @@ export class CheckPregnanciesController {
         farrowingDate,
         animalId: findOneBreeding.animalFemaleId,
         animalTypeId: findOneAssignType.animalTypeId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
       });
 
       await this.animalsService.updateOne(
@@ -163,20 +171,9 @@ export class CheckPregnanciesController {
     const { user } = req;
     const { date, method, result, breedingId } = body;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOnecheckPregnancy)
       throw new HttpException(
@@ -231,20 +228,9 @@ export class CheckPregnanciesController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOnecheckPregnancy)
       throw new HttpException(
@@ -265,20 +251,9 @@ export class CheckPregnanciesController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOnecheckPregnancy)
       throw new HttpException(

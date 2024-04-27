@@ -658,6 +658,9 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
       ],
+      defaultStyle: {
+        font: 'Helvetica',
+      },
     } as TDocumentDefinitions;
 
     const nameFile = `${formateNowDateYYMMDD(new Date())}-${generateUUID()}`;

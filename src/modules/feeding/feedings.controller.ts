@@ -75,10 +75,18 @@ export class FeedingsController {
     @Body() body: CreateOrUpdateFeedingsDto,
   ) {
     const { user } = req;
-    const { date, quantity, feedType, productionPhase, code, note } = body;
+    const {
+      date,
+      quantity,
+      feedType,
+      productionPhase,
+      code,
+      note,
+      animalTypeId,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findOneAssignType)
@@ -106,8 +114,8 @@ export class FeedingsController {
       productionPhase,
       animalId: findOneAnimal.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
 
     return reply({ res, results: [HttpStatus.CREATED, feeding] });

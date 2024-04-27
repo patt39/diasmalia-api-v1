@@ -77,10 +77,10 @@ export class CastrationsController {
     @Body() body: BulkCastrationsDto,
   ) {
     const { user } = req;
-    const { date, method, animals, note } = body;
+    const { date, method, animals, note, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findOneAssignType)
@@ -92,7 +92,7 @@ export class CastrationsController {
     for (const animal of animals) {
       const findOneMale = await this.animalsService.findOneBy({
         status: 'ACTIVE',
-        code: animal?.code,
+        code: animal.code,
         gender: 'MALE',
         animalTypeId: findOneAssignType.animalTypeId,
       });
@@ -126,10 +126,10 @@ export class CastrationsController {
     @Param('castrationId', ParseUUIDPipe) castrationId: string,
   ) {
     const { user } = req;
-    const { date, note, method, maleCode } = body;
+    const { date, note, method, maleCode, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -218,20 +218,9 @@ export class CastrationsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneCastration = await this.castrationsService.findOneBy({
       castrationId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneCastration)
       throw new HttpException(
@@ -240,7 +229,7 @@ export class CastrationsController {
       );
 
     await this.castrationsService.updateOne(
-      { castrationId: findOneCastration?.id },
+      { castrationId: findOneCastration.id },
       { deletedAt: new Date() },
     );
 

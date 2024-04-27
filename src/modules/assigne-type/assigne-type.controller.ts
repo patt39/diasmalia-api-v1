@@ -86,8 +86,7 @@ export class AssignTypesController {
 
     const findOneAnimalType = await this.assignTypesService.findOneBy({
       animalTypeId,
-      status: false,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     const assignType = !findOneAnimalType
@@ -119,19 +118,8 @@ export class AssignTypesController {
   ) {
     const { user } = req;
 
-    const findOneType = await this.assignTypesService.findOneBy({
-      organizationId: user.organizationId,
-    });
-    if (findOneType.status === true) {
-      throw new HttpException(
-        `An animalType is already openned please close it before openning another one`,
-        HttpStatus.FOUND,
-      );
-    }
-
     const findOneAssignType = await this.assignTypesService.findOneBy({
       assignTypeId,
-      status: false,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -140,46 +128,7 @@ export class AssignTypesController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneAssignType.status === true)
-      throw new HttpException(`Animal Type already openned`, HttpStatus.FOUND);
-
-    await this.assignTypesService.updateOne(
-      { assignTypeId: findOneAssignType.id },
-      { status: true },
-    );
-
     return reply({ res, results: 'Animal type opened' });
-  }
-
-  /** Close animal type */
-  @Get(`/close/:assignTypeId`)
-  @UseGuards(UserAuthGuard)
-  async closeAnimalType(
-    @Res() res,
-    @Req() req,
-    @Param('assignTypeId', ParseUUIDPipe) assignTypeId: string,
-  ) {
-    const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      assignTypeId,
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType: ${assignTypeId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneAssignType.status === false)
-      throw new HttpException(`Animal Type already closed`, HttpStatus.FOUND);
-
-    await this.assignTypesService.updateOne(
-      { assignTypeId: findOneAssignType.id },
-      { status: false },
-    );
-
-    return reply({ res, results: 'Animal type closed' });
   }
 
   /** Delete one assignType */

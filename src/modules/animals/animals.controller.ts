@@ -90,6 +90,7 @@ export class AnimalsController {
       codeMother,
       codeFather,
       locationId,
+      animalTypeId,
       electronicCode,
       productionPhase,
     } = body;
@@ -97,7 +98,7 @@ export class AnimalsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
       electronicCode,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (findOneAnimal)
       throw new HttpException(
@@ -106,8 +107,8 @@ export class AnimalsController {
       );
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -126,11 +127,11 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    // if (findOneLocation?.productionPhase !== productionPhase)
-    //   throw new HttpException(
-    //     `Animal can't be placed in this location code: ${findOneLocation.code} please change`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
+    if (findOneLocation.productionPhase !== productionPhase)
+      throw new HttpException(
+        `Animal can't be placed in this location code: ${findOneLocation.code} please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
       throw new HttpException(
@@ -172,7 +173,7 @@ export class AnimalsController {
       locationId: findOneLocation.id,
       animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
-      userCreatedId: user?.id,
+      userCreatedId: user.id,
     });
 
     return reply({
@@ -318,7 +319,7 @@ export class AnimalsController {
     const { user } = req;
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -369,7 +370,7 @@ export class AnimalsController {
     const { user } = req;
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -378,7 +379,7 @@ export class AnimalsController {
       );
 
     await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
+      { animalId: findOneAnimal.id },
       { deletedAt: new Date() },
     );
 

@@ -56,6 +56,11 @@ export class CreateOrUpdateAnimalsDto {
   @IsUUID()
   locationId: string;
 
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
+
   @IsOptional()
   @IsString()
   @IsUUID()

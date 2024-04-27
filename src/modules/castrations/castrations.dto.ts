@@ -26,6 +26,11 @@ export class CreateOrUpdateCastrationsDto {
   @IsString()
   @IsEnum(CastrationMethod)
   method: CastrationMethod;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkCastrationsDto {
@@ -46,6 +51,11 @@ export class BulkCastrationsDto {
   @IsString()
   @IsEnum(CastrationMethod)
   method: CastrationMethod;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class GetCastrationsQueryDto {

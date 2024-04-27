@@ -74,8 +74,15 @@ export class IncubationsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { quantityEnd, quantityStart, date, dueDate, note, eggHavestingId } =
-      body;
+    const {
+      quantityEnd,
+      quantityStart,
+      date,
+      dueDate,
+      note,
+      eggHavestingId,
+      animalTypeId,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
@@ -171,20 +178,9 @@ export class IncubationsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneIncubation)
       throw new HttpException(

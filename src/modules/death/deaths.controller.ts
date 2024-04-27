@@ -68,7 +68,7 @@ export class DeathsController {
     return reply({ res, results: deaths });
   }
 
-  /** Post birds death */
+  /** Post death */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
   async createOne(
@@ -77,14 +77,14 @@ export class DeathsController {
     @Body() body: CreateOrUpdateDeathsDto,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note, number } = body;
+    const { date, codeAnimal, note, number, animalTypeId } = body;
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeAnimal,
     });
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -99,12 +99,12 @@ export class DeathsController {
       number,
       animalId: findOneAnimal.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: findOneAnimal.organizationId,
+      organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.animalsService.updateOne(
-      { animalId: death?.animalId },
+      { animalId: death.animalId },
       { quantity: findOneAnimal.quantity - number },
     );
 
@@ -116,11 +116,11 @@ export class DeathsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkDeathsDto) {
     const { user } = req;
-    const { date, animals, note } = body;
+    const { date, animals, note, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -130,7 +130,7 @@ export class DeathsController {
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
-        code: animal?.code,
+        code: animal.code,
         animalTypeId: findOneAssignType.animalTypeId,
       });
       if (findOneAnimal.status === 'DEAD')
@@ -145,11 +145,11 @@ export class DeathsController {
         animalId: findOneAnimal.id,
         organizationId: user.organizationId,
         animalTypeId: findOneAssignType.animalTypeId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       });
 
       await this.animalsService.updateOne(
-        { animalId: death?.animalId },
+        { animalId: death.animalId },
         { status: 'DEAD' },
       );
     }
@@ -167,20 +167,9 @@ export class DeathsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneDeadAnimal = await this.deathsService.findOneBy({
       deathId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneDeadAnimal)
       throw new HttpException(
@@ -201,7 +190,7 @@ export class DeathsController {
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note, status, number } = body;
+    const { date, codeAnimal, note, status, number, animalTypeId } = body;
 
     const findOneDeath = await this.deathsService.findOneBy({
       deathId,
@@ -284,20 +273,9 @@ export class DeathsController {
   ) {
     const { user } = req;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneDeadAnimal = await this.deathsService.findOneBy({
       deathId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneDeadAnimal)
       throw new HttpException(

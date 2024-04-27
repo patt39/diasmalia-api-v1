@@ -30,6 +30,7 @@ model User {
   assignTasks    AssignTask[]
   authProviders  AuthProvider[]
   assignTypes    AssignType[]
+  activityLogs   ActivityLog[]
 }
 
 model Contributor {
@@ -123,6 +124,7 @@ model Organization {
   assignTypes      AssignType[]
   eggHavestings    EggHavesting[]
   incubations      Incubation[]
+  activityLogs     ActivityLog[]
 }
 
 model Contact {
@@ -208,7 +210,6 @@ model AssignType {
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status         Boolean?     @default(false)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -695,8 +696,8 @@ model Incubation {
   date           DateTime?
   note           String?      @db.Text
   quantityStart  Int
-  quantityEnd    Int
-  dueDate        DateTime
+  quantityEnd    Int?
+  dueDate        DateTime?
   eggHavestingId String
   eggHavesting   EggHavesting @relation(fields: [eggHavestingId], references: [id], onDelete: Cascade)
   animalTypeId   String
@@ -704,4 +705,17 @@ model Incubation {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+}
+
+model ActivityLog {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  date           DateTime?
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message        String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
