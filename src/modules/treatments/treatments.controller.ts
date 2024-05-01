@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -37,6 +38,7 @@ export class TreatmentsController {
   constructor(
     private readonly treatmentsService: TreatmentsService,
     private readonly animalsService: AnimalsService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly assignTypesService: AssignTypesService,
   ) {}
 
@@ -61,7 +63,7 @@ export class TreatmentsController {
       search,
       pagination,
       animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: treatments });
@@ -99,7 +101,7 @@ export class TreatmentsController {
       );
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -118,7 +120,7 @@ export class TreatmentsController {
       medication,
       animalId: findOneAnimal.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      userCreatedId: user?.id,
+      userCreatedId: user.id,
     });
 
     return reply({ res, results: treatment });
@@ -131,10 +133,10 @@ export class TreatmentsController {
     const { user } = req;
     const {
       date,
-      animals,
       note,
       name,
       dose,
+      animals,
       diagnosis,
       medication,
       animalTypeId,
@@ -152,9 +154,9 @@ export class TreatmentsController {
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
-        code: animal?.code,
+        code: animal.code,
         animalTypeId: findOneAssignType.animalTypeId,
-        organizationId: user?.organizationId,
+        organizationId: user.organizationId,
       });
       if (!findOneAnimal)
         throw new HttpException(
@@ -162,7 +164,7 @@ export class TreatmentsController {
           HttpStatus.NOT_FOUND,
         );
 
-      await this.treatmentsService.createOne({
+      const treatment = await this.treatmentsService.createOne({
         note,
         date,
         name,
@@ -171,8 +173,16 @@ export class TreatmentsController {
         medication,
         animalId: findOneAnimal.id,
         animalTypeId: findOneAssignType.animalTypeId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: treatment.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a treatment`,
+        organizationId: user.organizationId,
       });
     }
 
@@ -189,11 +199,20 @@ export class TreatmentsController {
     @Param('treatmentId', ParseUUIDPipe) treatmentId: string,
   ) {
     const { user } = req;
-    const { note, date, name, dose, diagnosis, medication, animalId } = body;
+    const {
+      note,
+      date,
+      name,
+      dose,
+      diagnosis,
+      medication,
+      animalId,
+      animalTypeId,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -203,7 +222,7 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneTreatement)
@@ -214,6 +233,7 @@ export class TreatmentsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
+      organizationId: user.organizationId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneAnimal)
@@ -231,11 +251,19 @@ export class TreatmentsController {
         dose,
         diagnosis,
         medication,
-        animalId: findOneAnimal?.id,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        animalId: findOneAnimal.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: treatment.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a treatment`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: treatment });
   }
@@ -282,6 +310,13 @@ export class TreatmentsController {
         `TreatmentId: ${treatmentId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a treatment`,
+      organizationId: user.organizationId,
+    });
 
     await this.treatmentsService.updateOne(
       { treatmentId: findOneTreatement.id },

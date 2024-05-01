@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedingsService } from '../breedings/breedings.service';
@@ -13,6 +14,7 @@ import { CheckPregnanciesService } from './check-pregnancies.service';
     BreedingsService,
     AssignTypesService,
     GestationsService,
+    ActivityLogsService,
     CheckPregnanciesService,
   ],
 })

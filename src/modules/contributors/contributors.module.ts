@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { ProfilesService } from '../profiles/profiles.service';
@@ -15,6 +16,7 @@ import { ContributorsService } from './contributors.service';
     UsersService,
     ProfilesService,
     CheckUserService,
+    ActivityLogsService,
     ContributorsService,
     OrganizationsService,
   ],

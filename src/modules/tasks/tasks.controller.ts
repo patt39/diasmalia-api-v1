@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { ContributorsService } from '../contributors/contributors.service';
 import { taskNotification } from '../users/mails/task-notification-mail';
 import { UserAuthGuard } from '../users/middleware';
@@ -32,6 +33,7 @@ import { TasksService } from './tasks.service';
 export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly contributorsService: ContributorsService,
   ) {}
 
@@ -56,7 +58,7 @@ export class TasksController {
       status,
       search,
       pagination,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: tasks });
@@ -95,7 +97,15 @@ export class TasksController {
       description,
       contributorId: findOneContributor.id,
       organizationId: user.organizationId,
-      userCreatedId: user?.id,
+      userCreatedId: user.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: task.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
+      organizationId: user.organizationId,
     });
 
     await taskNotification({
@@ -150,7 +160,7 @@ export class TasksController {
       );
 
     const task = await this.tasksService.updateOne(
-      { taskId: findOneTask?.id },
+      { taskId: findOneTask.id },
       {
         title,
         status,
@@ -160,6 +170,14 @@ export class TasksController {
         userCreatedId: user.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: task.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: task });
   }
@@ -171,7 +189,7 @@ export class TasksController {
     const { user } = req;
     const findOneTask = await this.tasksService.findOneBy({
       slug,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -194,7 +212,7 @@ export class TasksController {
     const { user } = req;
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -202,8 +220,16 @@ export class TasksController {
         HttpStatus.NOT_FOUND,
       );
     }
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a task`,
+      organizationId: user.organizationId,
+    });
+
     const task = await this.tasksService.updateOne(
-      { taskId: findOneTask?.id },
+      { taskId: findOneTask.id },
       { deletedAt: new Date() },
     );
 

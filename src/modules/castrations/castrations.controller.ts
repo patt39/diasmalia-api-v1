@@ -16,12 +16,14 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { getIpRequest, getUserAgent } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -35,9 +37,10 @@ import { CastrationsService } from './castrations.service';
 @Controller('castrations')
 export class CastrationsController {
   constructor(
-    private readonly castrationsService: CastrationsService,
     private readonly animalsService: AnimalsService,
+    private readonly castrationsService: CastrationsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all castrations */
@@ -102,14 +105,24 @@ export class CastrationsController {
           HttpStatus.NOT_FOUND,
         );
 
-      await this.castrationsService.createOne({
+      const castration = await this.castrationsService.createOne({
         note,
         date,
         method,
         animalId: findOneMale.id,
         animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: castration.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} castrated ${findOneMale?.code} in ${findOneAssignType.animalType.name}`,
+        ipAddress: getIpRequest(req),
+        userAgent: getUserAgent(req),
+        organizationId: user.organizationId,
       });
     }
 
@@ -154,6 +167,7 @@ export class CastrationsController {
       gender: 'MALE',
       status: 'ACTIVE',
       organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -172,6 +186,16 @@ export class CastrationsController {
       },
     );
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: castration.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated castration ${findOneAnimal?.code}  in ${findOneAssignType.animalType.name}`,
+      ipAddress: getIpRequest(req),
+      userAgent: getUserAgent(req),
+      organizationId: user.organizationId,
+    });
+
     return reply({ res, results: castration });
   }
 
@@ -184,20 +208,10 @@ export class CastrationsController {
     @Param('castrationId') castrationId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneCastration = await this.castrationsService.findOneBy({
       castrationId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneCastration)
       throw new HttpException(
@@ -232,6 +246,15 @@ export class CastrationsController {
       { castrationId: findOneCastration.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a castration`,
+      ipAddress: getIpRequest(req),
+      userAgent: getUserAgent(req),
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Castration deleted successfully' });
   }

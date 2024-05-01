@@ -21,6 +21,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -36,6 +37,7 @@ export class FeedingsController {
   constructor(
     private readonly feedingsService: FeedingsService,
     private readonly animalsService: AnimalsService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly assignTypesService: AssignTypesService,
   ) {}
 
@@ -66,71 +68,24 @@ export class FeedingsController {
     return reply({ res, results: feedings });
   }
 
-  /** Post one feeding */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateFeedingsDto,
-  ) {
-    const { user } = req;
-    const {
-      date,
-      quantity,
-      feedType,
-      productionPhase,
-      code,
-      note,
-      animalTypeId,
-    } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-      status: 'ACTIVE',
-      animalTypeId: findOneAssignType.animalTypeId,
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `Animal ${code} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const feeding = await this.feedingsService.createOne({
-      date,
-      note,
-      quantity,
-      feedType,
-      productionPhase,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
-    });
-
-    return reply({ res, results: [HttpStatus.CREATED, feeding] });
-  }
-
   /** Post one Bulk feeding */
   @Post(`/bulk/create`)
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
     const { user } = req;
-    const { date, feedType, productionPhase, quantity, animals, note } = body;
+    const {
+      date,
+      note,
+      quantity,
+      animals,
+      feedType,
+      productionPhase,
+      animalTypeId,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -149,7 +104,7 @@ export class FeedingsController {
           HttpStatus.NOT_FOUND,
         );
 
-      await this.feedingsService.createOne({
+      const feeding = await this.feedingsService.createOne({
         note,
         date,
         quantity,
@@ -158,7 +113,15 @@ export class FeedingsController {
         animalId: findOneAnimal.id,
         animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: feeding.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a feeding in ${findOneAssignType.animalType.name}`,
+        organizationId: user.organizationId,
       });
     }
 
@@ -208,7 +171,7 @@ export class FeedingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const feed = await this.feedingsService.updateOne(
+    const feeding = await this.feedingsService.updateOne(
       { feedingId: findOneFeeding.id },
       {
         date,
@@ -221,7 +184,15 @@ export class FeedingsController {
       },
     );
 
-    return reply({ res, results: feed });
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: feeding.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a feeding`,
+      organizationId: user.organizationId,
+    });
+
+    return reply({ res, results: 'Feeding Created Successfully' });
   }
 
   /** Get one feeding */
@@ -267,20 +238,10 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFeeding)
       throw new HttpException(
@@ -289,9 +250,17 @@ export class FeedingsController {
       );
 
     const feeding = await this.feedingsService.updateOne(
-      { feedingId: findOneFeeding?.id },
+      { feedingId: findOneFeeding.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: feeding.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a feeding`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: feeding });
   }

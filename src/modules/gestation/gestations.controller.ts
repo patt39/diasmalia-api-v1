@@ -20,9 +20,9 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
-import { CheckPregnanciesService } from '../check-pregnancies/check-pregnancies.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateGestationsDto,
@@ -35,7 +35,7 @@ export class GestationsController {
   constructor(
     private readonly gestationsService: GestationsService,
     private readonly animalsService: AnimalsService,
-    private readonly checkPregnanciesService: CheckPregnanciesService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly assignTypesService: AssignTypesService,
   ) {}
 
@@ -114,7 +114,7 @@ export class GestationsController {
       );
 
     const gestation = await this.gestationsService.updateOne(
-      { gestationId: findOneGestation?.id },
+      { gestationId: findOneGestation.id },
       {
         note,
         farrowingDate,
@@ -122,6 +122,14 @@ export class GestationsController {
         userCreatedId: user.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: findOneGestation.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a gestation, in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({
       res,
@@ -182,6 +190,14 @@ export class GestationsController {
       { gestationId: findOneGestation?.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: findOneGestation.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a gestation in ${findOneGestation.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Gestation deleted successfully' });
   }

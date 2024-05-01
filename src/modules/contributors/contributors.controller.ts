@@ -45,6 +45,7 @@ import { UsersService } from '../users/users.service';
 import { ContributorsService } from './contributors.service';
 
 import { validation_verify_cookie_setting } from '../../app/utils/cookies';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { Cookies } from '../users/middleware/cookie.guard';
 import { UpdateResetPasswordUserDto } from '../users/users.dto';
 import { hashPassword } from '../users/users.type';
@@ -56,6 +57,7 @@ export class ContributorsController {
     private readonly profilesService: ProfilesService,
     private readonly contributorsService: ContributorsService,
     private readonly uploadsUtil: UploadsUtil,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly checkUserService: CheckUserService,
   ) {}
 
@@ -98,25 +100,29 @@ export class ContributorsController {
       firstName,
       occupation,
       companyName,
-      userId: newUser?.id,
+      userId: newUser.id,
     });
 
-    await this.contributorsService.createOne({
+    const contributor = await this.contributorsService.createOne({
       role: 'ADMIN',
-      userId: newUser?.id,
-      organizationId: newUser?.organizationId,
-      userCreatedId: user?.id,
+      userId: newUser.id,
+      organizationId: newUser.organizationId,
+      userCreatedId: user.id,
     });
 
     const token = await this.checkUserService.createTokenCookie(
-      { userId: newUser?.id, email: newUser.email } as JwtToken,
+      { userId: newUser.id, email: newUser.email } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
-    await contributorCreateUserMail({
-      user,
-      email,
-      token,
+    await contributorCreateUserMail({ user, email, token });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: contributor.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a contributor`,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: 'Contributor saved successfully' });
@@ -143,7 +149,7 @@ export class ContributorsController {
       );
 
     const findOneContributor = await this.contributorsService.findOneBy({
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (findOneContributor)
       throw new HttpException(
@@ -151,22 +157,26 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await this.contributorsService.createOne({
+    const contributor = await this.contributorsService.createOne({
       role: 'ADMIN',
-      userId: findOneUser?.id,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      userId: findOneUser.id,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
 
     const token = await this.checkUserService.createTokenCookie(
-      { email: findOneUser?.email } as JwtToken,
+      { email: findOneUser.email } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
-    await contributorInvitationMail({
-      user,
-      token,
-      email: findOneUser?.email,
+    await contributorInvitationMail({ user, token, email: findOneUser.email });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: contributor.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} invited a contributor`,
+      organizationId: user.organizationId,
     });
 
     res.cookie(
@@ -204,11 +214,7 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await contributorInvitationMail({
-      user,
-      token,
-      email: findOneUser?.email,
-    });
+    await contributorInvitationMail({ user, token, email: findOneUser.email });
 
     res.cookie(
       config.cookie_access.user.nameVerify,
@@ -248,11 +254,7 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await contributorCreateUserMail({
-      user,
-      token,
-      email: payload?.email,
-    });
+    await contributorCreateUserMail({ user, token, email: payload.email });
 
     res.cookie(
       config.cookie_access.user.nameVerify,
@@ -336,10 +338,7 @@ export class ContributorsController {
       );
     }
 
-    return reply({
-      res,
-      results: 'Invitation confirmed',
-    });
+    return reply({ res, results: 'Invitation confirmed' });
   }
 
   /** Show Contributor */
@@ -373,7 +372,7 @@ export class ContributorsController {
 
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
       file,
-      userId: user?.id,
+      userId: user.id,
       folder: 'photos',
     });
 
@@ -387,7 +386,7 @@ export class ContributorsController {
       description,
     } = body;
     await this.profilesService.updateOne(
-      { profileId: user?.profile?.id },
+      { profileId: user.profile.id },
       {
         phone,
         address,
@@ -397,7 +396,7 @@ export class ContributorsController {
         companyName,
         description,
         photo: fileName,
-        userId: user?.id,
+        userId: user.id,
       },
     );
 
@@ -418,7 +417,7 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!fineOnecontributor)
       throw new HttpException(
@@ -427,7 +426,7 @@ export class ContributorsController {
       );
 
     const contributor = await this.contributorsService.updateOne(
-      { contributorId: fineOnecontributor?.id },
+      { contributorId: fineOnecontributor.id },
       { role },
     );
 
@@ -477,7 +476,7 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!fineOnecontributor)
       throw new HttpException(
@@ -505,7 +504,7 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!fineOnecontributor)
       throw new HttpException(
@@ -528,7 +527,7 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!fineOnecontributor)
       throw new HttpException(
@@ -537,9 +536,16 @@ export class ContributorsController {
       );
 
     await this.contributorsService.updateOne(
-      { contributorId: fineOnecontributor?.id },
+      { contributorId: fineOnecontributor.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a contributor`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Contributor deleted successfully' });
   }

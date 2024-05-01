@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
@@ -35,6 +36,7 @@ export class LocationsController {
   constructor(
     private readonly locationsService: LocationsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all locations */
@@ -59,7 +61,7 @@ export class LocationsController {
       pagination,
       animalTypeId,
       productionPhase,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: locations });
@@ -115,6 +117,14 @@ export class LocationsController {
       userCreatedId: user.id,
     });
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: location.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a location in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
+
     return reply({
       res,
       results: {
@@ -135,7 +145,17 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, code } = body;
+    const { squareMeter, manger, through, code, animalTypeId } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneLocation = await this.locationsService.findOneBy({
       code,
@@ -158,6 +178,13 @@ export class LocationsController {
         userCreatedId: user.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a location in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({
       res,
@@ -216,6 +243,13 @@ export class LocationsController {
       { locationId: findOneLocation.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a location in ${findOneLocation.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Location deleted successfully' });
   }

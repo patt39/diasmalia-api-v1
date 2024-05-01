@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -37,6 +38,7 @@ export class FarrowingsController {
     private readonly farrowingsService: FarrowingsService,
     private readonly animalsService: AnimalsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all farrowings */
@@ -60,7 +62,7 @@ export class FarrowingsController {
       search,
       pagination,
       animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: farrowings });
@@ -75,11 +77,11 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, date, codeFemale } = body;
+    const { litter, note, date, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -117,6 +119,14 @@ export class FarrowingsController {
       { productionPhase: 'LACTATION' },
     );
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: farrowing.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a farrowing in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
+
     return reply({
       res,
       results: {
@@ -141,8 +151,8 @@ export class FarrowingsController {
     const { litter, note, date, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -168,6 +178,7 @@ export class FarrowingsController {
       isIsolated: 'FALSE',
       productionPhase: 'GESTATION',
       organizationId: user.organizationId,
+      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -182,7 +193,7 @@ export class FarrowingsController {
         date,
         litter,
         animalId: findOneFemale.id,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 
@@ -190,6 +201,14 @@ export class FarrowingsController {
       { animalId: findOneFemale.id },
       { productionPhase: 'LACTATION' },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: farrowing.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a farrowing in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({
       res,
@@ -244,9 +263,16 @@ export class FarrowingsController {
       );
 
     await this.farrowingsService.updateOne(
-      { farrowingId: findOneFarrowing?.id },
+      { farrowingId: findOneFarrowing.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a farrowing in ${findOneFarrowing.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Farrowing deleted successfully' });
   }

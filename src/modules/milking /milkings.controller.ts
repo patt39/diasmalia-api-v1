@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -38,6 +39,7 @@ export class MilkingsController {
     private readonly milkingsService: MilkingsService,
     private readonly animalsService: AnimalsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all milkings */
@@ -62,61 +64,13 @@ export class MilkingsController {
       method,
       pagination,
       animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: milkings });
   }
 
-  /** Post one milking */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateMilkingsDto,
-  ) {
-    const { user } = req;
-    const { note, date, quantity, method, femaleCode, animalTypeId } = body;
-
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: femaleCode,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      isIsolated: 'FALSE',
-      productionPhase: 'LACTATION',
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Animal ${femaleCode} doesn't exists, isn't in LACTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const milking = await this.milkingsService.createOne({
-      note,
-      date,
-      method,
-      quantity,
-      animalId: findOneFemale.id,
-      animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
-    });
-
-    return reply({ res, results: milking });
-  }
-
-  /** Post one Bulk milking */
+  /** Post  Bulk milking */
   @Post(`/bulk/create`)
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkMilkingsDto) {
@@ -147,7 +101,7 @@ export class MilkingsController {
           HttpStatus.NOT_FOUND,
         );
 
-      await this.milkingsService.createOne({
+      const milking = await this.milkingsService.createOne({
         note,
         date,
         method,
@@ -156,6 +110,14 @@ export class MilkingsController {
         animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: milking.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a milking in ${findOneAssignType.animalType.name}`,
+        organizationId: user.organizationId,
       });
     }
 
@@ -221,6 +183,14 @@ export class MilkingsController {
       },
     );
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: milking.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a milking in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
+
     return reply({ res, results: milking });
   }
 
@@ -271,6 +241,13 @@ export class MilkingsController {
       { milkingId: findOneMilking?.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a milking in ${findOneMilking.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Milking deleted successfully' });
   }

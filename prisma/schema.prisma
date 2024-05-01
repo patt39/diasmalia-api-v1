@@ -712,10 +712,13 @@ model ActivityLog {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  date           DateTime?
+  date           DateTime
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   message        String
+  actionId       String
+  ipAddress      String?
+  userAgent      String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }

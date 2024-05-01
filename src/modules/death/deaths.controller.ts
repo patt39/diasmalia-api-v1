@@ -21,6 +21,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { SalesService } from '../sales/sales.service';
@@ -38,6 +39,7 @@ export class DeathsController {
     private readonly deathsService: DeathsService,
     private readonly animalsService: AnimalsService,
     private readonly salesService: SalesService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly assignTypesService: AssignTypesService,
   ) {}
 
@@ -66,49 +68,6 @@ export class DeathsController {
     });
 
     return reply({ res, results: deaths });
-  }
-
-  /** Post death */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateDeathsDto,
-  ) {
-    const { user } = req;
-    const { date, codeAnimal, note, number, animalTypeId } = body;
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code: codeAnimal,
-    });
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const death = await this.deathsService.createOne({
-      date,
-      note,
-      number,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
-    });
-
-    await this.animalsService.updateOne(
-      { animalId: death.animalId },
-      { quantity: findOneAnimal.quantity - number },
-    );
-
-    return reply({ res, results: death });
   }
 
   /** Post one Bulk death */
@@ -152,6 +111,14 @@ export class DeathsController {
         { animalId: death.animalId },
         { status: 'DEAD' },
       );
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: death.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a death in ${findOneAssignType?.animalType?.name}`,
+        organizationId: user.organizationId,
+      });
     }
 
     return reply({ res, results: 'Saved' });
@@ -191,6 +158,16 @@ export class DeathsController {
   ) {
     const { user } = req;
     const { date, codeAnimal, note, status, number, animalTypeId } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneDeath = await this.deathsService.findOneBy({
       deathId,
@@ -260,6 +237,14 @@ export class DeathsController {
       );
     }
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: findOneDeath.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a death in ${findOneAssignType?.animalType?.name}`,
+      organizationId: user.organizationId,
+    });
+
     return reply({ res, results: 'Death updated successfully' });
   }
 
@@ -287,6 +272,13 @@ export class DeathsController {
       { deathId: findOneDeadAnimal.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a death  in ${findOneDeadAnimal.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: death });
   }

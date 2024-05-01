@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { FarrowingsService } from '../farrowings/farrowings.service';
@@ -36,6 +37,7 @@ export class WeaningsController {
     private readonly animalsService: AnimalsService,
     private readonly farrowingsService: FarrowingsService,
     private readonly assignTypesService: AssignTypesService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   @Get(`/`)
@@ -126,6 +128,14 @@ export class WeaningsController {
       userCreatedId: user.id,
     });
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: weaning.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a weaning in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
+
     await this.animalsService.updateOne(
       { animalId: findOneFemale.id },
       { productionPhase: 'REPRODUCTION' },
@@ -202,6 +212,14 @@ export class WeaningsController {
       },
     );
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: weaning.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a weaning in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
+
     return reply({ res, results: weaning });
   }
 
@@ -247,6 +265,13 @@ export class WeaningsController {
         `WeaningId: ${weaningId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a weaning in ${findOneWeaning.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     await this.weaningsService.updateOne(
       { weaningId: findOneWeaning.id },

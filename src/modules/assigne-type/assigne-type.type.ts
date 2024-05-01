@@ -29,7 +29,6 @@ export type UpdateAssignTypesOptions = Partial<AssignType>;
 export const AllAssignedTypeSelect = {
   createdAt: true,
   id: true,
-  status: true,
   userId: true,
   user: {
     select: {
