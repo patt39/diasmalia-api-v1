@@ -23,6 +23,7 @@ async function bootstrap() {
   app.enableCors({
     origin: withList,
     credentials: true,
+    exposedHeaders: ['set-cookie'],
   });
   app.useGlobalPipes(
     new ValidationPipe({

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './app/database/database.module';
+import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module';
 import { AnimalTypesModule } from './modules/animal-type/animal-type.module';
 import { AnimalsModule } from './modules/animals/animals.module';
 import { AssignTasksModule } from './modules/assigne-tasks/assigne-tasks.module';
@@ -59,6 +60,7 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     FeedingsModule,
     AssignTasksModule,
     FinanceModule,
+    ActivityLogsModule,
     ContactUsModule,
     CurrenciesModule,
     ContributorsModule,

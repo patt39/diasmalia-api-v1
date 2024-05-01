@@ -11,23 +11,19 @@ import { Match } from 'src/app/utils/decorators';
 export class RegisterUserDto {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(50)
   firstName: string;
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(50)
   lastName: string;
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(50)
-  nameOrganization: string;
+  organizationName: string;
 
   @IsNotEmpty()
   @IsString()
   @IsEmail()
-  @MaxLength(50)
   email: string;
 
   @IsNotEmpty()

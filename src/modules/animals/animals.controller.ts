@@ -17,6 +17,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { getIpRequest } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
@@ -24,6 +25,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
 import { UploadsUtil } from '../integrations/integration.utils';
@@ -40,6 +42,7 @@ export class AnimalsController {
     private readonly breedsService: BreedsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly uploadsUtil: UploadsUtil,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all animals */
@@ -127,11 +130,11 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation.productionPhase !== productionPhase)
-      throw new HttpException(
-        `Animal can't be placed in this location code: ${findOneLocation.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    // if (findOneLocation.productionPhase !== productionPhase)
+    //   throw new HttpException(
+    //     `Animal can't be placed in this location code: ${findOneLocation.code} please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
     if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
       throw new HttpException(
@@ -169,11 +172,20 @@ export class AnimalsController {
       codeMother,
       electronicCode,
       productionPhase,
-      breedId: findOneBreed.id,
+      breedId: findOneBreed?.id,
       locationId: findOneLocation.id,
       animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: animal.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
+      ipAddress: getIpRequest(req),
+      organizationId: user.organizationId,
     });
 
     return reply({
@@ -247,11 +259,11 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation.productionPhase !== productionPhase)
-      throw new HttpException(
-        `Animal can't be placed in this location ${findOneLocation.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    // if (findOneLocation.productionPhase !== productionPhase)
+    //   throw new HttpException(
+    //     `Animal can't be placed in this location ${findOneLocation.code} please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
     if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
       throw new HttpException(
@@ -297,6 +309,15 @@ export class AnimalsController {
         userCreatedId: user?.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: animal.createdAt,
+      actionId: animal.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
+      ipAddress: getIpRequest(req),
+      organizationId: user.organizationId,
+    });
 
     return reply({
       res,
@@ -382,6 +403,15 @@ export class AnimalsController {
       { animalId: findOneAnimal.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: animalId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an animal with code ${findOneAnimal?.code} in ${findOneAnimal.animalType.name}`,
+      ipAddress: getIpRequest(req),
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: [HttpStatus.ACCEPTED, findOneAnimal] });
   }

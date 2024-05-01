@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -37,6 +38,7 @@ export class EggHavestingsController {
     private readonly eggHavestingsService: EggHavestingsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly animalsService: AnimalsService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   @Get(`/`)
@@ -109,6 +111,14 @@ export class EggHavestingsController {
       userCreatedId: user.id,
     });
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: eggHavesting.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created an egg havesting`,
+      organizationId: user.organizationId,
+    });
+
     return reply({ res, results: eggHavesting });
   }
 
@@ -146,7 +156,7 @@ export class EggHavestingsController {
       );
 
     const eggHavesting = await this.eggHavestingsService.updateOne(
-      { eggHavestingId: findOneEggHavesting?.id },
+      { eggHavestingId: findOneEggHavesting.id },
       {
         note,
         date,
@@ -156,6 +166,13 @@ export class EggHavestingsController {
         userCreatedId: user.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an egg havesting`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: eggHavesting });
   }
@@ -207,6 +224,13 @@ export class EggHavestingsController {
       { eggHavestingId: findOneEggHavesting.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an egg havesting`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'EggHavesting deleted successfully' });
   }

@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedingsService } from '../breedings/breedings.service';
@@ -40,6 +41,7 @@ export class CheckPregnanciesController {
     private readonly breedingsService: BreedingsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly gestationsService: GestationsService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly checkPregnanciesService: CheckPregnanciesService,
   ) {}
 
@@ -113,7 +115,7 @@ export class CheckPregnanciesController {
       animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOnecheckPregnancy) {
-      await this.checkPregnanciesService.createOne({
+      const checkPregnancy = await this.checkPregnanciesService.createOne({
         date,
         method,
         result,
@@ -122,6 +124,14 @@ export class CheckPregnanciesController {
         animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: checkPregnancy.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} checked a pregnancy in ${findOneAssignType.animalType.name}`,
+        organizationId: user.organizationId,
       });
     } else {
       throw new HttpException(
@@ -139,9 +149,8 @@ export class CheckPregnanciesController {
       animalId: findOneBreeding.animalFemaleId,
       animalTypeId: findOneAssignType.animalTypeId,
     });
-
     if (result === 'PREGNANT' && !findOneGestation) {
-      await this.gestationsService.createOne({
+      const gestation = await this.gestationsService.createOne({
         note,
         farrowingDate,
         animalId: findOneBreeding.animalFemaleId,
@@ -154,6 +163,14 @@ export class CheckPregnanciesController {
         { animalId: findOneBreeding.animalFemaleId },
         { productionPhase: 'GESTATION' },
       );
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: gestation.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a gestation`,
+        organizationId: user.organizationId,
+      });
     }
 
     return reply({ res, results: 'CheckPregnancy Created Successfully' });
@@ -169,7 +186,17 @@ export class CheckPregnanciesController {
     @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
     const { user } = req;
-    const { date, method, result, breedingId } = body;
+    const { date, method, result, breedingId, animalTypeId } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
@@ -214,6 +241,13 @@ export class CheckPregnanciesController {
         { productionPhase: 'REPRODUCTION' },
       );
     }
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a checkPregnancy`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: checkPregnancy });
   }
@@ -265,6 +299,13 @@ export class CheckPregnanciesController {
       { checkPregnancyId: findOnecheckPregnancy.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a checkPregnancy`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'CheckPregnancy deleted successfully' });
   }

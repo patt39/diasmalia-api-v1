@@ -6,18 +6,20 @@ import {
   HttpStatus,
   Post,
   Put,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 
 import { config } from '../../app/config';
-import { generateNumber } from '../../app/utils/commons';
+import { generateNumber, getIpRequest } from '../../app/utils/commons';
 import {
   validation_login_cookie_setting,
   validation_verify_cookie_setting,
 } from '../../app/utils/cookies';
 import { reply } from '../../app/utils/reply';
 import { ContributorsService } from '../contributors/contributors.service';
+import { getOneLocationIpApi } from '../integrations/taux-live';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { ProfilesService } from '../profiles/profiles.service';
 import { authCodeConfirmationMail } from './mails/auth-code-confirmation-mail';
@@ -48,7 +50,7 @@ export class UsersAuthController {
   /** Post one User */
   @Post(`/register`)
   async createOne(@Res() res, @Body() body: RegisterUserDto) {
-    const { email, password, firstName, lastName, nameOrganization } = body;
+    const { email, password, firstName, lastName, organizationName } = body;
 
     const findOneUser = await this.usersService.findOneBy({ email });
     if (findOneUser)
@@ -69,12 +71,12 @@ export class UsersAuthController {
     });
 
     const organization = await this.organizationsService.createOne({
-      name: nameOrganization,
-      userId: user?.id,
+      name: organizationName,
+      userId: user.id,
     });
 
     await this.usersService.updateOne(
-      { userId: user?.id },
+      { userId: user.id },
       { organizationId: organization?.id },
     );
 
@@ -83,13 +85,13 @@ export class UsersAuthController {
       userId: user?.id,
       confirmation: 'YES',
       confirmedAt: new Date(),
-      organizationId: organization?.id,
-      userCreatedId: user?.id,
+      organizationId: organization.id,
+      userCreatedId: user.id,
     });
 
     const codeGenerate = generateNumber(6);
     const tokenUser = await this.checkUserService.createTokenCookie(
-      { userId: user?.id, code: codeGenerate } as JwtToken,
+      { userId: user.id, code: codeGenerate } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
@@ -221,12 +223,12 @@ export class UsersAuthController {
       );
 
       await authCodeConfirmationMail({
-        email: findOneUser?.email,
+        email: findOneUser.email,
         code: codeGenerate,
       });
     } else {
       const tokenUser = await this.checkUserService.createTokenCookie(
-        { userId: findOneUser?.id } as JwtToken,
+        { userId: findOneUser.id } as JwtToken,
         config.cookie_access.user.accessExpireLogin,
       );
 
@@ -293,6 +295,36 @@ export class UsersAuthController {
     return reply({
       res,
       results: 'Password updated',
+    });
+  }
+
+  /** IpLocation new user */
+  @Get(`/ip-location`)
+  async ipLocation(@Res() res, @Req() req) {
+    const ip = await getOneLocationIpApi({
+      ipLocation: getIpRequest(req) ?? '101.56.0.0',
+    });
+    const {
+      continent,
+      country,
+      countryCode,
+      continentCode,
+      timezone,
+      query,
+      currency,
+    } = ip;
+
+    return reply({
+      res,
+      results: {
+        continent,
+        country,
+        countryCode,
+        timezone,
+        query,
+        continentCode,
+        currency,
+      },
     });
   }
 

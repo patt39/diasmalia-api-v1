@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalTypesService } from '../animal-type/animal-type.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
@@ -16,6 +17,7 @@ import { AnimalsService } from './animals.service';
     LocationsService,
     BreedsService,
     UploadsUtil,
+    ActivityLogsService,
     IsolationsService,
     CastrationsService,
     AnimalTypesService,

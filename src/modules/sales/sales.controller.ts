@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import PdfPrinter from 'pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
-import { Readable, Writable } from 'stream';
+import { Writable } from 'stream';
 import { config } from '../../app/config/index';
 import { generateUUID } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
@@ -26,6 +26,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { DeathsService } from '../death/deaths.service';
 import {
@@ -51,6 +52,7 @@ export class SalesController {
     private readonly animalsService: AnimalsService,
     private readonly deathsService: DeathsService,
     private readonly usersService: UsersService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all Sales */
@@ -96,6 +98,7 @@ export class SalesController {
 
     const findOneSale = await this.salesService.findOneBy({
       saleId,
+      organizationId: user.organizationId,
     });
     if (!findOneSale)
       throw new HttpException(
@@ -163,6 +166,14 @@ export class SalesController {
         { deletedAt: new Date() },
       );
     }
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: findOneSale.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a sale`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Sale Updated Successfully' });
   }
@@ -241,8 +252,16 @@ export class SalesController {
         animalCode: findOneAnimal.code,
         type: findOneAnimal.animalType.name,
         animalTypeId: findOneAnimal.animalTypeId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: sale.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a sale`,
+        organizationId: user.organizationId,
       });
 
       if (findOneAnimal) {
@@ -328,12 +347,12 @@ export class SalesController {
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Adresse: ${address}`,
+          text: `Adresse: ${address || 'RAS'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Email: ${email},  Phone:  ${phone}`,
+          text: `Email: ${email || 'RAS'},  Phone:  ${phone || 'RAS'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
@@ -445,6 +464,7 @@ export class SalesController {
         content: Buffer.concat(chunks),
       });
     }
+
     return reply({ res, results: 'Sale saved successfully' });
   }
 
@@ -509,6 +529,14 @@ export class SalesController {
         animalTypeId: findOneAnimal.animalTypeId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
+      });
+
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        date: new Date(),
+        actionId: sale.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a sale`,
+        organizationId: user.organizationId,
       });
 
       await this.animalsService.updateOne(
@@ -605,12 +633,12 @@ export class SalesController {
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Adresse: ${address}`,
+          text: `Adresse: ${address || 'RAS'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Email: ${email},  Phone:  ${phone}`,
+          text: `Email: ${email || 'RAS'},  Phone:  ${phone || 'RAS'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
@@ -641,7 +669,7 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         {
-          text: `Price:  ${price} ${user.organization.currency.symbol}`,
+          text: `Price:  ${price} ${user.organization?.currency?.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
@@ -719,9 +747,10 @@ export class SalesController {
     @Param('saleId', ParseUUIDPipe) saleId: string,
   ) {
     const { user } = req;
+
     const findOneSale = await this.salesService.findOneBy({
       saleId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     if (!findOneSale)
       throw new HttpException(
@@ -748,7 +777,7 @@ export class SalesController {
     }
   }
 
-  /** Get uploaded file */
+  /** Pdf download */
   @Get(`/:folder/:name/download`)
   async getOneUploadedPDF(@Res() res, @Param() params: GetOneUploadsDto) {
     const { name, folder } = params;
@@ -759,31 +788,9 @@ export class SalesController {
       });
       res.status(200);
       res.contentType(contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
       res.set('Cross-Origin-Resource-Policy', 'cross-origin');
       res.send(fileBuffer);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error during file recovering.');
-    }
-  }
-
-  /** Download sale */
-  @Get(`/download/pdf`)
-  async downloadSale(@Res() res, @Param() params: GetOneUploadsDto) {
-    const { name, folder } = params;
-    try {
-      const { fileBuffer, contentType } = await getFileFromAws({
-        folder,
-        fileName: name,
-      });
-
-      const readStream = Readable.from([fileBuffer]);
-
-      res.status(200);
-      res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
-      res.contentType(contentType);
-      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-      readStream.pipe(res);
     } catch (error) {
       console.error(error);
       res.status(500).send('Error during file recovering.');
@@ -801,12 +808,19 @@ export class SalesController {
     const { user } = req;
     const findOneSale = await this.salesService.findOneBy({
       saleId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
     const sale = await this.salesService.updateOne(
       { saleId: findOneSale?.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a sale`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: sale });
   }

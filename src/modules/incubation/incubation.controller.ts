@@ -22,6 +22,7 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -37,6 +38,7 @@ export class IncubationsController {
     private readonly incubationsService: IncubationsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly eggHavestingsService: EggHavestingsService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   @Get(`/`)
@@ -75,17 +77,17 @@ export class IncubationsController {
   ) {
     const { user } = req;
     const {
+      date,
+      note,
+      dueDate,
       quantityEnd,
       quantityStart,
-      date,
-      dueDate,
-      note,
       eggHavestingId,
       animalTypeId,
     } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
+      animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneAssignType)
@@ -118,8 +120,16 @@ export class IncubationsController {
       quantityStart,
       eggHavestingId: findOneEggHavesting.id,
       animalTypeId: findOneAssignType.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: incubation.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created an incubation in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: incubation });
@@ -135,7 +145,18 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const { quantityEnd, quantityStart, date, dueDate, note } = body;
+    const { quantityEnd, quantityStart, date, dueDate, note, animalTypeId } =
+      body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
@@ -154,7 +175,7 @@ export class IncubationsController {
       );
 
     const incubation = await this.incubationsService.updateOne(
-      { incubationId: findOneIncubation?.id },
+      { incubationId: findOneIncubation.id },
       {
         note,
         date,
@@ -164,6 +185,14 @@ export class IncubationsController {
         userCreatedId: user.id,
       },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      actionId: incubation.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an incubation in ${findOneAssignType.animalType.name}`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: incubation });
   }
@@ -200,20 +229,10 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneIncubation)
       throw new HttpException(
@@ -225,6 +244,13 @@ export class IncubationsController {
       { incubationId: findOneIncubation.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      date: new Date(),
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an incubation`,
+      organizationId: user.organizationId,
+    });
 
     return reply({ res, results: 'Incubation deleted successfully' });
   }
