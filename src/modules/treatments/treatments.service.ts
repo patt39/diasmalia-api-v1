@@ -89,7 +89,6 @@ export class TreatmentsService {
       note,
       name,
       dose,
-      date,
       method,
       diagnosis,
       medication,
@@ -104,7 +103,7 @@ export class TreatmentsService {
         note,
         name,
         dose,
-        date,
+        date: new Date(),
         slug: `${Slug(name)}-${generateNumber(4)}`,
         method,
         animalId,
@@ -125,18 +124,15 @@ export class TreatmentsService {
     options: UpdateTreatmentsOptions,
   ): Promise<Treatment> {
     const { treatmentId } = selections;
-    const { note, name, dose, date, method, animalId, diagnosis, deletedAt } =
+    const { note, name, dose, method, animalId, diagnosis, deletedAt } =
       options;
 
     const treatment = this.client.treatment.update({
-      where: {
-        id: treatmentId,
-      },
+      where: { id: treatmentId },
       data: {
         note,
         name,
         dose,
-        date,
         method,
         animalId,
         diagnosis,

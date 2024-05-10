@@ -73,6 +73,19 @@ export class CreateOneContributorUserDto {
   @IsOptional()
   @IsString()
   description: string;
+
+  @IsOptional()
+  @IsString()
+  city: string;
+
+  @IsOptional()
+  @IsString()
+  photo: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  currencyId: string;
 }
 
 export class InvitationConfirmationDto {

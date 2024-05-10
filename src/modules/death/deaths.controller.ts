@@ -75,7 +75,7 @@ export class DeathsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkDeathsDto) {
     const { user } = req;
-    const { date, animals, note, animalTypeId } = body;
+    const { animals, note, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -99,7 +99,6 @@ export class DeathsController {
         );
 
       const death = await this.deathsService.createOne({
-        date,
         note,
         animalId: findOneAnimal.id,
         organizationId: user.organizationId,
@@ -157,7 +156,7 @@ export class DeathsController {
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
-    const { date, codeAnimal, note, status, number, animalTypeId } = body;
+    const { codeAnimal, note, status, number, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -190,7 +189,6 @@ export class DeathsController {
 
     if (status === 'DEAD') {
       await this.deathsService.createOne({
-        date,
         note,
         number,
         animalId: findOneAnimal.id,

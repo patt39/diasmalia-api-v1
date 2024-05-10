@@ -16,10 +16,6 @@ export class CreateOrUpdateDeathsDto {
 
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   codeAnimal: string;
 
   @IsOptional()
@@ -41,10 +37,6 @@ export class BulkDeathsDto {
   @IsOptional()
   @IsString()
   note: string;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
 
   @IsNotEmpty()
   @IsArray()

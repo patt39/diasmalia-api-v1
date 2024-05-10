@@ -82,7 +82,6 @@ export class FarrowingsService {
   async createOne(options: CreateFarrowingsOptions): Promise<Farrowing> {
     const {
       note,
-      date,
       litter,
       animalId,
       animalTypeId,
@@ -93,9 +92,9 @@ export class FarrowingsService {
     const farrowing = this.client.farrowing.create({
       data: {
         note,
-        date,
         litter,
         animalId,
+        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -111,15 +110,12 @@ export class FarrowingsService {
     options: UpdateFarrowingsOptions,
   ): Promise<Farrowing> {
     const { farrowingId } = selections;
-    const { note, date, litter, animalId, userCreatedId, deletedAt } = options;
+    const { note, litter, animalId, userCreatedId, deletedAt } = options;
 
     const farrowing = this.client.farrowing.update({
-      where: {
-        id: farrowingId,
-      },
+      where: { id: farrowingId },
       data: {
         note,
-        date,
         litter,
         animalId,
         userCreatedId,

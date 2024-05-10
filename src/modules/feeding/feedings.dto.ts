@@ -17,10 +17,6 @@ export class CreateOrUpdateFeedingsDto {
   note: string;
 
   @IsNotEmpty()
-  @IsString()
-  date: Date;
-
-  @IsNotEmpty()
   quantity: number;
 
   @IsNotEmpty()
@@ -50,10 +46,6 @@ export class BulkFeedingsDto {
   @IsString()
   @MaxLength(100)
   note: string;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
 
   @IsNotEmpty()
   @IsArray()

@@ -9,9 +9,9 @@ import {
   CreateIsolationsOptions,
   GetIsolationsSelections,
   GetOneIsolationsSelections,
+  IsolationsSelect,
   UpdateIsolationsOptions,
   UpdateIsolationsSelections,
-  isolationsSelect,
 } from './isolations.type';
 
 @Injectable()
@@ -38,7 +38,7 @@ export class IsolationsService {
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
-      select: isolationsSelect,
+      select: IsolationsSelect,
       orderBy: pagination.orderBy,
     });
 
@@ -73,7 +73,7 @@ export class IsolationsService {
 
     const isolation = await this.client.isolation.findFirst({
       where: { ...prismaWhere, deletedAt: null },
-      select: isolationsSelect,
+      select: IsolationsSelect,
     });
 
     return isolation;
@@ -81,21 +81,15 @@ export class IsolationsService {
 
   /** Create one isolation in database. */
   async createOne(options: CreateIsolationsOptions): Promise<Isolation> {
-    const {
-      date,
-      note,
-      animalId,
-      animalTypeId,
-      organizationId,
-      userCreatedId,
-    } = options;
+    const { note, animalId, animalTypeId, organizationId, userCreatedId } =
+      options;
 
     const isolation = this.client.isolation.create({
       data: {
-        date,
         note,
         animalId,
         animalTypeId,
+        date: new Date(),
         organizationId,
         userCreatedId,
       },
@@ -110,13 +104,11 @@ export class IsolationsService {
     options: UpdateIsolationsOptions,
   ): Promise<Isolation> {
     const { isolationId } = selections;
-    const { date, note, animalId, deletedAt } = options;
+    const { note, animalId, deletedAt } = options;
 
     const isolation = this.client.isolation.update({
-      where: {
-        id: isolationId,
-      },
-      data: { date, note, animalId, deletedAt },
+      where: { id: isolationId },
+      data: { note, animalId, deletedAt },
     });
 
     return isolation;

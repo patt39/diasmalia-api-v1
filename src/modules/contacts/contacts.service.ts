@@ -83,9 +83,7 @@ export class ContactsService {
     const { subject, description, userCreatedId, deletedAt } = options;
 
     const contact = this.client.contact.update({
-      where: {
-        id: contactId,
-      },
+      where: { id: contactId },
       data: { subject, description, userCreatedId, deletedAt },
     });
 

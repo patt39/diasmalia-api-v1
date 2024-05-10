@@ -110,7 +110,6 @@ export class CheckPregnanciesService {
     options: CreateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
     const {
-      date,
       method,
       result,
       breedingId,
@@ -122,11 +121,11 @@ export class CheckPregnanciesService {
 
     const checkPregnancy = this.client.checkPregnancy.create({
       data: {
-        date,
         method,
         result,
         breedingId,
         animalTypeId,
+        date: new Date(),
         animalFemaleId,
         organizationId,
         userCreatedId,
@@ -142,14 +141,11 @@ export class CheckPregnanciesService {
     options: UpdateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
     const { checkPregnancyId } = selections;
-    const { date, method, result, breedingId, deletedAt } = options;
+    const { method, result, breedingId, deletedAt } = options;
 
     const checkPregnancy = this.client.checkPregnancy.update({
-      where: {
-        id: checkPregnancyId,
-      },
+      where: { id: checkPregnancyId },
       data: {
-        date,
         method,
         result,
         breedingId,

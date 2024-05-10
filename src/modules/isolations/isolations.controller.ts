@@ -74,7 +74,7 @@ export class IsolationsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkIsolationsDto) {
     const { user } = req;
-    const { date, animals, note, animalTypeId } = body;
+    const { animals, note, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -97,8 +97,7 @@ export class IsolationsController {
           HttpStatus.NOT_FOUND,
         );
 
-      const incubation = await this.isolationsService.createOne({
-        date,
+      const isolations = await this.isolationsService.createOne({
         note,
         animalId: findOneAnimal.id,
         organizationId: findOneAnimal.organizationId,
@@ -109,7 +108,7 @@ export class IsolationsController {
       await this.activitylogsService.createOne({
         userId: user.id,
         date: new Date(),
-        actionId: incubation.id,
+        actionId: isolations.id,
         message: `${user.profile?.firstName} ${user.profile?.lastName} created an isolation in ${findOneAssignType.animalType.name}`,
         organizationId: user.organizationId,
       });
@@ -128,7 +127,7 @@ export class IsolationsController {
     @Param('isolationId', ParseUUIDPipe) isolationId: string,
   ) {
     const { user } = req;
-    const { date, note, code, animalTypeId } = body;
+    const { note, code, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -165,7 +164,6 @@ export class IsolationsController {
     const isolation = await this.isolationsService.updateOne(
       { isolationId: findOneIsolation?.id },
       {
-        date,
         note,
         animalId: findOneAnimal.id,
         userCreatedId: user.id,

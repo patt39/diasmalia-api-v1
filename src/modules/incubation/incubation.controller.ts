@@ -76,15 +76,7 @@ export class IncubationsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const {
-      date,
-      note,
-      dueDate,
-      quantityEnd,
-      quantityStart,
-      eggHavestingId,
-      animalTypeId,
-    } = body;
+    const { note, dueDate, quantityStart, eggHavestingId, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -106,17 +98,9 @@ export class IncubationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (quantityEnd > quantityStart)
-      throw new HttpException(
-        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
-        HttpStatus.AMBIGUOUS,
-      );
-
     const incubation = await this.incubationsService.createOne({
       note,
-      date,
       dueDate,
-      quantityEnd,
       quantityStart,
       eggHavestingId: findOneEggHavesting.id,
       animalTypeId: findOneAssignType.animalTypeId,
@@ -145,8 +129,7 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const { quantityEnd, quantityStart, date, dueDate, note, animalTypeId } =
-      body;
+    const { quantityEnd, quantityStart, dueDate, note, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -178,7 +161,6 @@ export class IncubationsController {
       { incubationId: findOneIncubation.id },
       {
         note,
-        date,
         dueDate,
         quantityEnd,
         quantityStart,

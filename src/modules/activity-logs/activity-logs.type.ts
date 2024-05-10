@@ -4,14 +4,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type ActivityLogsSelections = {
   search?: string;
   pagination?: PaginationType;
-};
-
-export type GetOneActivityLogSelections = {
-  userId?: string;
-};
-
-export type UpdateActivityLogsSelections = {
-  animalTypeId: ActivityLog['id'];
+  period?: 'ALL' | 'LAST 7 DAYS' | 'LAST 15 DAYS' | 'LAST 30 DAYS';
 };
 
 export type CreateActivityLogsOptions = Partial<ActivityLog>;

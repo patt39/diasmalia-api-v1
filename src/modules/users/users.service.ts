@@ -78,8 +78,29 @@ export class UsersService {
       where: { ...prismaWhereUser, deletedAt: null },
       include: {
         profile: true,
-        organization: { select: { name: true, logo: true, currency: true } },
+        organization: { select: { name: true, logo: true } },
       },
+    });
+
+    return user;
+  }
+
+  /** Find one User in  database. */
+  async findMe(selections: GetOneUsersSelections) {
+    const prismaWhereUser = {} as Prisma.UserWhereInput;
+    const { userId, organizationId } = selections;
+
+    if (userId) {
+      Object.assign(prismaWhereUser, { id: userId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhereUser, { organizationId });
+    }
+
+    const user = await this.client.user.findFirst({
+      where: { ...prismaWhereUser, deletedAt: null },
+      select: UserSelect,
     });
 
     return user;

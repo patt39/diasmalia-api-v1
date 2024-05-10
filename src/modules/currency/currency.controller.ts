@@ -3,9 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Res,
   UseGuards,
@@ -23,7 +26,7 @@ import { CreateOrUpdateCurrenciesDto } from './currency.dto';
 import { CurrenciesService } from './currency.service';
 
 @Controller('currencies')
-export class ContactUsController {
+export class CurrenciesController {
   constructor(private readonly currenciesService: CurrenciesService) {}
 
   /** Get all Currencies */
@@ -63,6 +66,30 @@ export class ContactUsController {
     });
 
     return reply({ res, results: currency });
+  }
+
+  /** Enable status currency */
+  @Put(`/:currencyId/change-status`)
+  @UseGuards(UserAuthGuard)
+  async enableCurrency(
+    @Res() res,
+    @Param('currencyId', ParseUUIDPipe) currencyId: string,
+  ) {
+    const findCurrency = await this.currenciesService.findOneBy({
+      currencyId,
+    });
+    if (!findCurrency)
+      throw new HttpException(
+        `CurrencyId: ${currencyId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.currenciesService.updateOne(
+      { currencyId: findCurrency.id },
+      { status: !findCurrency.status },
+    );
+
+    return reply({ res, results: 'Status updated successfully' });
   }
 
   /** Get one Currency */

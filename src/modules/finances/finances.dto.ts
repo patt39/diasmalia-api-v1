@@ -25,10 +25,6 @@ export class CreateOrUpdateFinancesDto {
 
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   @MaxLength(100)
   @IsEnum(financeType)
   type: financeType;

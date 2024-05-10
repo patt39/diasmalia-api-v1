@@ -76,11 +76,11 @@ export class GestationsController {
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const { note, farrowingDate, codeFemale } = body;
+    const { note, farrowingDate, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(

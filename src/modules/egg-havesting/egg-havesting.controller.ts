@@ -63,7 +63,7 @@ export class EggHavestingsController {
       search,
       pagination,
       animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: eggHavestings });
@@ -78,11 +78,11 @@ export class EggHavestingsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { size, quantity, date, note, method, code, animalTypeId } = body;
+    const { size, quantity, note, method, code, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -92,16 +92,16 @@ export class EggHavestingsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       code,
+      productionPhase: 'LAYING',
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${findOneAnimal.code} doesn't exists`,
+        `Animal ${findOneAnimal.code} doesn't exists or isn't in LAYING phase`,
         HttpStatus.NOT_FOUND,
       );
 
     const eggHavesting = await this.eggHavestingsService.createOne({
       note,
-      date,
       size,
       method,
       quantity,
@@ -132,22 +132,22 @@ export class EggHavestingsController {
     @Param('eggHavestingId', ParseUUIDPipe) eggHavestingId: string,
   ) {
     const { user } = req;
-    const { size, quantity, date, note, method } = body;
+    const { code, size, quantity, note, method, animalTypeId } = body;
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+      animalTypeId,
+      productionPhase: 'LAYING',
     });
-    if (!findOneAssignType)
+    if (!findOneAnimal)
       throw new HttpException(
-        `AnimalType not assigned please change`,
+        `Animal ${findOneAnimal.code} doesn't exists or isn't in LAYING phase`,
         HttpStatus.NOT_FOUND,
       );
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneEggHavesting)
       throw new HttpException(
@@ -159,10 +159,10 @@ export class EggHavestingsController {
       { eggHavestingId: findOneEggHavesting.id },
       {
         note,
-        date,
         size,
         method,
         quantity,
+        animalId: findOneAnimal.id,
         userCreatedId: user.id,
       },
     );

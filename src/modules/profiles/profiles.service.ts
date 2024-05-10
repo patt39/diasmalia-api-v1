@@ -77,29 +77,31 @@ export class ProfilesService {
   /** Create one Profile in database. */
   async createOne(options: CreateProfilesOptions): Promise<Profile> {
     const {
+      city,
       phone,
       photo,
       userId,
       address,
-      birthday,
       lastName,
       firstName,
       companyName,
       occupation,
+      currencyId,
       description,
     } = options;
 
     const profile = this.client.profile.create({
       data: {
+        city,
         phone,
         photo,
         userId,
         address,
-        birthday,
         lastName,
         firstName,
         companyName,
         occupation,
+        currencyId,
         description,
       },
     });
@@ -114,31 +116,31 @@ export class ProfilesService {
   ): Promise<Profile> {
     const { profileId } = selections;
     const {
+      city,
       phone,
       photo,
       address,
-      birthday,
       lastName,
       firstName,
       companyName,
       occupation,
+      currencyId,
       description,
       deletedAt,
     } = options;
 
     const profile = this.client.profile.update({
-      where: {
-        id: profileId,
-      },
+      where: { id: profileId },
       data: {
+        city,
         phone,
         photo,
         address,
-        birthday,
         lastName,
         firstName,
         companyName,
         occupation,
+        currencyId,
         description,
         deletedAt,
       },

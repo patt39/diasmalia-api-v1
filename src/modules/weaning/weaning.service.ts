@@ -88,7 +88,6 @@ export class WeaningsService {
   async createOne(options: CreateWeaningsOptions): Promise<Weaning> {
     const {
       note,
-      date,
       litter,
       animalId,
       farrowingId,
@@ -100,11 +99,11 @@ export class WeaningsService {
     const weaning = this.client.weaning.create({
       data: {
         note,
-        date,
         litter,
         animalId,
         farrowingId,
         animalTypeId,
+        date: new Date(),
         organizationId,
         userCreatedId,
       },
@@ -119,15 +118,12 @@ export class WeaningsService {
     options: UpdateWeaningsOptions,
   ): Promise<Weaning> {
     const { weaningId } = selections;
-    const { note, litter, date, animalId, userCreatedId } = options;
+    const { note, litter, animalId, userCreatedId } = options;
 
     const weaning = this.client.weaning.update({
-      where: {
-        id: weaningId,
-      },
+      where: { id: weaningId },
       data: {
         note,
-        date,
         litter,
         animalId,
         userCreatedId,

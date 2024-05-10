@@ -57,7 +57,7 @@ export class CurrenciesService {
   /** Find one currency in database. */
   async findOneBy(selections: GetOneCurrencySelections) {
     const prismaWhere = {} as Prisma.CurrencyWhereInput;
-    const { currencyId, organizationId } = selections;
+    const { currencyId, organizationId, status } = selections;
 
     if (currencyId) {
       Object.assign(prismaWhere, { id: currencyId });
@@ -65,6 +65,10 @@ export class CurrenciesService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
     }
 
     const currency = await this.client.currency.findFirst({
@@ -92,13 +96,11 @@ export class CurrenciesService {
     options: UpdateCurrenciesOptions,
   ): Promise<Currency> {
     const { currencyId } = selections;
-    const { code, name, symbol, deletedAt } = options;
+    const { code, name, symbol, status, deletedAt } = options;
 
     const currency = this.client.currency.update({
-      where: {
-        id: currencyId,
-      },
-      data: { code, name, symbol, deletedAt },
+      where: { id: currencyId },
+      data: { code, name, symbol, status, deletedAt },
     });
 
     return currency;

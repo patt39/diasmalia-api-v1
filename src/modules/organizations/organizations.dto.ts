@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateOrganizationsDto {
   @IsOptional()
@@ -16,11 +16,6 @@ export class CreateOrUpdateOrganizationsDto {
   @IsOptional()
   @IsString()
   image: string;
-
-  @IsOptional()
-  @IsString()
-  @IsUUID()
-  currencyId: string;
 }
 
 export class GetOneUploadsDto {

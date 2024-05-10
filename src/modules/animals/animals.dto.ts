@@ -10,19 +10,16 @@ import {
 } from 'class-validator';
 
 export class CreateOrUpdateAnimalsDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MaxLength(100)
   code: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   codeFather: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   codeMother: string;
 
   @IsOptional()

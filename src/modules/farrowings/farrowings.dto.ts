@@ -17,10 +17,6 @@ export class CreateOrUpdateFarrowingsDto {
 
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   codeFemale: string;
 
   @IsNotEmpty()

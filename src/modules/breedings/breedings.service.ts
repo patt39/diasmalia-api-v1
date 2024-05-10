@@ -187,7 +187,6 @@ export class BreedingsService {
   /** Create one breeding in database. */
   async createOne(options: CreateBreedingsOptions): Promise<Breeding> {
     const {
-      date,
       note,
       method,
       animalTypeId,
@@ -199,11 +198,11 @@ export class BreedingsService {
 
     const breeding = this.client.breeding.create({
       data: {
-        date,
         note,
         method,
         animalTypeId,
         animalFemaleId,
+        date: new Date(),
         animalMaleId,
         organizationId,
         userCreatedId,
@@ -220,7 +219,6 @@ export class BreedingsService {
   ): Promise<Breeding> {
     const { breedingId } = selections;
     const {
-      date,
       note,
       method,
       checkStatus,
@@ -230,11 +228,8 @@ export class BreedingsService {
     } = options;
 
     const breeding = this.client.breeding.update({
-      where: {
-        id: breedingId,
-      },
+      where: { id: breedingId },
       data: {
-        date,
         note,
         method,
         checkStatus,

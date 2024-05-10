@@ -83,15 +83,8 @@ export class CheckPregnanciesController {
     @Body() body: CreateOrUpdateCheckPregnanciesDto,
   ) {
     const { user } = req;
-    const {
-      date,
-      note,
-      result,
-      method,
-      breedingId,
-      farrowingDate,
-      animalTypeId,
-    } = body;
+    const { note, result, method, breedingId, farrowingDate, animalTypeId } =
+      body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
@@ -116,7 +109,6 @@ export class CheckPregnanciesController {
     });
     if (!findOnecheckPregnancy) {
       const checkPregnancy = await this.checkPregnanciesService.createOne({
-        date,
         method,
         result,
         breedingId: findOneBreeding.id,
@@ -152,7 +144,7 @@ export class CheckPregnanciesController {
     if (result === 'PREGNANT' && !findOneGestation) {
       const gestation = await this.gestationsService.createOne({
         note,
-        farrowingDate,
+        farrowingDate: farrowingDate,
         animalId: findOneBreeding.animalFemaleId,
         animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user.organizationId,
@@ -186,7 +178,7 @@ export class CheckPregnanciesController {
     @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
     const { user } = req;
-    const { date, method, result, breedingId, animalTypeId } = body;
+    const { method, result, breedingId, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -222,7 +214,6 @@ export class CheckPregnanciesController {
     const checkPregnancy = await this.checkPregnanciesService.updateOne(
       { checkPregnancyId: findOnecheckPregnancy.id },
       {
-        date,
         method,
         result,
         breedingId: findOneBreeding.id,

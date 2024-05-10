@@ -22,7 +22,7 @@ export type CreateIsolationsOptions = Partial<Isolation>;
 
 export type UpdateIsolationsOptions = Partial<Isolation>;
 
-export const isolationsSelect = {
+export const IsolationsSelect = {
   createdAt: true,
   id: true,
   date: true,

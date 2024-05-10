@@ -93,7 +93,6 @@ export class EggHavestingsService {
   async createOne(options: CreateEggHavestingsOptions): Promise<EggHavesting> {
     const {
       note,
-      date,
       size,
       method,
       quantity,
@@ -106,11 +105,11 @@ export class EggHavestingsService {
     const egghavesting = this.client.eggHavesting.create({
       data: {
         note,
-        date,
         size,
         method,
         quantity,
         animalId,
+        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -126,15 +125,12 @@ export class EggHavestingsService {
     options: UpdateEggHavestingsOptions,
   ): Promise<EggHavesting> {
     const { eggHavestingId } = selections;
-    const { note, date, size, method, quantity, userCreatedId } = options;
+    const { note, size, method, quantity, userCreatedId } = options;
 
     const eggHavesting = this.client.eggHavesting.update({
-      where: {
-        id: eggHavestingId,
-      },
+      where: { id: eggHavestingId },
       data: {
         note,
-        date,
         size,
         method,
         quantity,

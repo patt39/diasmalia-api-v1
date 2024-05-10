@@ -62,7 +62,7 @@ export class FeedingsController {
       search,
       pagination,
       animalTypeId,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: feedings });
@@ -73,15 +73,8 @@ export class FeedingsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
     const { user } = req;
-    const {
-      date,
-      note,
-      quantity,
-      animals,
-      feedType,
-      productionPhase,
-      animalTypeId,
-    } = body;
+    const { note, quantity, animals, feedType, productionPhase, animalTypeId } =
+      body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -106,7 +99,6 @@ export class FeedingsController {
 
       const feeding = await this.feedingsService.createOne({
         note,
-        date,
         quantity,
         feedType,
         productionPhase,
@@ -138,7 +130,7 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { date, quantity, feedType, code, note, productionPhase } = body;
+    const { quantity, feedType, code, note, productionPhase } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       status: true,
@@ -174,7 +166,6 @@ export class FeedingsController {
     const feeding = await this.feedingsService.updateOne(
       { feedingId: findOneFeeding.id },
       {
-        date,
         note,
         quantity,
         feedType,

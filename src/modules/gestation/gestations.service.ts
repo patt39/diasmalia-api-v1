@@ -116,9 +116,7 @@ export class GestationsService {
     const { note, animalId, farrowingDate, userCreatedId, deletedAt } = options;
 
     const gestation = this.client.gestation.update({
-      where: {
-        id: gestationId,
-      },
+      where: { id: gestationId },
       data: {
         note,
         animalId,

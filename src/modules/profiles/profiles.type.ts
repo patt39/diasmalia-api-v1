@@ -7,7 +7,7 @@ export type GetProfilesSelections = {
 };
 
 export type GetOneProfilesSelections = {
-  profileId: Profile['id'];
+  profileId?: Profile['id'];
 };
 
 export type UpdateProfilesSelections = {

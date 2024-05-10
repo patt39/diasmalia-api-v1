@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as mime from 'mime-types';
-import { formateNowDateYYMMDD } from '../../app/utils/commons/formate-date';
+import { formatNowDateYYMMDD } from '../../app/utils/commons/formate-date';
 import {
   Slug,
   generateLongUUID,
@@ -22,7 +22,7 @@ export class UploadsUtil {
     let fileName = '';
     if (file) {
       const extension = mime.extension(file.mimetype);
-      const nameFile = `${Slug(file?.originalname)}${formateNowDateYYMMDD(
+      const nameFile = `${Slug(file?.originalname)}${formatNowDateYYMMDD(
         new Date(),
       )}-${generateLongUUID(4)}`;
       fileName = `${`${nameFile}.${extension}`}`;

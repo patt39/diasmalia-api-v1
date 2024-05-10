@@ -12,10 +12,6 @@ import {
 export class CreateOrUpdateCastrationsDto {
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   note: string;
 
   @IsNotEmpty()

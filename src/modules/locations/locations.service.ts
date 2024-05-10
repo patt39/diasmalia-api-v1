@@ -131,9 +131,7 @@ export class LocationsService {
       options;
 
     const location = this.client.location.update({
-      where: {
-        id: locationId,
-      },
+      where: { id: locationId },
       data: {
         code,
         manger,

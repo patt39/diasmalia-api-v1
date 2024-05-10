@@ -93,7 +93,7 @@ export class LocationsController {
     if (findOneLocation)
       throw new HttpException(
         `Location ${code} already exists please change`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.FOUND,
       );
 
     const findOneAssignType = await this.assignTypesService.findOneBy({

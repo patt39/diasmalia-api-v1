@@ -25,11 +25,7 @@ export class AnimalTypesService {
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          {
-            name: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ name: { contains: search, mode: 'insensitive' } }],
       });
     }
 
@@ -93,9 +89,7 @@ export class AnimalTypesService {
     const { name, icon } = options;
 
     const animalType = this.client.animalType.update({
-      where: {
-        id: animalTypeId,
-      },
+      where: { id: animalTypeId },
       data: {
         name,
         icon,

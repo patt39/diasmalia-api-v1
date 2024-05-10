@@ -91,7 +91,6 @@ export class MilkingsService {
   async createOne(options: CreateMilkingsOptions): Promise<Milking> {
     const {
       note,
-      date,
       method,
       quantity,
       animalId,
@@ -103,11 +102,11 @@ export class MilkingsService {
     const milking = this.client.milking.create({
       data: {
         note,
-        date,
         method,
         quantity,
         animalId,
         animalTypeId,
+        date: new Date(),
         organizationId,
         userCreatedId,
       },
@@ -124,7 +123,6 @@ export class MilkingsService {
     const { milkingId } = selections;
     const {
       note,
-      date,
       method,
       quantity,
       animalId,
@@ -134,12 +132,9 @@ export class MilkingsService {
     } = options;
 
     const milking = this.client.milking.update({
-      where: {
-        id: milkingId,
-      },
+      where: { id: milkingId },
       data: {
         note,
-        date,
         method,
         quantity,
         animalId,

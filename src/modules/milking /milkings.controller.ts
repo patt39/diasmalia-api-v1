@@ -75,7 +75,7 @@ export class MilkingsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkMilkingsDto) {
     const { user } = req;
-    const { date, method, quantity, animals, note, animalTypeId } = body;
+    const { method, quantity, animals, note, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -103,7 +103,6 @@ export class MilkingsController {
 
       const milking = await this.milkingsService.createOne({
         note,
-        date,
         method,
         quantity,
         animalId: findOneFemale.id,
@@ -134,7 +133,7 @@ export class MilkingsController {
     @Param('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
     const { user } = req;
-    const { note, date, quantity, method, femaleCode, animalTypeId } = body;
+    const { note, quantity, method, femaleCode, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -174,7 +173,6 @@ export class MilkingsController {
       { milkingId: findOneMilking.id },
       {
         note,
-        date,
         method,
         quantity,
         animalId: findOneFemale.id,

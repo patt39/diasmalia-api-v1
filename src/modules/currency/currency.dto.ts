@@ -1,15 +1,19 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateCurrenciesDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   code: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   symbol: string;
+
+  @IsOptional()
+  @IsBoolean()
+  status: boolean;
 }

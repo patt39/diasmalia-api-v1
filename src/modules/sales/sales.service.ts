@@ -100,7 +100,6 @@ export class SalesService {
   /** Create one sale in database. */
   async createOne(options: CreateSalesOptions): Promise<Sale> {
     const {
-      date,
       note,
       type,
       price,
@@ -119,7 +118,6 @@ export class SalesService {
 
     const sale = this.client.sale.create({
       data: {
-        date,
         note,
         type,
         price,
@@ -131,6 +129,7 @@ export class SalesService {
         animalId,
         quantity,
         animalCode,
+        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -147,7 +146,6 @@ export class SalesService {
   ): Promise<Sale> {
     const { saleId } = selections;
     const {
-      date,
       note,
       type,
       price,
@@ -163,11 +161,8 @@ export class SalesService {
     } = options;
 
     const sale = this.client.sale.update({
-      where: {
-        id: saleId,
-      },
+      where: { id: saleId },
       data: {
-        date,
         note,
         type,
         price,

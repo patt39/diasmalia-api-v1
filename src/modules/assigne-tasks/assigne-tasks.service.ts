@@ -26,11 +26,7 @@ export class AssignTasksService {
 
     if (search) {
       Object.assign(prismaWhereAssignTask, {
-        OR: [
-          {
-            contributor: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ contributor: { contains: search, mode: 'insensitive' } }],
       });
     }
 
@@ -110,9 +106,7 @@ export class AssignTasksService {
     const { taskId, userId, deletedAt } = options;
 
     const assignTask = this.client.assignTask.update({
-      where: {
-        id: assignTaskId,
-      },
+      where: { id: assignTaskId },
       data: {
         taskId,
         userId,

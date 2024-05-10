@@ -9,10 +9,6 @@ import {
 } from 'class-validator';
 
 export class CreateOrUpdateCheckPregnanciesDto {
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
-
   @IsOptional()
   @IsString()
   @MaxLength(100)
