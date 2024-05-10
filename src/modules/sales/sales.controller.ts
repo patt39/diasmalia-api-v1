@@ -36,7 +36,10 @@ import {
 import { emailPDFAttachment } from '../users/mails/email-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
-import { formateNowDateYYMMDD } from './../../app/utils/commons/formate-date';
+import {
+  formatDDMMYYDate,
+  formatNowDateYYMMDD,
+} from './../../app/utils/commons/formate-date';
 import {
   BulkSalesDto,
   CreateOrUpdateSalesDto,
@@ -93,8 +96,7 @@ export class SalesController {
     @Param('saleId', ParseUUIDPipe) saleId: string,
   ) {
     const { user } = req;
-    const { note, status, price, date, animalCode, method, soldTo, phone } =
-      body;
+    const { note, status, price, animalCode, method, soldTo, phone } = body;
 
     const findOneSale = await this.salesService.findOneBy({
       saleId,
@@ -121,7 +123,6 @@ export class SalesController {
         { saleId },
         {
           note,
-          date,
           price,
           phone,
           method,
@@ -183,17 +184,8 @@ export class SalesController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkSalesDto) {
     const { user } = req;
-    const {
-      date,
-      note,
-      phone,
-      email,
-      price,
-      method,
-      soldTo,
-      animals,
-      address,
-    } = body;
+    const { note, phone, email, price, method, soldTo, animals, address } =
+      body;
 
     const findOneUser = await this.usersService.findOneBy({ email });
 
@@ -241,7 +233,6 @@ export class SalesController {
 
       const sale = await this.salesService.createOne({
         note,
-        date,
         email,
         price,
         phone,
@@ -325,12 +316,12 @@ export class SalesController {
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Address: ${user?.profile?.address}`,
+          text: `Address: ${user?.profile?.address} || 'RAS'`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Email: ${user?.email},  Phone:  ${user?.profile?.phone}`,
+          text: `Email: ${user?.email} || 'ras',  Phone:  ${user?.profile?.phone} || 'RAS'`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
@@ -396,7 +387,7 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         {
-          text: `Price:  ${price} ${user.organization.currency.symbol}`,
+          text: `Price:  ${price} ${user.profile?.currency?.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
@@ -408,7 +399,7 @@ export class SalesController {
         },
         '\n',
         {
-          text: `Sold in ${method}, ${date}`,
+          text: `Sold in ${method}, at ${user?.profile?.city}, ${formatDDMMYYDate(new Date())}`,
           style: { fontSize: 10 },
           margin: [0, 0, 0, 20],
         },
@@ -418,7 +409,7 @@ export class SalesController {
       },
     } as TDocumentDefinitions;
 
-    const nameFile = `${formateNowDateYYMMDD(new Date())}-${generateUUID()}`;
+    const nameFile = `${formatNowDateYYMMDD(new Date())}-${generateUUID()}`;
     const fileName = `${nameFile}.pdf`;
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
     pdfDoc.compress = true;
@@ -477,17 +468,8 @@ export class SalesController {
     @Body() body: CreateOrUpdateSalesDto,
   ) {
     const { user } = req;
-    const {
-      date,
-      note,
-      phone,
-      email,
-      price,
-      method,
-      soldTo,
-      address,
-      animalsQty,
-    } = body;
+    const { note, phone, email, price, method, soldTo, address, animalsQty } =
+      body;
 
     const findOneUser = await this.usersService.findOneBy({ email });
 
@@ -509,13 +491,12 @@ export class SalesController {
           HttpStatus.NOT_FOUND,
         );
 
-      animalArrayPdfTypes.push(findOneAnimal?.animalType.name);
+      animalArrayPdfTypes.push(findOneAnimal?.animalType?.name);
       animalArrayPdfWeight.push(findOneAnimal?.weight);
       animalArrayPdfQuantity.push(animalQty?.quantity);
 
       const sale = await this.salesService.createOne({
         note,
-        date,
         email,
         price,
         phone,
@@ -669,7 +650,7 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         {
-          text: `Price:  ${price} ${user.organization?.currency?.symbol}`,
+          text: `Price:  ${price} ${user?.profile?.currency?.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
@@ -681,7 +662,7 @@ export class SalesController {
         },
         '\n',
         {
-          text: `Sold in ${method}, ${date}`,
+          text: `Sold in ${method} at ${user?.profile?.city}, ${formatDDMMYYDate(new Date())}`,
           style: { fontSize: 10 },
           margin: [0, 0, 0, 20],
         },
@@ -691,7 +672,7 @@ export class SalesController {
       },
     } as TDocumentDefinitions;
 
-    const nameFile = `${formateNowDateYYMMDD(new Date())}-${generateUUID()}`;
+    const nameFile = `${formatNowDateYYMMDD(new Date())}-${generateUUID()}`;
     const fileName = `${nameFile}.pdf`;
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
     pdfDoc.compress = true;

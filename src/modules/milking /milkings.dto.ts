@@ -18,10 +18,6 @@ export class CreateOrUpdateMilkingsDto {
   note: string;
 
   @IsNotEmpty()
-  @IsString()
-  date: Date;
-
-  @IsNotEmpty()
   @IsNumber()
   quantity: number;
 
@@ -46,10 +42,6 @@ export class BulkMilkingsDto {
   @IsOptional()
   @IsString()
   note: string;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
 
   @IsNotEmpty()
   @IsArray()

@@ -27,11 +27,7 @@ export class AssignTypesService {
 
     if (search) {
       Object.assign(prismaWhereAssignTask, {
-        OR: [
-          {
-            contributor: { contains: search, mode: 'insensitive' },
-          },
-        ],
+        OR: [{ contributor: { contains: search, mode: 'insensitive' } }],
       });
     }
 
@@ -120,9 +116,7 @@ export class AssignTypesService {
     const { animalTypeId, userId, deletedAt } = options;
 
     const assignType = this.client.assignType.update({
-      where: {
-        id: assignTypeId,
-      },
+      where: { id: assignTypeId },
       data: {
         userId,
         animalTypeId,

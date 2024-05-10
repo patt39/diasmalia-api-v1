@@ -82,7 +82,7 @@ export class UsersAuthController {
 
     await this.contributorsService.createOne({
       role: 'SUPERADMIN',
-      userId: user?.id,
+      userId: user.id,
       confirmation: 'YES',
       confirmedAt: new Date(),
       organizationId: organization.id,
@@ -164,10 +164,10 @@ export class UsersAuthController {
       );
 
     const payload = await this.checkUserService.verifyTokenCookie(token);
-    console.log(payload);
-    if (payload?.code !== code) {
+
+    if (Number(payload?.code) !== Number(code)) {
       throw new HttpException(
-        `Code not valid please change`,
+        `Code ${code} invalid or expired try to resend`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -205,12 +205,6 @@ export class UsersAuthController {
 
     const codeGenerate = generateNumber(6);
 
-    // if (findOneUser?.confirmedAt === null)
-    //   throw new HttpException(
-    //     `Email: ${email} not confirmed please do`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
-
     if (!findOneUser?.confirmedAt) {
       const tokenUserVerify = await this.checkUserService.createTokenCookie(
         { userId: findOneUser?.id, code: codeGenerate } as JwtToken,
@@ -233,15 +227,18 @@ export class UsersAuthController {
       );
 
       res.cookie(
-        config.cookie_access.user.nameLogin,
         tokenUser,
+        config.cookie_access.user.nameLogin,
         validation_login_cookie_setting,
       );
     }
 
     return reply({
       res,
-      results: 'User logged in successfully',
+      results: {
+        message: 'User logged in successfully',
+        confirmedAt: findOneUser?.confirmedAt,
+      },
     });
   }
 
@@ -265,15 +262,9 @@ export class UsersAuthController {
       config.cookie_access.user.accessExpireVerify,
     );
 
-    await authPasswordResetMail({
-      email,
-      token,
-    });
+    await authPasswordResetMail({ email, token });
 
-    return reply({
-      res,
-      results: token,
-    });
+    return reply({ res, results: token });
   }
 
   /** Password reset token */
@@ -292,10 +283,7 @@ export class UsersAuthController {
       { password: await hashPassword(password) },
     );
 
-    return reply({
-      res,
-      results: 'Password updated',
-    });
+    return reply({ res, results: 'Password updated' });
   }
 
   /** IpLocation new user */

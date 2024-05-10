@@ -43,10 +43,6 @@ export class CreateOrUpdateSalesDto {
   @IsString()
   address: string;
 
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
-
   @IsOptional()
   @IsString()
   @IsEnum(sellingMethod)
@@ -66,10 +62,6 @@ export class BulkSalesDto {
   @IsOptional()
   @IsString()
   note: string;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
 
   @IsOptional()
   @IsString()

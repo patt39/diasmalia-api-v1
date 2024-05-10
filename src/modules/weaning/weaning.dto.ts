@@ -17,10 +17,6 @@ export class CreateOrUpdateWeaningsDto {
 
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   codeFemale: string;
 
   @IsOptional()

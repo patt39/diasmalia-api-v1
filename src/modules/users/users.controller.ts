@@ -31,15 +31,20 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /** Get one User */
-  @Get(`/show/me`)
+  @Get(`/me`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdUser(@Res() res, @Req() req) {
+  async getMe(@Res() res, @Req() req) {
     const { user } = req;
-    const findOneUser = await this.usersService.findOneBy({
-      userId: user?.id,
+    const findOneUser = await this.usersService.findMe({
+      userId: user.id,
     });
+    if (!findOneUser)
+      throw new HttpException(`Invalid credentials`, HttpStatus.NOT_FOUND);
 
-    return reply({ res, results: findOneUser });
+    return reply({
+      res,
+      results: { ...findOneUser, role: user?.contributor?.role },
+    });
   }
 
   /** Get all users */

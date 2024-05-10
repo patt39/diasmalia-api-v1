@@ -29,10 +29,6 @@ export class CreateOrUpdateEggHavestingsDto {
 
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   code: string;
 
   @IsNotEmpty()

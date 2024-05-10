@@ -64,30 +64,20 @@ export class OrganizationsController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const { user } = req;
-    const { name, description, currencyId } = body;
+    const { name, description } = body;
 
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
       file,
-      userId: user?.id,
+      userId: user.id,
       folder: 'images',
     });
 
-    const findCurrency = await this.currenciesService.findOneBy({
-      currencyId,
-    });
-    if (!findCurrency)
-      throw new HttpException(
-        `CurrencyId: ${currencyId} doesn't exists, please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     await this.organizationsService.updateOne(
-      { organizationId: user?.organizationId },
+      { organizationId: user.organizationId },
       {
         name,
         description,
         image: fileName,
-        currencyId: findCurrency.id,
       },
     );
 

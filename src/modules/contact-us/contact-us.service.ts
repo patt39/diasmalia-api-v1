@@ -83,9 +83,7 @@ export class ContactUsService {
     const { fullName, email, subject, description, deletedAt } = options;
 
     const contactUs = this.client.contactUs.update({
-      where: {
-        id: contactUsId,
-      },
+      where: { id: contactUsId },
       data: { fullName, email, subject, description, deletedAt },
     });
 

@@ -25,10 +25,6 @@ export class CreateOrUpdateTreatmentsDto {
 
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   @IsUUID()
   animalId: string;
 

@@ -77,7 +77,7 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, date, codeFemale, animalTypeId } = body;
+    const { litter, note, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -105,7 +105,6 @@ export class FarrowingsController {
     }
 
     const farrowing = await this.farrowingsService.createOne({
-      date,
       note,
       litter,
       animalId: findOneFemale.id,
@@ -148,7 +147,7 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, date, codeFemale, animalTypeId } = body;
+    const { litter, note, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -190,7 +189,6 @@ export class FarrowingsController {
       { farrowingId: findOneFarrowing.id },
       {
         note,
-        date,
         litter,
         animalId: findOneFemale.id,
         userCreatedId: user.id,

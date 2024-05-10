@@ -161,6 +161,25 @@ export class AnimalsService {
     return animal;
   }
 
+  /** Find one Animal in database. */
+  async findOneByCode(selections: GetOneAnimalsSelections) {
+    const { code } = selections;
+
+    const animal = await this.client.animal.findFirst({
+      select: AnimalSelect,
+      where: {
+        code: code,
+      },
+    });
+
+    return animal;
+  }
+
+  // const weaning = await this.client.weaning.findUnique({
+  //   select: WeaningSelect,
+  //
+  // });
+
   /** Create one Animal in database. */
   async createOne(options: CreateAnimalsOptions): Promise<Animal> {
     const {
@@ -228,9 +247,7 @@ export class AnimalsService {
     } = options;
 
     const animal = this.client.animal.update({
-      where: {
-        id: animalId,
-      },
+      where: { id: animalId },
       data: {
         code,
         photo,

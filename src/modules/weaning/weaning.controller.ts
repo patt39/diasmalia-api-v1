@@ -75,7 +75,7 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, date, note, codeFemale, farrowingId, animalTypeId } = body;
+    const { litter, note, codeFemale, farrowingId, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -119,7 +119,6 @@ export class WeaningsController {
 
     const weaning = await this.weaningsService.createOne({
       note,
-      date,
       litter,
       animalId: findOneFemale.id,
       farrowingId: findOneFarrowing.id,
@@ -154,7 +153,7 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const { litter, date, note, codeFemale, farrowingId, animalTypeId } = body;
+    const { litter, note, codeFemale, farrowingId, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -204,7 +203,6 @@ export class WeaningsController {
       { weaningId: findOneWeaning.id },
       {
         note,
-        date,
         litter,
         animalId: findOneFemale.id,
         farrowingId: findOneFarrowing.id,

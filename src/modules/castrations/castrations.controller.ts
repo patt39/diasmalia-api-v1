@@ -139,7 +139,7 @@ export class CastrationsController {
     @Param('castrationId', ParseUUIDPipe) castrationId: string,
   ) {
     const { user } = req;
-    const { date, note, method, maleCode, animalTypeId } = body;
+    const { note, method, maleCode, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -178,7 +178,6 @@ export class CastrationsController {
     const castration = await this.castrationsService.updateOne(
       { castrationId: findOneCastration.id },
       {
-        date,
         note,
         method,
         animalId: findOneAnimal.id,

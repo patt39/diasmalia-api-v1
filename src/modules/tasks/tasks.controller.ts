@@ -109,9 +109,9 @@ export class TasksController {
     });
 
     await taskNotification({
-      email: findOneContributor.user.email,
       user,
       slug: task.slug,
+      email: findOneContributor.user.email,
     });
 
     return reply({ res, results: task });

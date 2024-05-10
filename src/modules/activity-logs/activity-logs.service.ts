@@ -8,7 +8,6 @@ import {
 import {
   ActivityLogsSelections,
   CreateActivityLogsOptions,
-  GetOneActivityLogSelections,
 } from './activity-logs.type';
 
 @Injectable()
@@ -19,7 +18,7 @@ export class ActivityLogsService {
     selections: ActivityLogsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.ActivityLogWhereInput;
-    const { search, pagination } = selections;
+    const { period, search, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -27,36 +26,118 @@ export class ActivityLogsService {
       });
     }
 
-    const activityLogs = await this.client.activityLog.findMany({
-      where: { ...prismaWhere, deletedAt: null },
-      take: pagination.take,
-      skip: pagination.skip,
-      orderBy: pagination.orderBy,
-    });
+    if (period === 'LAST 7 DAYS') {
+      const today = new Date(); // Current date
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(today.getDate() - 7); // Calculate date 7 days ago
 
-    const rowCount = await this.client.activityLog.count({
-      where: { ...prismaWhere, deletedAt: null },
-    });
+      const dataFromLast7Days = await this.client.activityLog.findMany({
+        where: {
+          createdAt: {
+            gte: sevenDaysAgo, // Greater than or equal to 7 days ago
+            lte: today, // Less than or equal to today (optional, if you want to include today)
+          },
+          deletedAt: null,
+        },
+        take: pagination.take,
+        skip: pagination.skip,
+        orderBy: pagination.orderBy,
+      });
 
-    return withPagination({
-      pagination,
-      rowCount,
-      value: activityLogs,
-    });
+      const rowCount = await this.client.activityLog.count({
+        where: { ...prismaWhere, deletedAt: null },
+      });
+
+      return withPagination({
+        pagination,
+        rowCount,
+        value: dataFromLast7Days,
+      });
+    }
+
+    if (period === 'LAST 15 DAYS') {
+      const today = new Date();
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(today.getDate() - 7);
+
+      const dataFromLast15Days = await this.client.activityLog.findMany({
+        where: {
+          createdAt: {
+            gte: fifteenDaysAgo,
+            lte: today,
+          },
+          deletedAt: null,
+        },
+        take: pagination.take,
+        skip: pagination.skip,
+        orderBy: pagination.orderBy,
+      });
+
+      const rowCount = await this.client.activityLog.count({
+        where: { ...prismaWhere, deletedAt: null },
+      });
+
+      return withPagination({
+        pagination,
+        rowCount,
+        value: dataFromLast15Days,
+      });
+    }
+
+    if (period === 'LAST 30 DAYS') {
+      const today = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 7);
+
+      const dataFromLast30Days = await this.client.activityLog.findMany({
+        where: {
+          createdAt: {
+            gte: thirtyDaysAgo,
+            lte: today,
+          },
+          deletedAt: null,
+        },
+        take: pagination.take,
+        skip: pagination.skip,
+        orderBy: pagination.orderBy,
+      });
+
+      const rowCount = await this.client.activityLog.count({
+        where: { ...prismaWhere, deletedAt: null },
+      });
+
+      return withPagination({
+        pagination,
+        rowCount,
+        value: dataFromLast30Days,
+      });
+    }
+
+    if (period === 'ALL') {
+      const today = new Date();
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(today.getDate() - 7);
+
+      const activityLogs = await this.client.activityLog.findMany({
+        where: { ...prismaWhere, deletedAt: null },
+        take: pagination.take,
+        skip: pagination.skip,
+        orderBy: pagination.orderBy,
+      });
+
+      const rowCount = await this.client.activityLog.count({
+        where: { ...prismaWhere, deletedAt: null },
+      });
+
+      return withPagination({
+        pagination,
+        rowCount,
+        value: activityLogs,
+      });
+    }
   }
-  /** Find one animalType in database. */
-  async findOneBy(selections: GetOneActivityLogSelections) {
-    const prismaWhere = {} as Prisma.ActivityLogWhereInput;
-    const { userId } = selections;
 
-    const activityLog = await this.client.activityLog.findFirst({
-      where: { ...prismaWhere, deletedAt: null },
-    });
-
-    return activityLog;
-  }
-
-  /** Create one animalType in database. */
+  /** Create one activity log in database. */
   async createOne(options: CreateActivityLogsOptions): Promise<ActivityLog> {
     const {
       date,

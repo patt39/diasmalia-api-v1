@@ -9,6 +9,7 @@ export type GetCurrencySelections = {
 export type GetOneCurrencySelections = {
   currencyId?: Currency['id'];
   organizationId?: string;
+  status?: Boolean;
 };
 
 export type UpdateCurrenciesSelections = {
@@ -25,5 +26,6 @@ export const currenciesSelect = {
   name: true,
   code: true,
   symbol: true,
+  status: true,
   //userCreatedId: true,
 };

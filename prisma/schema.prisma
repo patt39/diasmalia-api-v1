@@ -38,7 +38,7 @@ model Contributor {
   updatedAt      DateTime                @updatedAt
   deletedAt      DateTime?
   id             String                  @id @default(uuid())
-  role           RoleContributorRole     @default(SUPERADMIN)
+  role           RoleContributorRole
   user           User                    @relation(fields: [userId], references: [id])
   userId         String
   confirmation   ContributorConfirmation @default(CHOOSE)
@@ -50,13 +50,13 @@ model Contributor {
 }
 
 enum RoleContributorRole {
-  SUPERADMIN
   ADMIN
+  SUPERADMIN
 }
 
 enum ContributorConfirmation {
-  YES
   NO
+  YES
   CHOOSE
 }
 
@@ -73,20 +73,32 @@ model Profile {
   companyName String?
   occupation  String?
   description String?   @db.Text
-  birthday    DateTime?
+  city        String?
+  currencyId  String?   @unique
+  currency    Currency? @relation(fields: [currencyId], references: [id], onDelete: Cascade)
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Currency {
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  deletedAt    DateTime?
-  id           String         @id @default(uuid())
-  name         String
-  code         String
-  symbol       String
-  Organization Organization[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  id        String    @id @default(uuid())
+  name      String
+  code      String
+  symbol    String
+  status    Boolean   @default(true)
+  profile   Profile?
+}
+
+model Country {
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  id        String    @id @default(uuid())
+  name      String
+  code      String?
 }
 
 model Organization {
@@ -100,8 +112,6 @@ model Organization {
   description      String?          @db.Text
   userId           String           @unique
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  currencyId       String?
-  currency         Currency?        @relation(fields: [currencyId], references: [id], onDelete: Cascade)
   contributors     Contributor[]
   tasks            Task[]
   animals          Animal[]
@@ -125,6 +135,7 @@ model Organization {
   eggHavestings    EggHavesting[]
   incubations      Incubation[]
   activityLogs     ActivityLog[]
+  subscriptions    Subscription[]
 }
 
 model Contact {
@@ -249,7 +260,7 @@ model Animal {
   updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
   id              String           @id @default(uuid())
-  code            String
+  code            String?
   codeFather      String?
   codeMother      String?
   birthday        DateTime?
@@ -322,6 +333,7 @@ enum AnimalStatus {
 
 enum ProductionPhase {
   GROWTH
+  LAYING
   WEANING
   FATTENING
   GESTATION
@@ -712,7 +724,7 @@ model ActivityLog {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  date           DateTime
+  date           DateTime?
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   message        String
@@ -721,4 +733,20 @@ model ActivityLog {
   userAgent      String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  id             String          @id @default(uuid())
+  isSubscribed   Boolean         @default(true)
+  type           SuscriptionType
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum SuscriptionType {
+  MONTHLY
+  YEARLY
 }

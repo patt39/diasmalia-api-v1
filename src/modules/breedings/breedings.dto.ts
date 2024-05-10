@@ -10,10 +10,6 @@ import {
 export class CreateOrUpdateBreedingsDto {
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   codeMale: string;
 
   @IsNotEmpty()

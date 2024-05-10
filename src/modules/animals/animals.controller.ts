@@ -17,7 +17,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { getIpRequest } from '../../app/utils/commons';
+import { config } from '../../app/config/index';
+import { generateNumber, getIpRequest } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   PaginationType,
@@ -98,14 +99,14 @@ export class AnimalsController {
       productionPhase,
     } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
+    const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       electronicCode,
       organizationId: user.organizationId,
     });
     if (findOneAnimal)
       throw new HttpException(
-        `Animal code: ${code} or ${electronicCode} already exists please change`,
+        `Animal code: ${findOneAnimal?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -126,17 +127,17 @@ export class AnimalsController {
     });
     if (!findOneLocation)
       throw new HttpException(
-        `LocationId: ${locationId} doesn't exists or isn't in the correct productionPhase please change`,
+        `LocationId: ${locationId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    // if (findOneLocation.productionPhase !== productionPhase)
-    //   throw new HttpException(
-    //     `Animal can't be placed in this location code: ${findOneLocation.code} please change`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
+    if (findOneLocation?.productionPhase !== productionPhase)
+      throw new HttpException(
+        `Animal can't be placed in this location code: ${findOneLocation?.code} please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
-    if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
+    if (findOneLocation?.animalTypeId !== findOneAssignType?.animalTypeId)
       throw new HttpException(
         `Animal can't be created in this type`,
         HttpStatus.NOT_FOUND,
@@ -162,8 +163,10 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+
     const animal = await this.animalsService.createOne({
-      code,
       weight,
       gender,
       quantity,
@@ -172,8 +175,9 @@ export class AnimalsController {
       codeMother,
       electronicCode,
       productionPhase,
-      breedId: findOneBreed?.id,
+      breedId: findOneBreed.id,
       locationId: findOneLocation.id,
+      code: code ? code : `${orgInitials}${generateNumber(4)}${appInitials}`,
       animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
@@ -219,6 +223,7 @@ export class AnimalsController {
       codeFather,
       codeMother,
       locationId,
+      animalTypeId,
       electronicCode,
       productionPhase,
     } = body;
@@ -250,8 +255,8 @@ export class AnimalsController {
       );
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user?.organizationId,
+      animalTypeId,
+      organizationId: user.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -259,11 +264,11 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    // if (findOneLocation.productionPhase !== productionPhase)
-    //   throw new HttpException(
-    //     `Animal can't be placed in this location ${findOneLocation.code} please change`,
-    //     HttpStatus.NOT_FOUND,
-    //   );
+    if (findOneLocation.productionPhase !== productionPhase)
+      throw new HttpException(
+        `Animal can't be placed in this location ${findOneLocation.code} please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
       throw new HttpException(
@@ -292,7 +297,7 @@ export class AnimalsController {
       );
 
     const animal = await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
+      { animalId: findOneAnimal.id },
       {
         code,
         weight,
@@ -303,16 +308,16 @@ export class AnimalsController {
         electronicCode,
         productionPhase,
         photo: fileName,
-        locationId: findOneLocation.id,
         breedId: findOneBreed.id,
+        locationId: findOneLocation.id,
         organizationId: user.organizationId,
-        userCreatedId: user?.id,
+        userCreatedId: user.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: animal.createdAt,
+      date: new Date(),
       actionId: animal.id,
       message: `${user.profile?.firstName} ${user.profile?.lastName} updated an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
       ipAddress: getIpRequest(req),
@@ -410,7 +415,6 @@ export class AnimalsController {
       actionId: animalId,
       message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an animal with code ${findOneAnimal?.code} in ${findOneAnimal.animalType.name}`,
       ipAddress: getIpRequest(req),
-      organizationId: user.organizationId,
     });
 
     return reply({ res, results: [HttpStatus.ACCEPTED, findOneAnimal] });

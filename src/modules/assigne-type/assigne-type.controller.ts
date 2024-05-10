@@ -88,21 +88,19 @@ export class AssignTypesController {
       animalTypeId,
       organizationId: user.organizationId,
     });
-
-    const assignType = !findOneAnimalType
-      ? await this.assignTypesService.createOne({
-          userId: user.id,
-          animalTypeId: findOneType.id,
-          organizationId: user.organizationId,
-          userCreatedId: user?.id,
-        })
-      : 'Already Created';
+    if (!findOneAnimalType) {
+      await this.assignTypesService.createOne({
+        userId: user.id,
+        animalTypeId: findOneType.id,
+        organizationId: user.organizationId,
+        userCreatedId: user?.id,
+      });
+    }
 
     return reply({
       res,
       results: {
         status: HttpStatus.CREATED,
-        data: assignType,
         message: `Animal Type assigned successfully`,
       },
     });

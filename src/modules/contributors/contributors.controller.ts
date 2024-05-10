@@ -12,9 +12,7 @@ import {
   Query,
   Req,
   Res,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { config } from '../../app/config';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
@@ -25,7 +23,6 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
   CreateOneContributorUserDto,
   CreateOrUpdateContributorDto,
@@ -60,6 +57,32 @@ export class ContributorsController {
     private readonly activitylogsService: ActivityLogsService,
     private readonly checkUserService: CheckUserService,
   ) {}
+
+  /** Get all contributors */
+  @Get(`/`)
+  @UseGuards(UserAuthGuard)
+  async findAll(
+    @Res() res,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+    @Query() queryContributors: GetContributorsDto,
+  ) {
+    const { search } = query;
+    const { role, userId, organizationId } = queryContributors;
+
+    const { take, page, sort } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({ page, take, sort });
+
+    const contributors = await this.contributorsService.findAll({
+      role,
+      search,
+      userId,
+      organizationId,
+      pagination,
+    });
+
+    return reply({ res, results: contributors });
+  }
 
   /** Post one Contributor */
   @Post(`/new`)
@@ -139,9 +162,7 @@ export class ContributorsController {
     const { user } = req;
     const { email } = body;
 
-    const findOneUser = await this.usersService.findOneBy({
-      email,
-    });
+    const findOneUser = await this.usersService.findOneBy({ email });
     if (!findOneUser)
       throw new HttpException(
         `User doesn't existes please change`,
@@ -239,7 +260,6 @@ export class ContributorsController {
       );
     }
     const payload = await this.checkUserService.verifyTokenCookie(token);
-    console.log(payload);
     const tokenUser = await this.checkUserService.createTokenCookie(
       { userId: payload.userId, email: payload?.email } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
@@ -247,7 +267,6 @@ export class ContributorsController {
     const findOneUser = await this.usersService.findOneBy({
       email: payload?.email,
     });
-    console.log('user1 ====>', findOneUser);
     if (!findOneUser)
       throw new HttpException(
         `User doesn't exists please change`,
@@ -276,35 +295,28 @@ export class ContributorsController {
     const { password, token } = body;
 
     const payload = await this.checkUserService.verifyTokenCookie(token);
-    console.log(payload);
     const findOneUser = await this.usersService.findOneBy({
       email: payload?.email,
     });
-    console.log('user ====>', findOneUser);
     if (!findOneUser)
       throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
 
     await this.usersService.updateOne(
-      { userId: findOneUser?.id },
+      { userId: findOneUser.id },
       { password: await hashPassword(password), confirmedAt: new Date() },
     );
 
     const findOneContributor = await this.contributorsService.findOneBy({
-      userId: findOneUser?.id,
+      userId: findOneUser.id,
     });
-    console.log('contributor ====>', findOneContributor);
-
     if (findOneContributor) {
       await this.contributorsService.updateOne(
-        { contributorId: findOneContributor?.id },
+        { contributorId: findOneContributor.id },
         { confirmedAt: new Date(), confirmation: 'YES' },
       );
     }
 
-    return reply({
-      res,
-      results: 'Password confirmed',
-    });
+    return reply({ res, results: 'Password confirmed' });
   }
 
   /** Contributor invitation confirmation*/
@@ -321,19 +333,18 @@ export class ContributorsController {
       throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
 
     const findOneContributor = await this.contributorsService.findOneBy({
-      userId: findOneUser?.id,
+      userId: findOneUser.id,
     });
-
     if (confirmation === 'YES') {
       await this.contributorsService.updateOne(
-        { contributorId: findOneContributor?.id },
+        { contributorId: findOneContributor.id },
         { confirmedAt: new Date(), confirmation: 'YES' },
       );
     }
 
     if (confirmation === 'NO') {
       await this.contributorsService.updateOne(
-        { contributorId: findOneContributor?.id },
+        { contributorId: findOneContributor.id },
         { deletedAt: new Date(), confirmation: 'NO' },
       );
     }
@@ -347,7 +358,7 @@ export class ContributorsController {
   async getOneByProfileId(@Res() res, @Req() req) {
     const { user } = req;
     const findOneProfile = await this.profilesService.findOneBy({
-      profileId: user?.profile?.id,
+      profileId: user.profile.id,
     });
     if (!findOneProfile)
       throw new HttpException(
@@ -356,51 +367,6 @@ export class ContributorsController {
       );
 
     return reply({ res, results: findOneProfile });
-  }
-
-  /** Update Contributor profile */
-  @Put(`/profile/update/`)
-  @UseGuards(UserAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
-  async updateProfile(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOneContributorUserDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    const { user } = req;
-
-    const { fileName } = await this.uploadsUtil.uploadOneAWS({
-      file,
-      userId: user.id,
-      folder: 'photos',
-    });
-
-    const {
-      phone,
-      address,
-      lastName,
-      firstName,
-      occupation,
-      companyName,
-      description,
-    } = body;
-    await this.profilesService.updateOne(
-      { profileId: user.profile.id },
-      {
-        phone,
-        address,
-        lastName,
-        firstName,
-        occupation,
-        companyName,
-        description,
-        photo: fileName,
-        userId: user.id,
-      },
-    );
-
-    return reply({ res, results: 'Profile updated successfully' });
   }
 
   /** Update Contributor Role */
@@ -431,32 +397,6 @@ export class ContributorsController {
     );
 
     return reply({ res, results: contributor });
-  }
-
-  /** Get all contributors */
-  @Get(`/`)
-  @UseGuards(UserAuthGuard)
-  async findAll(
-    @Res() res,
-    @Query() requestPaginationDto: RequestPaginationDto,
-    @Query() query: SearchQueryDto,
-    @Query() queryContributors: GetContributorsDto,
-  ) {
-    const { search } = query;
-    const { role, userId, organizationId } = queryContributors;
-
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
-
-    const contributors = await this.contributorsService.findAll({
-      role,
-      search,
-      userId,
-      organizationId,
-      pagination,
-    });
-
-    return reply({ res, results: contributors });
   }
 
   /** Get contributor organizations */

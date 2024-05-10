@@ -65,10 +65,9 @@ export class FinanceController {
     @Body() body: CreateOrUpdateFinancesDto,
   ) {
     const { user } = req;
-    const { date, note, amount, type, detail } = body;
+    const { note, amount, type, detail } = body;
 
     const finance = await this.financeService.createOne({
-      date,
       type,
       note,
       detail,
@@ -90,7 +89,7 @@ export class FinanceController {
     @Param('financeId', ParseUUIDPipe) financeId: string,
   ) {
     const { user } = req;
-    const { date, note, amount, type, detail } = body;
+    const { note, amount, type, detail } = body;
 
     const findOneFinance = await this.financeService.findOneBy({
       financeId,
@@ -105,7 +104,6 @@ export class FinanceController {
     const finance = await this.financeService.updateOne(
       { financeId: findOneFinance?.id },
       {
-        date,
         note,
         type,
         amount,

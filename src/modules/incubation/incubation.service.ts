@@ -8,6 +8,7 @@ import {
 import {
   CreateIncubationsOptions,
   GetOneIncubationSelections,
+  IncubationsSelect,
   IncubationsSelections,
   UpdateIncubationsOptions,
   UpdateIncubationsSelections,
@@ -41,6 +42,7 @@ export class IncubationsService {
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
+      select: IncubationsSelect,
       orderBy: pagination.orderBy,
     });
 
@@ -78,6 +80,7 @@ export class IncubationsService {
 
     const incubation = await this.client.incubation.findFirst({
       where: { ...prismaWhere, deletedAt: null },
+      select: IncubationsSelect,
     });
 
     return incubation;
@@ -87,7 +90,6 @@ export class IncubationsService {
   async createOne(options: CreateIncubationsOptions): Promise<Incubation> {
     const {
       note,
-      date,
       dueDate,
       quantityEnd,
       quantityStart,
@@ -100,11 +102,11 @@ export class IncubationsService {
     const incubation = this.client.incubation.create({
       data: {
         note,
-        date,
         dueDate,
         quantityEnd,
         quantityStart,
         animalTypeId,
+        date: new Date(),
         eggHavestingId,
         organizationId,
         userCreatedId,
@@ -122,7 +124,6 @@ export class IncubationsService {
     const { incubationId } = selections;
     const {
       note,
-      date,
       dueDate,
       quantityEnd,
       quantityStart,
@@ -132,12 +133,9 @@ export class IncubationsService {
     } = options;
 
     const incubation = this.client.incubation.update({
-      where: {
-        id: incubationId,
-      },
+      where: { id: incubationId },
       data: {
         note,
-        date,
         dueDate,
         animalTypeId,
         quantityEnd,

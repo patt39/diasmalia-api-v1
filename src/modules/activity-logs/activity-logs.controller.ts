@@ -26,11 +26,11 @@ export class ActivityLogsController {
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
-    const animalType = await this.activitylogsService.findAll({
+    const activityLog = await this.activitylogsService.findAll({
       search,
       pagination,
     });
 
-    return reply({ res, results: animalType });
+    return reply({ res, results: activityLog });
   }
 }

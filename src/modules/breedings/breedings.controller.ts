@@ -116,7 +116,7 @@ export class BreedingsController {
     @Body() body: CreateOrUpdateBreedingsDto,
   ) {
     const { user } = req;
-    const { date, note, method, codeMale, codeFemale, animalTypeId } = body;
+    const { note, method, codeMale, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -184,7 +184,6 @@ export class BreedingsController {
     }
 
     const breeding = await this.breedingsService.createOne({
-      date,
       note,
       method,
       animalMaleId: findOneMale.id,
@@ -224,7 +223,7 @@ export class BreedingsController {
     @Param('breedingId', ParseUUIDPipe) breedingId: string,
   ) {
     const { user } = req;
-    const { date, note, method, codeMale, codeFemale, animalTypeId } = body;
+    const { note, method, codeMale, codeFemale, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -307,7 +306,6 @@ export class BreedingsController {
     const breeding = await this.breedingsService.updateOne(
       { breedingId: findOneBreeding.id },
       {
-        date,
         note,
         method,
         animalMaleId: findOneMale.id,

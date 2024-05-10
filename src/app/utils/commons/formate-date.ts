@@ -6,17 +6,17 @@ export const subtractYears = (numOfYears: number, date: Date) => {
   return dateSub;
 };
 
-export const formateYYMMDDDate = (date: Date) => {
+export const formatYYMMDDDate = (date: Date) => {
   return DateTime.fromJSDate(date).toFormat('yyyy/LL/dd');
 };
 
-export const formateDDMMYYDate = (date: Date) =>
+export const formatDDMMYYDate = (date: Date) =>
   DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
 
-export const formateHHmmDate = (date: Date) =>
+export const formatHHmmDate = (date: Date) =>
   DateTime.fromJSDate(date).toFormat('HH:mm');
 
-export const formateNowDateYYMMDD = (date: Date) =>
+export const formatNowDateYYMMDD = (date: Date) =>
   DateTime.fromJSDate(date).toFormat('yyyyLLdd');
 
 export const dateTimeNowUtc = () => DateTime.utc().toJSDate();

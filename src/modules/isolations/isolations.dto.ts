@@ -9,10 +9,6 @@ import {
 export class CreateOrUpdateIsolationsDto {
   @IsNotEmpty()
   @IsString()
-  date: Date;
-
-  @IsNotEmpty()
-  @IsString()
   note: string;
 
   @IsNotEmpty()
@@ -29,10 +25,6 @@ export class BulkIsolationsDto {
   @IsOptional()
   @IsString()
   note: string;
-
-  @IsNotEmpty()
-  @IsString()
-  date: Date;
 
   @IsNotEmpty()
   @IsArray()

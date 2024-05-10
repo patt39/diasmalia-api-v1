@@ -69,78 +69,13 @@ export class TreatmentsController {
     return reply({ res, results: treatments });
   }
 
-  /** Post one treatment */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateTreatmentsDto,
-  ) {
-    const { user } = req;
-    const {
-      note,
-      dose,
-      name,
-      date,
-      method,
-      medication,
-      diagnosis,
-      animalId,
-      animalTypeId,
-    } = body;
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const treatment = await this.treatmentsService.createOne({
-      note,
-      date,
-      name,
-      dose,
-      method,
-      diagnosis,
-      medication,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAssignType.animalTypeId,
-      userCreatedId: user.id,
-    });
-
-    return reply({ res, results: treatment });
-  }
-
   /** Post one Bulk death */
   @Post(`/bulk/create`)
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkTreatmentsDto) {
     const { user } = req;
-    const {
-      date,
-      note,
-      name,
-      dose,
-      animals,
-      diagnosis,
-      medication,
-      animalTypeId,
-    } = body;
+    const { note, name, dose, animals, diagnosis, medication, animalTypeId } =
+      body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -166,7 +101,6 @@ export class TreatmentsController {
 
       const treatment = await this.treatmentsService.createOne({
         note,
-        date,
         name,
         dose,
         diagnosis,
@@ -199,16 +133,8 @@ export class TreatmentsController {
     @Param('treatmentId', ParseUUIDPipe) treatmentId: string,
   ) {
     const { user } = req;
-    const {
-      note,
-      date,
-      name,
-      dose,
-      diagnosis,
-      medication,
-      animalId,
-      animalTypeId,
-    } = body;
+    const { note, name, dose, diagnosis, medication, animalId, animalTypeId } =
+      body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -246,7 +172,6 @@ export class TreatmentsController {
       { treatmentId: findOneTreatement.id },
       {
         note,
-        date,
         name,
         dose,
         diagnosis,

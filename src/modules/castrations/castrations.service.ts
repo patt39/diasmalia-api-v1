@@ -86,7 +86,6 @@ export class CastrationsService {
   async createOne(options: CreateCastrationsOptions): Promise<Castration> {
     const {
       note,
-      date,
       method,
       animalId,
       animalTypeId,
@@ -96,10 +95,10 @@ export class CastrationsService {
 
     const castration = this.client.castration.create({
       data: {
-        date,
         note,
         method,
         animalId,
+        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -115,14 +114,11 @@ export class CastrationsService {
     options: UpdateCastrationsOptions,
   ): Promise<Castration> {
     const { castrationId } = selections;
-    const { date, note, method, animalId, deletedAt } = options;
+    const { note, method, animalId, deletedAt } = options;
 
     const castration = this.client.castration.update({
-      where: {
-        id: castrationId,
-      },
+      where: { id: castrationId },
       data: {
-        date,
         note,
         method,
         animalId,

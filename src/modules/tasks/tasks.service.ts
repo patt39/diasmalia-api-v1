@@ -139,9 +139,7 @@ export class TasksService {
     } = options;
 
     const task = this.client.task.update({
-      where: {
-        id: taskId,
-      },
+      where: { id: taskId },
       data: {
         slug,
         title,

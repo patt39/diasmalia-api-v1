@@ -93,7 +93,6 @@ export class FeedingsService {
   /** Create one feeding in database. */
   async createOne(options: CreateFeedingsOptions): Promise<Feeding> {
     const {
-      date,
       note,
       quantity,
       feedType,
@@ -106,12 +105,12 @@ export class FeedingsService {
 
     const feeding = this.client.feeding.create({
       data: {
-        date,
         note,
         quantity,
         feedType,
         productionPhase,
         animalId,
+        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -128,7 +127,6 @@ export class FeedingsService {
   ): Promise<Feeding> {
     const { feedingId } = selections;
     const {
-      date,
       note,
       quantity,
       feedType,
@@ -139,11 +137,8 @@ export class FeedingsService {
     } = options;
 
     const feeding = this.client.feeding.update({
-      where: {
-        id: feedingId,
-      },
+      where: { id: feedingId },
       data: {
-        date,
         note,
         quantity,
         feedType,

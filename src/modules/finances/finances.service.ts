@@ -83,16 +83,16 @@ export class FinancesService {
 
   /** Create one finance in database. */
   async createOne(options: CreateFinanceOptions): Promise<Finance> {
-    const { date, note, type, amount, detail, organizationId, userCreatedId } =
+    const { note, type, amount, detail, organizationId, userCreatedId } =
       options;
 
     const financialMgt = this.client.finance.create({
       data: {
-        date,
         note,
         type,
         detail,
         amount,
+        date: new Date(),
         slug: `${Slug(detail)}-${generateNumber(4)}`,
         organizationId,
         userCreatedId,
@@ -108,15 +108,11 @@ export class FinancesService {
     options: UpdateFinancesOptions,
   ): Promise<Finance> {
     const { financeId } = selections;
-    const { date, note, type, amount, detail, userCreatedId, deletedAt } =
-      options;
+    const { note, type, amount, detail, userCreatedId, deletedAt } = options;
 
     const finance = this.client.finance.update({
-      where: {
-        id: financeId,
-      },
+      where: { id: financeId },
       data: {
-        date,
         note,
         type,
         amount,

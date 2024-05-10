@@ -97,9 +97,7 @@ export class BreedsService {
     const { name, deletedAt } = options;
 
     const Breed = this.client.breed.update({
-      where: {
-        id: breedId,
-      },
+      where: { id: breedId },
       data: { name, deletedAt },
     });
 
