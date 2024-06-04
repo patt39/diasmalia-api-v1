@@ -53,8 +53,13 @@ export class WeaningsController {
     const { search } = query;
     const { animalTypeId } = queryWeaning;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const weanings = await this.weaningsService.findAll({
       search,
@@ -75,24 +80,13 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, note, codeFemale, farrowingId, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { litter, codeFemale, farrowingId } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
-      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneFemale)
@@ -118,21 +112,18 @@ export class WeaningsController {
       );
 
     const weaning = await this.weaningsService.createOne({
-      note,
       litter,
       animalId: findOneFemale.id,
       farrowingId: findOneFarrowing.id,
-      animalTypeId: findOneAssignType.animalTypeId,
+      animalTypeId: findOneFemale.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: weaning.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a weaning in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a weaning in ${findOneFemale.animalType.name} for animal ${findOneFemale.code}`,
     });
 
     await this.animalsService.updateOne(
@@ -153,21 +144,10 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const { litter, note, codeFemale, farrowingId, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { litter } = body;
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      animalTypeId: findOneAssignType.animalTypeId,
       organizationId: user.organizationId,
     });
     if (!findOneWeaning)
@@ -176,46 +156,18 @@ export class WeaningsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      productionPhase: 'LACTATION',
-      organizationId: user.organizationId,
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Female animal ${codeFemale} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneFarrowing = await this.farrowingsService.findOneBy({
-      farrowingId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneFarrowing)
-      throw new HttpException(
-        `FarrowingId: ${farrowingId} doesn't exists, please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const weaning = await this.weaningsService.updateOne(
       { weaningId: findOneWeaning.id },
       {
-        note,
         litter,
-        animalId: findOneFemale.id,
-        farrowingId: findOneFarrowing.id,
         userCreatedId: user.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: weaning.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a weaning in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a weaning in ${findOneWeaning.animalType.name} for animal ${findOneWeaning.animal.code}`,
     });
 
     return reply({ res, results: weaning });
@@ -264,17 +216,16 @@ export class WeaningsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await this.activitylogsService.createOne({
-      userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a weaning in ${findOneWeaning.animalType.name}`,
-      organizationId: user.organizationId,
-    });
-
     await this.weaningsService.updateOne(
       { weaningId: findOneWeaning.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a weaning in ${findOneWeaning.animalType.name} for animal ${findOneWeaning.animal.code}`,
+    });
 
     return reply({ res, results: 'Weaning deleted successfully' });
   }

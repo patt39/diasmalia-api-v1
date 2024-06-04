@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -56,6 +57,11 @@ export class CreateOrUpdateSalesDto {
   @IsNotEmpty()
   @IsArray()
   animalsQty: any;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
 
 export class BulkSalesDto {
@@ -83,6 +89,10 @@ export class BulkSalesDto {
   @IsInt()
   price: number;
 
+  @IsOptional()
+  @IsInt()
+  quantity: number;
+
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
@@ -92,6 +102,11 @@ export class BulkSalesDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  assignTypeId: string;
 }
 export class SalesDto {
   @IsOptional()

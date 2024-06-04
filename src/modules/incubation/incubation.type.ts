@@ -32,6 +32,7 @@ export const IncubationsSelect = {
   animalId: true,
   animal: {
     select: {
+      code: true,
       quantity: true,
       weight: true,
       animalTypeId: true,

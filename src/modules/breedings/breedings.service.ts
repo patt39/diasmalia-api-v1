@@ -189,6 +189,8 @@ export class BreedingsService {
     const {
       note,
       method,
+      maleCode,
+      femaleCode,
       animalTypeId,
       animalFemaleId,
       animalMaleId,
@@ -200,6 +202,8 @@ export class BreedingsService {
       data: {
         note,
         method,
+        maleCode,
+        femaleCode,
         animalTypeId,
         animalFemaleId,
         date: new Date(),

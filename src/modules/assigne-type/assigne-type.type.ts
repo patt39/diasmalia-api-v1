@@ -46,7 +46,21 @@ export const AllAssignedTypeSelect = {
     select: {
       icon: true,
       name: true,
+      slug: true,
+      description: true,
     },
   },
   organizationId: true,
+  organization: {
+    select: {
+      name: true,
+      logo: true,
+      description: true,
+      _count: {
+        select: {
+          assignTypes: true,
+        },
+      },
+    },
+  },
 };

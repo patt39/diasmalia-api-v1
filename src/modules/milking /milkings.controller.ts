@@ -24,7 +24,6 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkMilkingsDto,
@@ -38,7 +37,6 @@ export class MilkingsController {
   constructor(
     private readonly milkingsService: MilkingsService,
     private readonly animalsService: AnimalsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -56,8 +54,13 @@ export class MilkingsController {
     const { search } = query;
     const { method, animalTypeId } = queryMethod;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const milkings = await this.milkingsService.findAll({
       search,
@@ -75,24 +78,14 @@ export class MilkingsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkMilkingsDto) {
     const { user } = req;
-    const { method, quantity, animals, note, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { method, quantity, animals } = body;
 
     for (const animal of animals) {
       const findOneFemale = await this.animalsService.findOneBy({
         status: 'ACTIVE',
         code: animal?.code,
         gender: 'FEMALE',
-        isIsolated: 'FALSE',
+        isIsolated: false,
         productionPhase: 'LACTATION',
       });
       if (!findOneFemale)
@@ -101,29 +94,26 @@ export class MilkingsController {
           HttpStatus.NOT_FOUND,
         );
 
-      const milking = await this.milkingsService.createOne({
-        note,
+      await this.milkingsService.createOne({
         method,
         quantity,
         animalId: findOneFemale.id,
-        animalTypeId: findOneAssignType.animalTypeId,
+        animalTypeId: findOneFemale.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
       });
 
       await this.activitylogsService.createOne({
         userId: user.id,
-        date: new Date(),
-        actionId: milking.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a milking in ${findOneAssignType.animalType.name}`,
         organizationId: user.organizationId,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} milked ${animals.lenght} in ${findOneFemale.animalType.name}`,
       });
     }
 
     return reply({ res, results: 'Saved' });
   }
 
-  /** Update one milking */
+  /** Update one feeding */
   @Put(`/:milkingId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
@@ -133,86 +123,34 @@ export class MilkingsController {
     @Param('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
     const { user } = req;
-    const { note, quantity, method, femaleCode, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { quantity, method } = body;
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneMilking)
       throw new HttpException(
-        `MilkingId: ${milkingId} doesn't exists, please change`,
+        `MilkingId: ${milkingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: femaleCode,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      isIsolated: 'FALSE',
-      productionPhase: 'LACTATION',
-      organizationId: user.organizationId,
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Animal ${femaleCode} doesn't exists, isn't in LACTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const milking = await this.milkingsService.updateOne(
-      { milkingId: findOneMilking.id },
+    await this.milkingsService.updateOne(
+      { milkingId: findOneMilking?.id },
       {
-        note,
-        method,
         quantity,
-        animalId: findOneFemale.id,
-        animalTypeId: findOneAssignType.animalTypeId,
-        userCreatedId: user.id,
+        method,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: milking.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a milking in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a feeding in ${findOneMilking.animalType.name} for ${findOneMilking.animal.code}`,
     });
 
-    return reply({ res, results: milking });
-  }
-
-  /** Get one milking */
-  @Get(`/view`)
-  @UseGuards(UserAuthGuard)
-  async getOneByIdMilking(
-    @Res() res,
-    @Req() req,
-    @Query('milkingId', ParseUUIDPipe) milkingId: string,
-  ) {
-    const { user } = req;
-
-    const findOneMilking = await this.milkingsService.findOneBy({
-      milkingId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneMilking)
-      throw new HttpException(
-        `MilkingId: ${milkingId} doesn't exists, please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    return reply({ res, results: findOneMilking });
+    return reply({ res, results: 'Feeding Created Successfully' });
   }
 
   /** Delete one milking */
@@ -242,9 +180,8 @@ export class MilkingsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a milking in ${findOneMilking.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a milking in ${findOneMilking.animalType.name}`,
     });
 
     return reply({ res, results: 'Milking deleted successfully' });

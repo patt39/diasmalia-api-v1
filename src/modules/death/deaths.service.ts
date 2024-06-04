@@ -5,7 +5,6 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { AnimalsService } from '../animals/animals.service';
 import {
   CreateDeathsOptions,
   DeathSelect,
@@ -17,10 +16,7 @@ import {
 
 @Injectable()
 export class DeathsService {
-  constructor(
-    private readonly client: DatabaseService,
-    private readonly animalsService: AnimalsService,
-  ) {}
+  constructor(private readonly client: DatabaseService) {}
 
   async findAll(
     selections: GetDeathsSelections,

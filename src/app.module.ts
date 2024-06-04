@@ -6,9 +6,9 @@ import { AnimalsModule } from './modules/animals/animals.module';
 import { AssignTasksModule } from './modules/assigne-tasks/assigne-tasks.module';
 import { AssignTypesModule } from './modules/assigne-type/assigne-type.module';
 import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
+import { BlogsModule } from './modules/blog/blog.module';
 import { BreedingsModule } from './modules/breedings/breedings.module';
 import { BreedsModule } from './modules/breeds/breeds.module';
-import { CastrationsModule } from './modules/castrations/castrations.module';
 import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregnancies.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
@@ -17,6 +17,7 @@ import { CurrenciesModule } from './modules/currency/currency.module';
 import { DeathsModule } from './modules/death/deaths.module';
 import { EggHavestingsModule } from './modules/egg-havesting/egg-havesting.module';
 import { FarrowingsModule } from './modules/farrowings/farrowings.module';
+import { FatteningsModule } from './modules/fattenings/fattening.module';
 import { FeedingsModule } from './modules/feeding/feedings.module';
 import { FinanceModule } from './modules/finances/finances.module';
 import { GestationsModule } from './modules/gestation/gestations.module';
@@ -50,12 +51,13 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     TreatmentsModule,
     LocationsModule,
     SalesModule,
+    BlogsModule,
     EggHavestingsModule,
     AnimalTypesModule,
     IncubationsModule,
     AssignTypesModule,
     IsolationsModule,
-    CastrationsModule,
+    FatteningsModule,
     FarrowingsModule,
     FeedingsModule,
     AssignTasksModule,

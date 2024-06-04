@@ -109,16 +109,12 @@ export class AnimalsService {
       Object.assign(prismaWhere, { id: animalId });
     }
 
-    if (isCastrated === 'FALSE') {
-      Object.assign(prismaWhere, {
-        castration: null,
-      });
+    if (isIsolated) {
+      Object.assign(prismaWhere, { isIsolated });
     }
 
-    if (isIsolated === 'FALSE') {
-      Object.assign(prismaWhere, {
-        isolations: { none: {} },
-      });
+    if (isCastrated) {
+      Object.assign(prismaWhere, { isCastrated });
     }
 
     if (gender) {
@@ -352,5 +348,18 @@ export class AnimalsService {
     // Save data to PostgreSQL database using Prisma
     await this.client.animal.createMany({ data });
     return 'Bulk animals created';
+  }
+
+  /** Load data to database. */
+  async getAnimalTransactions() {
+    const [totalMales, totalFemales] = await this.client.$transaction([
+      this.client.animal.count({
+        where: { gender: 'MALE', deletedAt: null },
+      }),
+      this.client.animal.count({
+        where: { gender: 'FEMALE', deletedAt: null },
+      }),
+    ]);
+    return { totalMales, totalFemales };
   }
 }

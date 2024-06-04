@@ -25,9 +25,8 @@ export type UpdateDeathsOptions = Partial<Death>;
 export const DeathSelect = {
   createdAt: true,
   id: true,
-  date: true,
   note: true,
-  quantity: true,
+  number: true,
   animalId: true,
   animal: {
     select: {
@@ -64,5 +63,10 @@ export const DeathSelect = {
     },
   },
   organizationId: true,
+  organization: {
+    select: {
+      name: true,
+    },
+  },
   userCreatedId: true,
 };

@@ -32,11 +32,6 @@ export class CreateOrUpdateCheckPregnanciesDto {
   @IsString()
   @IsEnum(ResultCheckPregnancy)
   result: ResultCheckPregnancy;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class checkPregancyQueryDto {

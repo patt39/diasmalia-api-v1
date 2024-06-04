@@ -55,8 +55,13 @@ export class FarrowingsController {
     const { search } = query;
     const { animalTypeId } = queryFarrowing;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const farrowings = await this.farrowingsService.findAll({
       search,
@@ -77,25 +82,14 @@ export class FarrowingsController {
     @Body() body: CreateOrUpdateFarrowingsDto,
   ) {
     const { user } = req;
-    const { litter, note, codeFemale, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { litter, note, codeFemale } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      isIsolated: 'FALSE',
+      isIsolated: false,
       productionPhase: 'GESTATION',
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFemale) {
       throw new HttpException(
@@ -108,7 +102,7 @@ export class FarrowingsController {
       note,
       litter,
       animalId: findOneFemale.id,
-      animalTypeId: findOneAssignType.animalTypeId,
+      animalTypeId: findOneFemale.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
@@ -120,10 +114,8 @@ export class FarrowingsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: farrowing.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a farrowing in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a farrowing in ${findOneFemale.animalType.name} for ${findOneFemale.code}`,
     });
 
     return reply({
@@ -147,41 +139,15 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, codeFemale, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { litter, note } = body;
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFarrowing)
       throw new HttpException(
         `FarrowingId: ${farrowingId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      isIsolated: 'FALSE',
-      productionPhase: 'GESTATION',
-      organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Animal ${findOneFemale.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -190,22 +156,19 @@ export class FarrowingsController {
       {
         note,
         litter,
-        animalId: findOneFemale.id,
         userCreatedId: user.id,
       },
     );
 
     await this.animalsService.updateOne(
-      { animalId: findOneFemale.id },
+      { animalId: findOneFarrowing.animal.id },
       { productionPhase: 'LACTATION' },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: farrowing.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a farrowing in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a farrowing in ${findOneFarrowing.animalType.name} for ${findOneFarrowing.animal.code}`,
     });
 
     return reply({
@@ -267,9 +230,8 @@ export class FarrowingsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a farrowing in ${findOneFarrowing.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a farrowing in ${findOneFarrowing.animalType.name}`,
     });
 
     return reply({ res, results: 'Farrowing deleted successfully' });

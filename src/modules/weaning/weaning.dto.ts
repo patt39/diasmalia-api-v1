@@ -11,10 +11,6 @@ export class CreateOrUpdateWeaningsDto {
   @IsNumber()
   litter: number;
 
-  @IsOptional()
-  @IsString()
-  note: string;
-
   @IsNotEmpty()
   @IsString()
   codeFemale: string;
@@ -23,11 +19,6 @@ export class CreateOrUpdateWeaningsDto {
   @IsString()
   @IsUUID()
   farrowingId: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class WeaningDto {

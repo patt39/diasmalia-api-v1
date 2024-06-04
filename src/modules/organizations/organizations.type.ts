@@ -29,9 +29,9 @@ export const OrganizationSelect = {
       name: true,
       image: true,
       description: true,
-      currency: {
+      _count: {
         select: {
-          symbol: true,
+          assignTypes: true,
         },
       },
     },

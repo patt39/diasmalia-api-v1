@@ -26,11 +26,24 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Database
+
+````bash
+
+# Database
+$ postgreSQL```
+
+# Database ORM
+$ prisma```
+
+# Database Seeding
+$ npx prisma db seed
+
 ## Installation
 
 ```bash
 $ pnpm install
-```
+````
 
 ## Running the app
 

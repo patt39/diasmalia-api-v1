@@ -76,10 +76,29 @@ export class UsersService {
 
     const user = await this.client.user.findFirst({
       where: { ...prismaWhereUser, deletedAt: null },
-      include: {
+      select: {
+        password: true,
+        id: true,
+        email: true,
+        confirmedAt: true,
+        organizationId: true,
         profile: true,
-        organization: { select: { name: true, logo: true } },
+        organization: {
+          select: {
+            logo: true,
+            name: true,
+            image: true,
+            description: true,
+            assignTypes: true,
+          },
+        },
       },
+      // include: {
+      //   profile: true,
+      //   organization: {
+      //     select: { name: true, logo: true, assignTypes: true },
+      //   },
+      // },
     });
 
     return user;
@@ -111,9 +130,9 @@ export class UsersService {
     const {
       email,
       token,
-      username,
       password,
       provider,
+      isConfirmed,
       confirmedAt,
       organizationId,
     } = options;
@@ -122,9 +141,9 @@ export class UsersService {
       data: {
         email,
         token,
-        username,
         password,
         provider,
+        isConfirmed,
         confirmedAt,
         organizationId,
       },
@@ -143,7 +162,6 @@ export class UsersService {
       email,
       token,
       provider,
-      username,
       password,
       confirmedAt,
       organizationId,
@@ -158,7 +176,6 @@ export class UsersService {
         email,
         token,
         provider,
-        username,
         password,
         confirmedAt,
         organizationId,

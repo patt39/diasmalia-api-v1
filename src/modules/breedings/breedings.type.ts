@@ -34,6 +34,8 @@ export const BreedingSelect = {
   id: true,
   date: true,
   note: true,
+  maleCode: true,
+  femaleCode: true,
   animalFemaleId: true,
   animalMaleId: true,
   method: true,

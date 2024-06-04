@@ -30,6 +30,7 @@ export const LocationsSelect = {
   createdAt: true,
   id: true,
   code: true,
+  status: true,
   squareMeter: true,
   through: true,
   manger: true,
@@ -48,7 +49,6 @@ export const LocationsSelect = {
       name: true,
     },
   },
-  //animals: true,
   _count: {
     select: {
       animals: {
@@ -59,4 +59,5 @@ export const LocationsSelect = {
       },
     },
   },
+  // animals: true,
 };

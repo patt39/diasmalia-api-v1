@@ -18,12 +18,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { config } from '../../app/config/index';
-import { generateNumber, getIpRequest } from '../../app/utils/commons';
+import { generateNumber } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
-import {
-  PaginationType,
-  addPagination,
-} from '../../app/utils/pagination/with-pagination';
+import { addPagination } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
@@ -59,8 +56,8 @@ export class AnimalsController {
     const { user } = req;
     const { search } = query;
     const { status, animalTypeId, gender, productionPhase } = queryAnimal;
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination = addPagination({ page, take, sort, sortBy });
 
     const animals = await this.animalsService.findAll({
       gender,
@@ -73,6 +70,15 @@ export class AnimalsController {
     });
 
     return reply({ res, results: animals });
+  }
+
+  /** Get animal statistics */
+  @Get(`/statistics`)
+  @UseGuards(UserAuthGuard)
+  async getAnimalStatistics(@Res() res) {
+    const animalsCount = await this.animalsService.getAnimalTransactions();
+
+    return reply({ res, results: animalsCount });
   }
 
   /** Post one animal */
@@ -154,9 +160,7 @@ export class AnimalsController {
 
     if (
       gender === 'MALE' &&
-      (productionPhase === 'LACTATION' ||
-        productionPhase === 'WEANING' ||
-        productionPhase === 'GESTATION')
+      (productionPhase === 'LACTATION' || productionPhase === 'GESTATION')
     )
       throw new HttpException(
         `Male animalId: ${code} can't be in this phase please change`,
@@ -185,10 +189,7 @@ export class AnimalsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: animal.id,
       message: `${user.profile?.firstName} ${user.profile?.lastName} created an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
-      ipAddress: getIpRequest(req),
       organizationId: user.organizationId,
     });
 
@@ -225,7 +226,6 @@ export class AnimalsController {
       locationId,
       animalTypeId,
       electronicCode,
-      productionPhase,
     } = body;
 
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
@@ -264,26 +264,9 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation.productionPhase !== productionPhase)
+    if (findOneLocation?.animalTypeId !== findOneAssignType?.animalTypeId)
       throw new HttpException(
-        `Animal can't be placed in this location ${findOneLocation.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneLocation.animalTypeId !== findOneAssignType.animalTypeId)
-      throw new HttpException(
-        `Animal can't be placed in this location ${findOneLocation.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (
-      findOneAnimal.gender === 'MALE' &&
-      (productionPhase === 'LACTATION' ||
-        productionPhase === 'WEANING' ||
-        productionPhase === 'GESTATION')
-    )
-      throw new HttpException(
-        `Male animalId: ${animalId} can't be in this phase please change`,
+        `Animal can't be created in this type`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -297,7 +280,7 @@ export class AnimalsController {
       );
 
     const animal = await this.animalsService.updateOne(
-      { animalId: findOneAnimal.id },
+      { animalId: findOneAnimal?.id },
       {
         code,
         weight,
@@ -306,7 +289,6 @@ export class AnimalsController {
         codeFather,
         codeMother,
         electronicCode,
-        productionPhase,
         photo: fileName,
         breedId: findOneBreed.id,
         locationId: findOneLocation.id,
@@ -317,11 +299,8 @@ export class AnimalsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: animal.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
-      ipAddress: getIpRequest(req),
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
     });
 
     return reply({
@@ -385,8 +364,9 @@ export class AnimalsController {
     await this.animalsService.uploadDataFromExcel(file.path);
     //data.pipe(createReadStream(file.path));
   }
+
   /** Delete one animal */
-  @Delete(`/delete/:animalId`)
+  @Delete(`/:animalId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -394,13 +374,14 @@ export class AnimalsController {
     @Param('animalId', ParseUUIDPipe) animalId: string,
   ) {
     const { user } = req;
+
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
       organizationId: user.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
+        `AnimalId: ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -411,12 +392,10 @@ export class AnimalsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: animalId,
+      organizationId: user.organizationId,
       message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an animal with code ${findOneAnimal?.code} in ${findOneAnimal.animalType.name}`,
-      ipAddress: getIpRequest(req),
     });
 
-    return reply({ res, results: [HttpStatus.ACCEPTED, findOneAnimal] });
+    return reply({ res, results: { message: 'Animal deleted successfully' } });
   }
 }

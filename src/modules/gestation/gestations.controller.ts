@@ -53,8 +53,13 @@ export class GestationsController {
     const { search } = query;
     const { animalTypeId } = queryGestation;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const gestations = await this.gestationsService.findAll({
       search,
@@ -76,22 +81,11 @@ export class GestationsController {
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const { note, farrowingDate, codeFemale, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { note, farrowingDate } = body;
 
     const findOneGestation = await this.gestationsService.findOneBy({
       gestationId,
       organizationId: user.organization,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneGestation) {
       throw new HttpException(
@@ -100,35 +94,19 @@ export class GestationsController {
       );
     }
 
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      productionPhase: 'GESTATION',
-      animalTypeId: findOneAssignType.animalTypeId,
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase, isn't a FEMALE or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const gestation = await this.gestationsService.updateOne(
       { gestationId: findOneGestation.id },
       {
         note,
         farrowingDate,
-        animalId: findOneFemale.id,
         userCreatedId: user.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: findOneGestation.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a gestation, in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a gestation, in ${findOneGestation.animalType.name} for ${findOneGestation.animal.code}`,
     });
 
     return reply({
@@ -193,10 +171,8 @@ export class GestationsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: findOneGestation.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a gestation in ${findOneGestation.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a gestation in ${findOneGestation.animalType.name} for ${findOneGestation.animal.code}`,
     });
 
     return reply({ res, results: 'Gestation deleted successfully' });

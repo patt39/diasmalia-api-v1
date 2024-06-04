@@ -6,6 +6,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import {
+  AnimalTypesSelect,
   AnimalTypesSelections,
   CreateAnimalTypesOptions,
   GetOneAnimalTypeSelections,
@@ -21,7 +22,7 @@ export class AnimalTypesService {
     selections: AnimalTypesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.AnimalTypeWhereInput;
-    const { search, pagination } = selections;
+    const { search, pagination, status } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -29,10 +30,15 @@ export class AnimalTypesService {
       });
     }
 
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
     const animalType = await this.client.animalType.findMany({
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
+      select: AnimalTypesSelect,
       orderBy: pagination.orderBy,
     });
 
@@ -61,6 +67,7 @@ export class AnimalTypesService {
 
     const animalType = await this.client.animalType.findFirst({
       where: { ...prismaWhere, deletedAt: null },
+      select: AnimalTypesSelect,
     });
 
     return animalType;
@@ -68,12 +75,16 @@ export class AnimalTypesService {
 
   /** Create one animalType in database. */
   async createOne(options: CreateAnimalTypesOptions): Promise<AnimalType> {
-    const { name, icon } = options;
+    const { name, slug, type, habitat, icon, description } = options;
 
     const animalType = this.client.animalType.create({
       data: {
         name,
         icon,
+        slug,
+        type,
+        habitat,
+        description,
       },
     });
 
@@ -86,13 +97,18 @@ export class AnimalTypesService {
     options: UpdateAnimalTypesOptions,
   ): Promise<AnimalType> {
     const { animalTypeId } = selections;
-    const { name, icon } = options;
+    const { name, icon, type, slug, habitat, status, description } = options;
 
     const animalType = this.client.animalType.update({
       where: { id: animalTypeId },
       data: {
         name,
         icon,
+        slug,
+        type,
+        status,
+        habitat,
+        description,
       },
     });
 

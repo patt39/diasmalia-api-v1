@@ -51,8 +51,13 @@ export class TasksController {
     const { search } = query;
     const { status } = queryTasks;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const tasks = await this.tasksService.findAll({
       status,
@@ -102,10 +107,8 @@ export class TasksController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: task.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
     });
 
     await taskNotification({
@@ -173,10 +176,8 @@ export class TasksController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: task.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
     });
 
     return reply({ res, results: task });
@@ -223,9 +224,8 @@ export class TasksController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a task`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a task`,
     });
 
     const task = await this.tasksService.updateOne(

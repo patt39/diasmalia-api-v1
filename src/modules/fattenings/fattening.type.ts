@@ -1,34 +1,34 @@
-import { Castration } from '@prisma/client';
+import { Fattening } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
-export type GetCastrationsSelections = {
+export type GetFatteningsSelections = {
   search?: string;
-  method?: Castration['method'];
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
 };
 
-export type GetOneCastrationsSelections = {
-  castrationId?: Castration['id'];
-  animalTypeId?: Castration['animalTypeId'];
-  organizationId?: Castration['organizationId'];
+export type GetOneFatteningSelections = {
+  animalId?: string;
+  fatteningId?: Fattening['id'];
+  animalTypeId?: Fattening['animalTypeId'];
+  organizationId?: Fattening['organizationId'];
 };
 
-export type UpdateCastrationsSelections = {
-  castrationId: Castration['id'];
+export type UpdateFatteningsSelections = {
+  fatteningId: Fattening['id'];
 };
 
-export type CreateCastrationsOptions = Partial<Castration>;
+export type CreateFatteningsOptions = Partial<Fattening>;
 
-export type UpdateCastrationsOptions = Partial<Castration>;
+export type UpdateFatteningsOptions = Partial<Fattening>;
 
-export const castrationsSelect = {
+export const fatteningsSelect = {
   createdAt: true,
+  updatedAt: true,
   id: true,
-  date: true,
-  note: true,
-  method: true,
+  initialWeight: true,
+  actualWeight: true,
   animalTypeId: true,
   animalType: {
     select: {

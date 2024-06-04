@@ -31,11 +31,6 @@ export class CreateOrUpdateMilkingsDto {
   @MaxLength(100)
   @IsEnum(MethodMilking)
   method: MethodMilking;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class BulkMilkingsDto {
@@ -55,11 +50,6 @@ export class BulkMilkingsDto {
   @IsString()
   @IsEnum(MethodMilking)
   method: MethodMilking;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class GetMilkingsQueryDto {

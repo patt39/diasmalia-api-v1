@@ -37,8 +37,13 @@ export class ContactUsController {
   ) {
     const { search } = searchQuery;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const contactUs = await this.contactUsService.findAll({
       search,

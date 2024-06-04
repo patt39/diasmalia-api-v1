@@ -11,7 +11,6 @@ export type GetSalesSelections = {
 
 export type GetOneSaleSelections = {
   saleId?: Sale['id'];
-  animalId?: Sale['animalId'];
   organizationId?: Sale['organizationId'];
 };
 
@@ -32,27 +31,26 @@ export const SalesSelect = {
   type: true,
   phone: true,
   note: true,
+  email: true,
   quantity: true,
-  animalCode: true,
-  animalId: true,
   method: true,
   organizationId: true,
   organization: {
     select: {
       name: true,
       logo: true,
-      currency: {
-        select: {
-          symbol: true,
-        },
-      },
     },
   },
-  animalTypeId: true,
-  animalType: {
+  assigneTypeId: true,
+  assigneType: {
     select: {
-      icon: true,
-      name: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
     },
   },
   userCreatedId: true,

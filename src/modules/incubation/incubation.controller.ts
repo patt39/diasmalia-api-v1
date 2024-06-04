@@ -23,7 +23,6 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
@@ -36,7 +35,6 @@ import { IncubationsService } from './incubation.service';
 export class IncubationsController {
   constructor(
     private readonly incubationsService: IncubationsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly eggHavestingsService: EggHavestingsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
@@ -54,8 +52,13 @@ export class IncubationsController {
     const { search } = query;
     const { animalTypeId } = queryIncubation;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const eggHavestings = await this.incubationsService.findAll({
       search,
@@ -76,17 +79,7 @@ export class IncubationsController {
     @Body() body: CreateOrUpdateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { note, dueDate, quantityStart, eggHavestingId, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { dueDate, quantityStart, eggHavestingId } = body;
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHavestingId,
@@ -99,21 +92,18 @@ export class IncubationsController {
       );
 
     const incubation = await this.incubationsService.createOne({
-      note,
       dueDate,
       quantityStart,
       eggHavestingId: findOneEggHavesting.id,
-      animalTypeId: findOneAssignType.animalTypeId,
+      animalTypeId: findOneEggHavesting.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: incubation.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created an incubation in ${findOneAssignType.animalType.name}`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created an incubation in ${findOneEggHavesting}`,
     });
 
     return reply({ res, results: incubation });
@@ -129,17 +119,7 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const { quantityEnd, quantityStart, dueDate, note, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { quantityEnd, quantityStart, dueDate } = body;
 
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
@@ -158,9 +138,8 @@ export class IncubationsController {
       );
 
     const incubation = await this.incubationsService.updateOne(
-      { incubationId: findOneIncubation.id },
+      { incubationId: findOneIncubation?.id },
       {
-        note,
         dueDate,
         quantityEnd,
         quantityStart,
@@ -170,36 +149,10 @@ export class IncubationsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: incubation.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an incubation in ${findOneAssignType.animalType.name}`,
-      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an incubation in ${findOneIncubation.animalType.name}`,
     });
 
     return reply({ res, results: incubation });
-  }
-
-  /** Get one incubation */
-  @Get(`/view/:incubationId`)
-  @UseGuards(UserAuthGuard)
-  async getOneByIdWeaning(
-    @Res() res,
-    @Req() req,
-    @Param('incubationId', ParseUUIDPipe) incubationId: string,
-  ) {
-    const { user } = req;
-
-    const findOneIncubation = await this.incubationsService.findOneBy({
-      incubationId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneIncubation)
-      throw new HttpException(
-        `IncubationId: ${incubationId} doesn't exists, please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    return reply({ res, results: findOneIncubation });
   }
 
   /** Delete Incubation */
@@ -229,9 +182,8 @@ export class IncubationsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an incubation`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an incubation in ${findOneIncubation.animalType.name}`,
     });
 
     return reply({ res, results: 'Incubation deleted successfully' });

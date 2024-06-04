@@ -27,10 +27,7 @@ export class FeedingsService {
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [
-          { animal: { code: { contains: search, mode: 'insensitive' } } },
-          { feedType: { contains: search, mode: 'insensitive' } },
-        ],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
     }
 
@@ -93,7 +90,6 @@ export class FeedingsService {
   /** Create one feeding in database. */
   async createOne(options: CreateFeedingsOptions): Promise<Feeding> {
     const {
-      note,
       quantity,
       feedType,
       animalId,
@@ -105,7 +101,6 @@ export class FeedingsService {
 
     const feeding = this.client.feeding.create({
       data: {
-        note,
         quantity,
         feedType,
         productionPhase,
@@ -127,7 +122,6 @@ export class FeedingsService {
   ): Promise<Feeding> {
     const { feedingId } = selections;
     const {
-      note,
       quantity,
       feedType,
       animalId,
@@ -139,7 +133,6 @@ export class FeedingsService {
     const feeding = this.client.feeding.update({
       where: { id: feedingId },
       data: {
-        note,
         quantity,
         feedType,
         animalId,

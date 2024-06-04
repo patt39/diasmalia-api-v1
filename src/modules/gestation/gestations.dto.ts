@@ -12,11 +12,6 @@ export class CreateOrUpdateGestationsDto {
   @IsNotEmpty()
   @IsString()
   farrowingDate: Date;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class GestationsQueryDto {

@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { reply } from '../../app/utils/reply';
-import { CurrenciesService } from '../currency/currency.service';
 import { getFileFromAws } from '../integrations/aws/aws-s3-service-adapter';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
@@ -31,7 +30,6 @@ export class OrganizationsController {
   constructor(
     private readonly organizationsService: OrganizationsService,
     private readonly uploadsUtil: UploadsUtil,
-    private readonly currenciesService: CurrenciesService,
   ) {}
 
   /** Get one Organization */

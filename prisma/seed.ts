@@ -13,8 +13,6 @@ async function main() {
 
   switch (environment) {
     case 'development':
-      await prisma.country.deleteMany({});
-
       /** Seedind countries */
       await prisma.country.createMany({
         data: [
@@ -312,6 +310,117 @@ async function main() {
           { name: 'Danish Krone', code: 'DKK', symbol: 'kr' },
           { name: 'Hungarian Forint', code: 'HUF', symbol: 'Ft' },
           { name: 'Polish Zloty', code: 'PLN', symbol: 'zł' },
+        ],
+      });
+
+      /** Seeding animal types */
+      await prisma.animalType.createMany({
+        data: [
+          {
+            name: 'Poulet de chair',
+            slug: 'Poulet de chair',
+            icon: 'icon',
+            type: 'Poulaillé de poulet de chair',
+            habitat: 'Poulaillé',
+            description:
+              'Ici vous pouvez élever des poulets de chaire zero jour à 31jour puis les vendre pour la viande',
+          },
+          {
+            name: 'Pondeuses',
+            slug: 'Pondeuses',
+            icon: 'icon',
+            type: 'Poulaillé de poulet pondeuse',
+            habitat: 'Poulaillé',
+            description:
+              'Ici vous pouvez élever des pousins jusqua la phase de ponte pour les oeufs et puis les reformer pour la viande',
+          },
+          {
+            name: 'Bovins',
+            slug: 'Boeufs',
+            icon: 'icon',
+            habitat: 'Etable',
+            type: 'Bouvière',
+            description:
+              'Une section pour élever des boeuf pour leur viande et du lait.',
+          },
+          {
+            name: 'Ovins',
+            slug: 'Moutons',
+            habitat: 'Enclos',
+            icon: 'icon',
+            type: 'Bergerie',
+            description: 'Elever des moutons pour leur viande ou de laine',
+          },
+          {
+            name: 'Caprins',
+            slug: 'Chèvres',
+            habitat: 'Enclos',
+            icon: 'icon',
+            type: 'Chèvrerie',
+            description: 'Elever des chèvres pour leurs viande ou du lait',
+          },
+          {
+            name: 'Porsciculture',
+            slug: 'Porcs',
+            icon: 'icon',
+            habitat: 'Porcherie',
+            description:
+              'Elever des porcs pour leur viande bien grasse qui passe sur le marché nhesitez pas a varier les races',
+          },
+          {
+            name: 'Cuniculture',
+            slug: 'Lapins',
+            icon: 'icon',
+            habitat: 'Clapier',
+            type: 'Lapinière',
+            description:
+              'Elever des lapins pour leur viande succulent faible en matière grasse et bonne pour la santé',
+          },
+          {
+            name: 'Quails',
+            slug: 'Quails',
+            icon: 'icon',
+            habitat: 'Cage',
+            type: 'Quails',
+            description:
+              'Elever des quails pour les viande et leur oeufs faible en matière grasse et veture médicinale',
+          },
+          {
+            name: 'Canard',
+            slug: 'Porcs',
+            icon: 'icon',
+            habitat: 'Porcherie',
+            type: 'Canadière',
+            description:
+              'Elever des canard pour leur rusticité leur viande et leur oeufs.',
+          },
+          {
+            name: 'Pisciculture',
+            slug: 'Poissons',
+            icon: 'icon',
+            habitat: 'Etang',
+            type: 'Poissons',
+            description:
+              'Elever des poissons pour la consomation domestique ou la vente',
+          },
+          {
+            name: 'Dinde',
+            slug: 'Dinde',
+            icon: 'icon',
+            habitat: 'Poulaillé',
+            type: 'Poulaillé',
+            description:
+              'Elever des dindons et des dindes pour leur bonne viande blanche très riche en proteins et vente en grande surface',
+          },
+          {
+            name: 'Pintarde',
+            slug: 'Pintarde',
+            icon: 'icon',
+            habitat: 'Poullaillé',
+            type: 'Pintarde',
+            description:
+              'Elever des pintarde pour leur rusticité et la vente de leur bonne viande blanche très faible en matière grasse, riche en proteins',
+          },
         ],
       });
       console.log(`${environment} database seeded successfully`);

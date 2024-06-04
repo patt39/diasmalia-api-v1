@@ -75,6 +75,7 @@ export class CheckPregnanciesService {
       animalTypeId,
       organizationId,
       result,
+      animalId,
       breedingId,
     } = selections;
 
@@ -98,6 +99,10 @@ export class CheckPregnanciesService {
       Object.assign(prismaWhere, { breedingId });
     }
 
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
+    }
+
     const checkPregnancy = await this.client.checkPregnancy.findFirst({
       where: { ...prismaWhere, deletedAt: null },
     });
@@ -112,9 +117,9 @@ export class CheckPregnanciesService {
     const {
       method,
       result,
+      animalId,
       breedingId,
       animalTypeId,
-      animalFemaleId,
       organizationId,
       userCreatedId,
     } = options;
@@ -123,10 +128,10 @@ export class CheckPregnanciesService {
       data: {
         method,
         result,
+        animalId,
         breedingId,
         animalTypeId,
         date: new Date(),
-        animalFemaleId,
         organizationId,
         userCreatedId,
       },
@@ -141,13 +146,14 @@ export class CheckPregnanciesService {
     options: UpdateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
     const { checkPregnancyId } = selections;
-    const { method, result, breedingId, deletedAt } = options;
+    const { method, animalId, result, breedingId, deletedAt } = options;
 
     const checkPregnancy = this.client.checkPregnancy.update({
       where: { id: checkPregnancyId },
       data: {
         method,
         result,
+        animalId,
         breedingId,
         deletedAt,
       },

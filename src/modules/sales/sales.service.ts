@@ -35,8 +35,7 @@ export class SalesService {
         OR: [
           { email: { contains: search, mode: 'insensitive' } },
           { soldTo: { contains: search, mode: 'insensitive' } },
-          { animalCode: { contains: search, mode: 'insensitive' } },
-          { animalType: { name: { contains: search, mode: 'insensitive' } } },
+          { type: { name: { contains: search, mode: 'insensitive' } } },
         ],
       });
     }
@@ -75,14 +74,10 @@ export class SalesService {
   /** Find one sale in database. */
   async findOneBy(selections: GetOneSaleSelections) {
     const prismaWhere = {} as Prisma.SaleWhereInput;
-    const { saleId, animalId, organizationId } = selections;
+    const { saleId, organizationId } = selections;
 
     if (saleId) {
       Object.assign(prismaWhere, { id: saleId });
-    }
-
-    if (animalId) {
-      Object.assign(prismaWhere, { animalId });
     }
 
     if (organizationId) {
@@ -107,11 +102,10 @@ export class SalesService {
       email,
       soldTo,
       method,
+      animals,
       address,
-      animalId,
       quantity,
-      animalCode,
-      animalTypeId,
+      assigneTypeId,
       organizationId,
       userCreatedId,
     } = options;
@@ -126,11 +120,10 @@ export class SalesService {
         soldTo,
         method,
         address,
-        animalId,
+        animals,
         quantity,
-        animalCode,
+        assigneTypeId,
         date: new Date(),
-        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -153,9 +146,7 @@ export class SalesService {
       soldTo,
       method,
       address,
-      animalId,
       quantity,
-      animalCode,
       userCreatedId,
       deletedAt,
     } = options;
@@ -170,9 +161,7 @@ export class SalesService {
         soldTo,
         method,
         address,
-        animalId,
         quantity,
-        animalCode,
         userCreatedId,
         deletedAt,
       },
@@ -197,7 +186,7 @@ export class SalesService {
 
     worksheet.columns = [
       { header: 'Date', key: 'date', width: 12 },
-      { header: 'Animal Code', key: 'animalCode', width: 20 },
+      { header: 'Animal Codes', key: 'animals', width: 20 },
       { header: 'Animal Type', key: 'type', width: 12 },
       { header: 'Price', key: 'price', width: 12 },
       { header: 'Sold to', key: 'soldTo', width: 40 },
@@ -235,15 +224,15 @@ export class SalesService {
 
     for (const sale of sales) {
       worksheet.addRow({
+        type: sale.type,
         date: sale.date,
         email: sale.email,
         phone: sale.phone,
         price: sale.price,
         soldTo: sale.soldTo,
         method: sale.method,
+        animals: sale.animals,
         address: sale.address,
-        animalType: sale.type,
-        animalCode: sale.animalCode,
       });
     }
 

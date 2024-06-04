@@ -58,6 +58,20 @@ export class LocationsService {
   }
 
   /** Find one location in database. */
+  async findOneByCode(selections: GetOneLocationsSelections) {
+    const { code } = selections;
+
+    const location = await this.client.location.findFirst({
+      select: LocationsSelect,
+      where: {
+        code: code,
+      },
+    });
+
+    return location;
+  }
+
+  /** Find one location in database. */
   async findOneBy(selections: GetOneLocationsSelections) {
     const prismaWhere = {} as Prisma.LocationWhereInput;
 
@@ -127,14 +141,22 @@ export class LocationsService {
     options: UpdateLocationsOptions,
   ): Promise<Location> {
     const { locationId } = selections;
-    const { code, manger, through, squareMeter, productionPhase, deletedAt } =
-      options;
+    const {
+      code,
+      manger,
+      through,
+      squareMeter,
+      status,
+      productionPhase,
+      deletedAt,
+    } = options;
 
     const location = this.client.location.update({
       where: { id: locationId },
       data: {
         code,
         manger,
+        status,
         through,
         squareMeter,
         productionPhase,

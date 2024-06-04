@@ -21,10 +21,10 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { ContributorsService } from '../contributors/contributors.service';
 import { TasksService } from '../tasks/tasks.service';
 import { UserAuthGuard } from '../users/middleware';
-import { UsersService } from '../users/users.service';
 import {
   CreateOrUpdateAssignTasksDto,
   GetAssignTasksDto,
@@ -35,8 +35,8 @@ import { AssignTasksService } from './assigne-tasks.service';
 export class AssignTasksController {
   constructor(
     private readonly assignTasksService: AssignTasksService,
-    private readonly usersService: UsersService,
     private readonly tasksService: TasksService,
+    private readonly activitylogsService: ActivityLogsService,
     private readonly contributorsService: ContributorsService,
   ) {}
 
@@ -52,14 +52,18 @@ export class AssignTasksController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { taskId, userId } = queryAssigneTasks;
+    const { taskId } = queryAssigneTasks;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const assignTasks = await this.assignTasksService.findAll({
       taskId,
-      userId,
       search,
       pagination,
       organizationId: user?.organizationId,
@@ -112,6 +116,12 @@ export class AssignTasksController {
         })
       : 'Already Created';
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} assigned a task to ${findOneContributor?.user.profile.firstName}`,
+    });
+
     return reply({
       res,
       results: {
@@ -145,6 +155,12 @@ export class AssignTasksController {
       { assignTaskId: findOneassignTask?.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an assigned task`,
+    });
 
     return reply({ res, results: task });
   }

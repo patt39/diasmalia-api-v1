@@ -14,11 +14,6 @@ export class CreateOrUpdateIsolationsDto {
   @IsNotEmpty()
   @IsString()
   code: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class BulkIsolationsDto {

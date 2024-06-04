@@ -26,7 +26,6 @@ export const WeaningSelect = {
   createdAt: true,
   id: true,
   litter: true,
-  note: true,
   date: true,
   animalId: true,
   animal: {

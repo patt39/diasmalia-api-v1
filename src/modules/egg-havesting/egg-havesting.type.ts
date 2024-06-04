@@ -27,35 +27,19 @@ export type UpdateEggHavestingsOptions = Partial<EggHavesting>;
 export const EggHarvestingsSelect = {
   createdAt: true,
   id: true,
-  note: true,
   size: true,
   quantity: true,
-  date: true,
-  animalId: true,
-  animal: {
-    select: {
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      status: true,
-      quantity: true,
-      weight: true,
-      location: {
-        select: {
-          number: true,
-        },
-      },
-    },
-  },
   animalTypeId: true,
   animalType: {
     select: {
       icon: true,
       name: true,
+    },
+  },
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
     },
   },
   organizationId: true,

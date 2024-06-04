@@ -24,7 +24,6 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedingsService } from '../breedings/breedings.service';
 import { GestationsService } from '../gestation/gestations.service';
 import { UserAuthGuard } from '../users/middleware';
@@ -39,7 +38,6 @@ export class CheckPregnanciesController {
   constructor(
     private readonly animalsService: AnimalsService,
     private readonly breedingsService: BreedingsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly gestationsService: GestationsService,
     private readonly activitylogsService: ActivityLogsService,
     private readonly checkPregnanciesService: CheckPregnanciesService,
@@ -59,8 +57,13 @@ export class CheckPregnanciesController {
     const { search } = query;
     const { method, result, animalTypeId } = queryMethod;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const CheckPregnancies = await this.checkPregnanciesService.findAll({
       method,
@@ -83,8 +86,7 @@ export class CheckPregnanciesController {
     @Body() body: CreateOrUpdateCheckPregnanciesDto,
   ) {
     const { user } = req;
-    const { note, result, method, breedingId, farrowingDate, animalTypeId } =
-      body;
+    const { note, result, method, breedingId, farrowingDate } = body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
@@ -92,38 +94,25 @@ export class CheckPregnanciesController {
       organizationId: user.organizationId,
     });
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       breedingId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOnecheckPregnancy) {
-      const checkPregnancy = await this.checkPregnanciesService.createOne({
+      await this.checkPregnanciesService.createOne({
         method,
         result,
         breedingId: findOneBreeding.id,
-        animalFemaleId: findOneBreeding.animalFemaleId,
-        animalTypeId: findOneAssignType.animalTypeId,
+        animalId: findOneBreeding.femaleCode,
+        animalTypeId: findOneBreeding.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
       });
 
       await this.activitylogsService.createOne({
         userId: user.id,
-        date: new Date(),
-        actionId: checkPregnancy.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} checked a pregnancy in ${findOneAssignType.animalType.name}`,
         organizationId: user.organizationId,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} checked a pregnancy in ${findOneBreeding.animalTypeId}`,
       });
     } else {
       throw new HttpException(
@@ -139,14 +128,14 @@ export class CheckPregnanciesController {
 
     const findOneGestation = await this.gestationsService.findOneBy({
       animalId: findOneBreeding.animalFemaleId,
-      animalTypeId: findOneAssignType.animalTypeId,
+      animalTypeId: findOneBreeding.animalTypeId,
     });
     if (result === 'PREGNANT' && !findOneGestation) {
-      const gestation = await this.gestationsService.createOne({
+      await this.gestationsService.createOne({
         note,
         farrowingDate: farrowingDate,
         animalId: findOneBreeding.animalFemaleId,
-        animalTypeId: findOneAssignType.animalTypeId,
+        animalTypeId: findOneBreeding.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
       });
@@ -158,10 +147,7 @@ export class CheckPregnanciesController {
 
       await this.activitylogsService.createOne({
         userId: user.id,
-        date: new Date(),
-        actionId: gestation.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a gestation`,
-        organizationId: user.organizationId,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} created a gestation for ${findOneGestation.animalType.name}`,
       });
     }
 
@@ -178,17 +164,7 @@ export class CheckPregnanciesController {
     @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
     const { user } = req;
-    const { method, result, breedingId, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { method, result, breedingId } = body;
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
@@ -217,7 +193,7 @@ export class CheckPregnanciesController {
         method,
         result,
         breedingId: findOneBreeding.id,
-        animalFemaleId: findOneBreeding.animalFemaleId,
+        animalId: findOneBreeding.animalFemaleId,
         userCreatedId: user.id,
       },
     );
@@ -235,9 +211,8 @@ export class CheckPregnanciesController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a checkPregnancy`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a checkPregnancy in ${findOnecheckPregnancy.animalTypeId}`,
     });
 
     return reply({ res, results: checkPregnancy });
@@ -293,9 +268,8 @@ export class CheckPregnanciesController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a checkPregnancy`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a checkPregnancy`,
     });
 
     return reply({ res, results: 'CheckPregnancy deleted successfully' });
