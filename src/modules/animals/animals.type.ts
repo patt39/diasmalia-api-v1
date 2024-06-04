@@ -20,8 +20,8 @@ export type GetOneAnimalsSelections = {
   quantity?: Animal['quantity'];
   electronicCode?: Animal['electronicCode'];
   animalTypeId?: Animal['animalTypeId'];
-  isCastrated?: 'TRUE' | 'FALSE';
-  isIsolated?: 'TRUE' | 'FALSE';
+  isIsolated?: Boolean;
+  isCastrated?: Boolean;
   deletedAt?: Animal['deletedAt'];
   status?: Animal['status'];
   productionPhase?: Animal['productionPhase'];
@@ -89,4 +89,8 @@ export const AnimalSelect = {
       treatments: true,
     },
   },
+};
+
+export const AnimalMale = {
+  gender: 'MALE',
 };

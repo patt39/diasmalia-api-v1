@@ -1,15 +1,15 @@
 import { Type } from 'class-transformer';
 import {
-  IsNotEmpty,
-  IsInt,
-  Min,
-  IsString,
-  IsPositive,
   IsIn,
+  IsInt,
+  IsNotEmpty,
   IsOptional,
+  IsPositive,
+  IsString,
+  Min,
 } from 'class-validator';
 
-export type SortType = 'ASC' | 'DESC';
+export type SortType = 'asc' | 'desc';
 
 export type ProductStatus = 'ACTIVE' | 'PENDING';
 
@@ -29,9 +29,13 @@ export class RequestPaginationDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsIn(['ASC', 'DESC'])
+  @IsIn(['asc', 'desc'])
   @Type(() => String)
   sort: SortType;
+
+  @IsNotEmpty()
+  @IsString()
+  sortBy: string;
 
   @IsOptional()
   @IsString()

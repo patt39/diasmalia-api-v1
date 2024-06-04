@@ -31,6 +31,7 @@ export const IsolationsSelect = {
   animal: {
     select: {
       code: true,
+      isIsolated: true,
       animalTypeId: true,
       animalType: {
         select: {

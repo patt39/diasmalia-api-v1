@@ -56,8 +56,13 @@ export class TreatmentsController {
     const { search } = query;
     const { animalTypeId } = queryTreatment;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const treatments = await this.treatmentsService.findAll({
       search,
@@ -74,23 +79,11 @@ export class TreatmentsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkTreatmentsDto) {
     const { user } = req;
-    const { note, name, dose, animals, diagnosis, medication, animalTypeId } =
-      body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { note, name, dose, animals, diagnosis, medication } = body;
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         code: animal.code,
-        animalTypeId: findOneAssignType.animalTypeId,
         organizationId: user.organizationId,
       });
       if (!findOneAnimal)
@@ -99,24 +92,22 @@ export class TreatmentsController {
           HttpStatus.NOT_FOUND,
         );
 
-      const treatment = await this.treatmentsService.createOne({
+      await this.treatmentsService.createOne({
         note,
         name,
         dose,
         diagnosis,
         medication,
         animalId: findOneAnimal.id,
-        animalTypeId: findOneAssignType.animalTypeId,
+        animalTypeId: findOneAnimal.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
       });
 
       await this.activitylogsService.createOne({
         userId: user.id,
-        date: new Date(),
-        actionId: treatment.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a treatment`,
         organizationId: user.organizationId,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} treated ${animals.length} ${findOneAnimal.animalType.name}`,
       });
     }
 
@@ -133,8 +124,7 @@ export class TreatmentsController {
     @Param('treatmentId', ParseUUIDPipe) treatmentId: string,
   ) {
     const { user } = req;
-    const { note, name, dose, diagnosis, medication, animalId, animalTypeId } =
-      body;
+    const { note, name, dose, diagnosis, medication, animalTypeId } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -157,17 +147,6 @@ export class TreatmentsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
-      organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `Animal ${animalId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const treatment = await this.treatmentsService.updateOne(
       { treatmentId: findOneTreatement.id },
       {
@@ -176,7 +155,6 @@ export class TreatmentsController {
         dose,
         diagnosis,
         medication,
-        animalId: findOneAnimal.id,
         organizationId: user.organizationId,
         userCreatedId: user.id,
       },
@@ -184,10 +162,8 @@ export class TreatmentsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: treatment.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a treatment`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a treatment for animal ${findOneTreatement.animal.code}`,
     });
 
     return reply({ res, results: treatment });
@@ -238,9 +214,8 @@ export class TreatmentsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a treatment`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a treatment for animal ${findOneTreatement.animal.code}`,
     });
 
     await this.treatmentsService.updateOne(

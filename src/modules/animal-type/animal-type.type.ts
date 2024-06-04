@@ -1,8 +1,9 @@
-import { AnimalType } from '@prisma/client';
+import { AnimalType, AnimalTypeStatus } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type AnimalTypesSelections = {
   search?: string;
+  status?: AnimalTypeStatus;
   pagination?: PaginationType;
 };
 
@@ -24,4 +25,18 @@ export const AnimalTypesSelect = {
   id: true,
   name: true,
   icon: true,
+  status: true,
+  slug: true,
+  habitat: true,
+  type: true,
+  description: true,
+  _count: {
+    select: {
+      locations: true,
+      weanings: true,
+      gestations: true,
+      farrowings: true,
+      treatments: true,
+    },
+  },
 };

@@ -89,7 +89,6 @@ export class IsolationsService {
         note,
         animalId,
         animalTypeId,
-        date: new Date(),
         organizationId,
         userCreatedId,
       },

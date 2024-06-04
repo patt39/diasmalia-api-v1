@@ -13,6 +13,7 @@ export type GetCheckPregnanciesSelections = {
 export type GetOneCheckPregnanciesSelections = {
   checkPregnancyId?: CheckPregnancy['id'];
   result?: CheckPregnancy['result'];
+  animalId?: CheckPregnancy['animalId'];
   breedingId?: CheckPregnancy['breedingId'];
   animalTypeId?: CheckPregnancy['animalTypeId'];
   organizationId?: CheckPregnancy['organizationId'];
@@ -32,6 +33,34 @@ export const CheckPregnancySelect = {
   date: true,
   method: true,
   result: true,
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
+      animalTypeId: true,
+      animalType: {
+        select: {
+          icon: true,
+          name: true,
+        },
+      },
+      status: true,
+      gender: true,
+      weight: true,
+      electronicCode: true,
+      productionPhase: true,
+      location: {
+        select: {
+          code: true,
+        },
+      },
+      breed: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
   organizationId: true,
   organization: {
     select: {

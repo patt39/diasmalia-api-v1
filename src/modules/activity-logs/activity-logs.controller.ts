@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
@@ -9,6 +9,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { UserAuthGuard } from '../users/middleware';
 import { ActivityLogsService } from './activity-logs.service';
+import { GetActivityLogsByPeriodeQuery } from './activity-logs.type';
 
 @Controller('activity-logs')
 export class ActivityLogsController {
@@ -18,17 +19,28 @@ export class ActivityLogsController {
   @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
+    @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryPeriod: GetActivityLogsByPeriodeQuery,
   ) {
+    const { user } = req;
     const { search } = query;
+    const { periode } = queryPeriod;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const activityLog = await this.activitylogsService.findAll({
       search,
+      periode,
       pagination,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: activityLog });

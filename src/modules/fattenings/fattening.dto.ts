@@ -7,31 +7,27 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateDeathsDto {
-  @IsOptional()
-  @IsString()
-  note: string;
-
+export class CreateOrUpdateFatteningsDto {
   @IsNotEmpty()
   @IsString()
   code: string;
 
   @IsNotEmpty()
   @IsNumber()
-  number: number;
+  actualWeight: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  initialWeight: number;
 }
 
-export class BulkDeathsDto {
-  @IsOptional()
-  @IsString()
-  note: string;
-
+export class BulkFatteningsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
 }
 
-export class DeathQueryDto {
+export class GetCastrationsQueryDto {
   @IsOptional()
   @IsString()
   @IsUUID()

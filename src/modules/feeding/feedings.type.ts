@@ -25,6 +25,7 @@ export type UpdateFeedingsOptions = Partial<Feeding>;
 
 export const FeedingSelect = {
   createdAt: true,
+  updatedAt: true,
   id: true,
   quantity: true,
   date: true,
@@ -61,5 +62,4 @@ export const FeedingSelect = {
   },
   organizationId: true,
   userCreatedId: true,
-  note: true,
 };

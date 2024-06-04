@@ -10,7 +10,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -23,7 +22,10 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateAnimalTypesDto } from './animal-type.dto';
+import {
+  CreateOrUpdateAnimalTypesDto,
+  GetAnimalTypesByStatusQuery,
+} from './animal-type.dto';
 import { AnimalTypesService } from './animal-type.service';
 
 @Controller('animal-type')
@@ -36,13 +38,21 @@ export class AnimalTypesController {
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() animalTypeQuery: GetAnimalTypesByStatusQuery,
   ) {
     const { search } = query;
+    const { status } = animalTypeQuery;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const animalType = await this.animalTypesService.findAll({
+      status,
       search,
       pagination,
     });
@@ -54,7 +64,7 @@ export class AnimalTypesController {
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Body() body: CreateOrUpdateAnimalTypesDto) {
-    const { name, icon } = body;
+    const { name, slug, type, habitat, icon, description } = body;
 
     const findOneType = await this.animalTypesService.findOneBy({ name });
 
@@ -62,6 +72,10 @@ export class AnimalTypesController {
       ? await this.animalTypesService.createOne({
           name,
           icon,
+          slug,
+          type,
+          habitat,
+          description,
         })
       : 'AnimalType already Created';
 
@@ -76,7 +90,7 @@ export class AnimalTypesController {
     @Body() body: CreateOrUpdateAnimalTypesDto,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
-    const { name, icon } = body;
+    const { name, icon, slug, habitat, description, status } = body;
 
     const findOneType = await this.animalTypesService.findOneBy({
       animalTypeId,
@@ -92,6 +106,10 @@ export class AnimalTypesController {
       {
         name,
         icon,
+        slug,
+        status,
+        habitat,
+        description,
       },
     );
 
@@ -103,10 +121,8 @@ export class AnimalTypesController {
   @UseGuards(UserAuthGuard)
   async getOneByIdWeaning(
     @Res() res,
-    @Req() req,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
-    const { user } = req;
     const findOneType = await this.animalTypesService.findOneBy({
       animalTypeId,
     });
@@ -124,10 +140,8 @@ export class AnimalTypesController {
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
-    @Req() req,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
-    const { user } = req;
     const findOneType = await this.animalTypesService.findOneBy({
       animalTypeId,
     });

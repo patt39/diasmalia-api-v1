@@ -1,10 +1,21 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateOrUpdateAssignTypesDto {
   @IsNotEmpty()
-  @IsString()
   @IsUUID()
   animalTypeId: string;
+}
+
+export class BulkCreateAssignTypesDto {
+  @IsNotEmpty()
+  @IsArray()
+  animalTypeIds: any;
 }
 
 export class GetAssignTasksDto {

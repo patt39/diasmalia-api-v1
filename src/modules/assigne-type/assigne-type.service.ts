@@ -21,30 +21,30 @@ export class AssignTypesService {
   async findAll(
     selections: GetAssignTypesSelections,
   ): Promise<WithPaginationResponse | null> {
-    const prismaWhereAssignTask = {} as Prisma.AssignTypeWhereInput;
+    const prismaWhereAssignTypes = {} as Prisma.AssignTypeWhereInput;
     const { search, animalTypeId, userId, organizationId, pagination } =
       selections;
 
     if (search) {
-      Object.assign(prismaWhereAssignTask, {
+      Object.assign(prismaWhereAssignTypes, {
         OR: [{ contributor: { contains: search, mode: 'insensitive' } }],
       });
     }
 
     if (organizationId) {
-      Object.assign(prismaWhereAssignTask, { organizationId });
+      Object.assign(prismaWhereAssignTypes, { organizationId });
     }
 
     if (animalTypeId) {
-      Object.assign(prismaWhereAssignTask, { animalTypeId });
+      Object.assign(prismaWhereAssignTypes, { animalTypeId });
     }
 
     if (userId) {
-      Object.assign(prismaWhereAssignTask, { userId });
+      Object.assign(prismaWhereAssignTypes, { userId });
     }
 
     const assignType = await this.client.assignType.findMany({
-      where: { ...prismaWhereAssignTask, deletedAt: null },
+      where: { ...prismaWhereAssignTypes, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
       select: AllAssignedTypeSelect,
@@ -52,7 +52,7 @@ export class AssignTypesService {
     });
 
     const rowCount = await this.client.assignType.count({
-      where: { ...prismaWhereAssignTask, deletedAt: null },
+      where: { ...prismaWhereAssignTypes, deletedAt: null },
     });
 
     return withPagination({

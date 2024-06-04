@@ -57,7 +57,14 @@ export const UserSelect = {
       companyName: true,
       address: true,
       phone: true,
+      photo: true,
       description: true,
+      currencyId: true,
+      currency: {
+        select: {
+          symbol: true,
+        },
+      },
     },
   },
   organizationId: true,
@@ -67,11 +74,7 @@ export const UserSelect = {
       name: true,
       image: true,
       description: true,
-      currency: {
-        select: {
-          symbol: true,
-        },
-      },
+      assignTypes: true,
     },
   },
 };

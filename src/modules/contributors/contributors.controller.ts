@@ -70,8 +70,13 @@ export class ContributorsController {
     const { search } = query;
     const { role, userId, organizationId } = queryContributors;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const contributors = await this.contributorsService.findAll({
       role,
@@ -103,10 +108,19 @@ export class ContributorsController {
       companyName,
     } = body;
 
-    const findOneUser = await this.usersService.findOneBy({ email });
-    if (findOneUser)
+    const findOneContributor = await this.usersService.findOneBy({ email });
+    if (findOneContributor)
       throw new HttpException(
         `Email: ${email} already exists please invite instead`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneUser = await this.contributorsService.findOneBy({
+      userId: user.id,
+    });
+    if (findOneUser.role !== 'SUPERADMIN')
+      throw new HttpException(
+        `User can't add a contributor please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -142,10 +156,7 @@ export class ContributorsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: contributor.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a contributor`,
-      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} added a new contributor with ${contributor.role} access`,
     });
 
     return reply({ res, results: 'Contributor saved successfully' });
@@ -169,6 +180,15 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const checkUserRole = await this.contributorsService.findOneBy({
+      userId: user.id,
+    });
+    if (checkUserRole.role !== 'SUPERADMIN')
+      throw new HttpException(
+        `User can't invite a contributor please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneContributor = await this.contributorsService.findOneBy({
       organizationId: user.organizationId,
     });
@@ -178,7 +198,7 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const contributor = await this.contributorsService.createOne({
+    await this.contributorsService.createOne({
       role: 'ADMIN',
       userId: findOneUser.id,
       organizationId: user.organizationId,
@@ -194,10 +214,7 @@ export class ContributorsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: contributor.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} invited a contributor`,
-      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} invited ${findOneContributor.user.profile.firstName} ${findOneContributor.user.profile.lastName}`,
     });
 
     res.cookie(
@@ -396,6 +413,11 @@ export class ContributorsController {
       { role },
     );
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated ${fineOnecontributor.user.profile.firstName} ${fineOnecontributor.user.profile.lastName} role`,
+    });
+
     return reply({ res, results: contributor });
   }
 
@@ -482,9 +504,7 @@ export class ContributorsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a contributor`,
-      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted ${fineOnecontributor.user.profile.firstName}`,
     });
 
     return reply({ res, results: 'Contributor deleted successfully' });

@@ -14,8 +14,10 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { config } from '../../app/config/index';
 import { reply } from '../../app/utils/reply';
 
+import { generateNumber } from 'src/app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -53,8 +55,13 @@ export class LocationsController {
     const { search } = query;
     const { productionPhase, animalTypeId } = queryLocations;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const locations = await this.locationsService.findAll({
       search,
@@ -85,14 +92,13 @@ export class LocationsController {
       animalTypeId,
     } = body;
 
-    const findOneLocation = await this.locationsService.findOneBy({
+    const findOneLocation = await this.locationsService.findOneByCode({
       code,
-      productionPhase,
       organizationId: user.organizationId,
     });
     if (findOneLocation)
       throw new HttpException(
-        `Location ${code} already exists please change`,
+        `Location ${findOneLocation?.code} already exists please change`,
         HttpStatus.FOUND,
       );
 
@@ -106,23 +112,24 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+
     const location = await this.locationsService.createOne({
-      code,
       manger,
       through,
       squareMeter,
       productionPhase,
-      animalTypeId: findOneAssignType.animalTypeId,
+      code: code ? code : `${orgInitials}${generateNumber(4)}${appInitials}`,
+      animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      date: new Date(),
-      actionId: location.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a location in ${findOneAssignType.animalType.name}`,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a location in ${findOneAssignType?.animalType?.name}`,
     });
 
     return reply({
@@ -135,8 +142,36 @@ export class LocationsController {
     });
   }
 
+  /** Change location status */
+  @Put(`/:locationId/change-status`)
+  @UseGuards(UserAuthGuard)
+  async enableCurrency(
+    @Res() res,
+    @Req() req,
+    @Param('locationId', ParseUUIDPipe) locationId: string,
+  ) {
+    const { user } = req;
+
+    const findOneLocation = await this.locationsService.findOneBy({
+      locationId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneLocation)
+      throw new HttpException(
+        `CurrencyId: ${locationId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.locationsService.updateOne(
+      { locationId: findOneLocation.id },
+      { status: !findOneLocation.status },
+    );
+
+    return reply({ res, results: 'Status changed successfully' });
+  }
+
   /** Update one location */
-  @Put(`/:locationId`)
+  @Put(`/:locationId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
@@ -145,22 +180,12 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, code, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { squareMeter, manger, through, code } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       code,
       locationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneLocation)
       throw new HttpException(
@@ -169,21 +194,20 @@ export class LocationsController {
       );
 
     const location = await this.locationsService.updateOne(
-      { locationId: findOneLocation.id },
+      { locationId: findOneLocation?.id },
       {
         code,
         manger,
         through,
         squareMeter,
-        userCreatedId: user.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a location in ${findOneAssignType.animalType.name}`,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a location in ${findOneLocation.animalType.name}`,
     });
 
     return reply({
@@ -220,7 +244,7 @@ export class LocationsController {
   }
 
   /** Delete one Location */
-  @Delete(`/delete/:locationId`)
+  @Delete(`/:locationId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -240,15 +264,14 @@ export class LocationsController {
       );
 
     await this.locationsService.updateOne(
-      { locationId: findOneLocation.id },
+      { locationId: findOneLocation?.id },
       { deletedAt: new Date() },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
+      organizationId: user?.organizationId,
       message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a location in ${findOneLocation.animalType.name}`,
-      organizationId: user.organizationId,
     });
 
     return reply({ res, results: 'Location deleted successfully' });

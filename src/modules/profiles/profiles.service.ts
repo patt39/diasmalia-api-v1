@@ -5,6 +5,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { UserSelect } from '../users/users.type';
 import {
   CreateProfilesOptions,
   GetOneProfilesSelections,
@@ -69,6 +70,7 @@ export class ProfilesService {
 
     const profile = await this.client.profile.findFirst({
       where: { ...prismaWhereProfile, deletedAt: null },
+      select: UserSelect,
     });
 
     return profile;

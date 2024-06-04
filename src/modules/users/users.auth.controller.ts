@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpException,
   HttpStatus,
   Post,
@@ -24,7 +25,7 @@ import { OrganizationsService } from '../organizations/organizations.service';
 import { ProfilesService } from '../profiles/profiles.service';
 import { authCodeConfirmationMail } from './mails/auth-code-confirmation-mail';
 import { authPasswordResetMail } from './mails/auth-password-reset-mail';
-import { UserVerifyAuthStrategy } from './middleware';
+import { UserVerifyAuthStrategy, UserVeryryAuthGuard } from './middleware';
 import { CheckUserService, JwtToken } from './middleware/check-user.service';
 import { Cookies } from './middleware/cookie.guard';
 import {
@@ -67,7 +68,7 @@ export class UsersAuthController {
     await this.profilesService.createOne({
       firstName,
       lastName,
-      userId: user?.id,
+      userId: user.id,
     });
 
     const organization = await this.organizationsService.createOne({
@@ -77,7 +78,7 @@ export class UsersAuthController {
 
     await this.usersService.updateOne(
       { userId: user.id },
-      { organizationId: organization?.id },
+      { organizationId: organization.id },
     );
 
     await this.contributorsService.createOne({
@@ -110,8 +111,8 @@ export class UsersAuthController {
   @Get(`/resend-code`)
   @UseGuards(UserVerifyAuthStrategy)
   async resendCode(@Res() res, @Cookies() cookies) {
-    const token = cookies[config.cookie_access.user.nameLogin];
-    console.log(token);
+    const token = cookies[config.cookie_access.user.nameVerify];
+
     if (!token) {
       throw new HttpException(
         `Token not valid please change`,
@@ -149,12 +150,15 @@ export class UsersAuthController {
 
   /** Confirm email */
   @Post(`/confirm-email`)
-  @UseGuards(UserVerifyAuthStrategy)
+  @UseGuards(UserVeryryAuthGuard)
   async confirmEmail(
     @Res() res,
+    @Req() req,
+    @Headers('origin') origin: string,
     @Body() body: ConfirmEmailUserDto,
     @Cookies() cookies,
   ) {
+    const { user } = req;
     const { code } = body;
     const token = cookies[config.cookie_access.user.nameVerify];
     if (!token)
@@ -179,19 +183,29 @@ export class UsersAuthController {
       { userId: payload?.userId } as JwtToken,
       config.cookie_access.user.accessExpireLogin,
     );
-
     res.cookie(
       config.cookie_access.user.nameLogin,
       tokenUser,
       validation_login_cookie_setting,
     );
 
-    return reply({ res, results: 'Email confirmed' });
+    return reply({
+      res,
+      results: {
+        url: origin,
+        assignTypes: user?.organization?.assignTypes,
+        message: 'Email Confirmed Successfully',
+      },
+    });
   }
 
   /** Login user */
   @Post(`/login`)
-  async createOneLogin(@Res() res, @Body() body: CreateLoginUserDto) {
+  async createOneLogin(
+    @Res() res,
+    @Body() body: CreateLoginUserDto,
+    @Headers('origin') origin: string,
+  ) {
     const { email, password } = body;
 
     const findOneUser = await this.usersService.findOneBy({
@@ -227,8 +241,8 @@ export class UsersAuthController {
       );
 
       res.cookie(
-        tokenUser,
         config.cookie_access.user.nameLogin,
+        tokenUser,
         validation_login_cookie_setting,
       );
     }
@@ -237,6 +251,7 @@ export class UsersAuthController {
       res,
       results: {
         message: 'User logged in successfully',
+        url: origin,
         confirmedAt: findOneUser?.confirmedAt,
       },
     });
@@ -244,7 +259,11 @@ export class UsersAuthController {
 
   /** Reset password user */
   @Post(`/password/reset`)
-  async resetPassword(@Res() res, @Body() body: ResetPasswordUserDto) {
+  async resetPassword(
+    @Res() res,
+    @Body() body: ResetPasswordUserDto,
+    @Headers('origin') origin: string,
+  ) {
     const { email } = body;
 
     const findOneUser = await this.usersService.findOneBy({
@@ -262,7 +281,7 @@ export class UsersAuthController {
       config.cookie_access.user.accessExpireVerify,
     );
 
-    await authPasswordResetMail({ email, token });
+    await authPasswordResetMail({ email, token, urlOrigin: origin });
 
     return reply({ res, results: token });
   }

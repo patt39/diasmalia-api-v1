@@ -22,13 +22,17 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateFinancesDto, GetFinancesByType } from './finances.dto';
 import { FinancesService } from './finances.service';
 
 @Controller('finances')
 export class FinanceController {
-  constructor(private readonly financeService: FinancesService) {}
+  constructor(
+    private readonly financeService: FinancesService,
+    private readonly activitylogsService: ActivityLogsService,
+  ) {}
 
   /** Get all finances */
   @Get(`/`)
@@ -44,8 +48,13 @@ export class FinanceController {
     const { search } = query;
     const { type } = queryFinances;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const finances = await this.financeService.findAll({
       type,
@@ -65,15 +74,20 @@ export class FinanceController {
     @Body() body: CreateOrUpdateFinancesDto,
   ) {
     const { user } = req;
-    const { note, amount, type, detail } = body;
+    const { amount, type, detail } = body;
 
     const finance = await this.financeService.createOne({
       type,
-      note,
       detail,
       amount,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} added a transaction in your organization`,
     });
 
     return reply({ res, results: finance });
@@ -89,7 +103,7 @@ export class FinanceController {
     @Param('financeId', ParseUUIDPipe) financeId: string,
   ) {
     const { user } = req;
-    const { note, amount, type, detail } = body;
+    const { amount, type, detail } = body;
 
     const findOneFinance = await this.financeService.findOneBy({
       financeId,
@@ -104,7 +118,6 @@ export class FinanceController {
     const finance = await this.financeService.updateOne(
       { financeId: findOneFinance?.id },
       {
-        note,
         type,
         amount,
         detail,
@@ -112,26 +125,13 @@ export class FinanceController {
       },
     );
 
-    return reply({ res, results: finance });
-  }
-
-  /** Get one finance */
-  @Get(`/view/:slug`)
-  @UseGuards(UserAuthGuard)
-  async getOneByIdUser(@Res() res, @Req() req, @Param('slug') slug: string) {
-    const { user } = req;
-
-    const findOneFinance = await this.financeService.findOneBy({
-      slug,
+    await this.activitylogsService.createOne({
+      userId: user.id,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a transaction in your organization`,
     });
-    if (!findOneFinance)
-      throw new HttpException(
-        `Slug: ${slug} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
 
-    return reply({ res, results: findOneFinance });
+    return reply({ res, results: finance });
   }
 
   /** Delete one finance */
@@ -158,6 +158,12 @@ export class FinanceController {
       { financeId: findOneFinance?.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a transaction in your organization`,
+    });
 
     return reply({ res, results: finance });
   }

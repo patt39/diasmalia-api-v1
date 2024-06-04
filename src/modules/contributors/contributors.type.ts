@@ -31,8 +31,8 @@ export const ContributorSelect = {
   userId: true,
   user: {
     select: {
-      email: true,
       id: true,
+      email: true,
       profile: {
         select: {
           firstName: true,
@@ -41,7 +41,13 @@ export const ContributorSelect = {
           companyName: true,
           address: true,
           phone: true,
+          photo: true,
           description: true,
+          currency: {
+            select: {
+              symbol: true,
+            },
+          },
         },
       },
     },

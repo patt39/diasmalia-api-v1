@@ -21,7 +21,7 @@ export class CreateOrUpdateLocationsDto {
   @IsInt()
   through: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   code: string;
 

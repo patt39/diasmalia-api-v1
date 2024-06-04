@@ -55,14 +55,19 @@ export class FeedingsController {
     const { search } = query;
     const { animalTypeId } = queryFeeding;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const feedings = await this.feedingsService.findAll({
       search,
       pagination,
       animalTypeId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: feedings });
@@ -73,18 +78,7 @@ export class FeedingsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
     const { user } = req;
-    const { note, quantity, animals, feedType, productionPhase, animalTypeId } =
-      body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { quantity, animals, feedType } = body;
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
@@ -97,23 +91,20 @@ export class FeedingsController {
           HttpStatus.NOT_FOUND,
         );
 
-      const feeding = await this.feedingsService.createOne({
-        note,
+      await this.feedingsService.createOne({
         quantity,
         feedType,
-        productionPhase,
-        animalId: findOneAnimal.id,
-        animalTypeId: findOneAssignType.animalTypeId,
+        animalId: findOneAnimal?.id,
+        productionPhase: findOneAnimal?.productionPhase,
+        animalTypeId: findOneAnimal?.animalTypeId,
         organizationId: user.organizationId,
         userCreatedId: user.id,
       });
 
       await this.activitylogsService.createOne({
-        userId: user.id,
-        date: new Date(),
-        actionId: feeding.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a feeding in ${findOneAssignType.animalType.name}`,
-        organizationId: user.organizationId,
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} feeded ${animals.lenght} ${findOneAnimal.animalType.name} with ${feedType}`,
       });
     }
 
@@ -130,32 +121,11 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { quantity, feedType, code, note, productionPhase } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `Animal ${code} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { quantity, feedType } = body;
 
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
-      organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFeeding)
       throw new HttpException(
@@ -163,24 +133,19 @@ export class FeedingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const feeding = await this.feedingsService.updateOne(
-      { feedingId: findOneFeeding.id },
+    await this.feedingsService.updateOne(
+      { feedingId: findOneFeeding?.id },
       {
-        note,
         quantity,
         feedType,
-        productionPhase,
-        animalId: findOneAnimal.id,
-        userCreatedId: user.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: feeding.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a feeding`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a feeding in ${findOneFeeding.animalType.name} for ${findOneFeeding.animal.code}`,
     });
 
     return reply({ res, results: 'Feeding Created Successfully' });
@@ -221,7 +186,7 @@ export class FeedingsController {
   }
 
   /** Delete one feeding */
-  @Delete(`/delete/:feedingId`)
+  @Delete(`/:feedingId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -247,10 +212,8 @@ export class FeedingsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: feeding.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a feeding`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a feeding in ${findOneFeeding.animalType.name}`,
     });
 
     return reply({ res, results: feeding });

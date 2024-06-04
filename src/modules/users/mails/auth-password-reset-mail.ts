@@ -4,8 +4,9 @@ import { sendEmail } from '../../integrations/email.service';
 export const authPasswordResetMail = async (options: {
   email: string;
   token: string;
+  urlOrigin: string;
 }) => {
-  const { email, token } = { ...options };
+  const { email, token, urlOrigin } = { ...options };
   const output = `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml">
@@ -216,7 +217,7 @@ export const authPasswordResetMail = async (options: {
                             <td colspan="2">
                               <div style="text-align: center">
                               <a
-                                  href="${config.datasite.urlClient}/reset-password/${token}"                                style="
+                                  href="${urlOrigin}/reset-password/${token}"                                style="
                                   font-family: 'Google Sans', Roboto,
                                     RobotoDraft, Helvetica, Arial, sans-serif;
                                   line-height: 16px;
@@ -333,7 +334,7 @@ export const authPasswordResetMail = async (options: {
                                 >
                                   <a
                                   target="_blank"
-                                    href="${config.datasite.urlClient}/reset-password/${token}"
+                                    href="${urlOrigin}/reset-password/${token}"
                                     style="
                                       box-sizing: border-box;
                                       font-family: -apple-system,
@@ -345,7 +346,7 @@ export const authPasswordResetMail = async (options: {
                                       color: #3869d4;
                                     "
                                   >
-                                    ${config.datasite.urlClient}/reset-password/${token}
+                                    ${urlOrigin}/reset-password/${token}
                                   </a></span
                                 >
                               </p>
@@ -414,7 +415,7 @@ export const authPasswordResetMail = async (options: {
                         >
                           Use of our service and website is subject to our
                           <a
-                            href="${config.datasite.urlClient}/terms-condition"
+                            href="${urlOrigin}/terms-condition"
                             class="hover-underline"
                             style="
                               --text-opacity: 1;
@@ -426,7 +427,7 @@ export const authPasswordResetMail = async (options: {
                           >
                           and
                           <a
-                            href="${config.datasite.urlClient}/privacy-policy"
+                            href="${urlOrigin}/privacy-policy"
                             class="hover-underline"
                             style="
                               --text-opacity: 1;

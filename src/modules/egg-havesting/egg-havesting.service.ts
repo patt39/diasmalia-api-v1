@@ -7,6 +7,7 @@ import {
 } from '../../app/utils/pagination';
 import {
   CreateEggHavestingsOptions,
+  EggHarvestingsSelect,
   GetEggHavestingsSelections,
   GetOneEggHavestingSelections,
   UpdateEggHavestingsOptions,
@@ -50,7 +51,7 @@ export class EggHavestingsService {
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
       skip: pagination.skip,
-      //select: EggHarvestingsSelect,
+      select: EggHarvestingsSelect,
       orderBy: pagination.orderBy,
     });
 
@@ -83,7 +84,7 @@ export class EggHavestingsService {
 
     const eggHavesting = await this.client.eggHavesting.findFirst({
       where: { ...prismaWhere, deletedAt: null },
-      //select: EggHarvestingsSelect,
+      select: EggHarvestingsSelect,
     });
 
     return eggHavesting;
@@ -92,7 +93,6 @@ export class EggHavestingsService {
   /** Create one egg-havesting in database. */
   async createOne(options: CreateEggHavestingsOptions): Promise<EggHavesting> {
     const {
-      note,
       size,
       method,
       quantity,
@@ -104,7 +104,6 @@ export class EggHavestingsService {
 
     const egghavesting = this.client.eggHavesting.create({
       data: {
-        note,
         size,
         method,
         quantity,
@@ -125,12 +124,11 @@ export class EggHavestingsService {
     options: UpdateEggHavestingsOptions,
   ): Promise<EggHavesting> {
     const { eggHavestingId } = selections;
-    const { note, size, method, quantity, userCreatedId } = options;
+    const { size, method, quantity, userCreatedId } = options;
 
     const eggHavesting = this.client.eggHavesting.update({
       where: { id: eggHavestingId },
       data: {
-        note,
         size,
         method,
         quantity,

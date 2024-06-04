@@ -21,9 +21,11 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalTypesService } from '../animal-type/animal-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
+  BulkCreateAssignTypesDto,
   CreateOrUpdateAssignTypesDto,
   GetAssignTasksDto,
 } from './assigne-type.dto';
@@ -34,6 +36,7 @@ export class AssignTypesController {
   constructor(
     private readonly assignTypesService: AssignTypesService,
     private readonly animalTypesService: AnimalTypesService,
+    private readonly activitylogsService: ActivityLogsService,
   ) {}
 
   /** Get all assignTypes */
@@ -48,13 +51,17 @@ export class AssignTypesController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId, userId } = queryAssigneTasks;
+    const { animalTypeId } = queryAssigneTasks;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const assignTypes = await this.assignTypesService.findAll({
-      userId,
       search,
       pagination,
       animalTypeId,
@@ -97,6 +104,12 @@ export class AssignTypesController {
       });
     }
 
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} assigned a new animal type in your organization `,
+    });
+
     return reply({
       res,
       results: {
@@ -104,6 +117,38 @@ export class AssignTypesController {
         message: `Animal Type assigned successfully`,
       },
     });
+  }
+
+  /** Post one multiple select assigne type */
+  @Post(`/multiple/create`)
+  @UseGuards(UserAuthGuard)
+  async createOneBulk(
+    @Res() res,
+    @Req() req,
+    @Body() body: BulkCreateAssignTypesDto,
+  ) {
+    const { user } = req;
+    const { animalTypeIds } = body;
+
+    for (const animalTypeId of animalTypeIds) {
+      const findOneType = await this.animalTypesService.findOneBy({
+        animalTypeId,
+      });
+      if (!findOneType)
+        throw new HttpException(
+          `AnimalTypeId: ${animalTypeId} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      await this.assignTypesService.createOne({
+        userId: user.id,
+        animalTypeId: findOneType.id,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
+      });
+    }
+
+    return reply({ res, results: 'Saved' });
   }
 
   /** View animal type */
@@ -152,6 +197,12 @@ export class AssignTypesController {
       { assignTypeId: findOneAssignType.id },
       { deletedAt: new Date() },
     );
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an animal type in your organization `,
+    });
 
     return reply({ res, results: assignType });
   }

@@ -28,7 +28,7 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { DeathsService } from '../death/deaths.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import {
   awsS3ServiceAdapter,
   getFileFromAws,
@@ -53,7 +53,7 @@ export class SalesController {
   constructor(
     private readonly salesService: SalesService,
     private readonly animalsService: AnimalsService,
-    private readonly deathsService: DeathsService,
+    private readonly assignTypesService: AssignTypesService,
     private readonly usersService: UsersService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
@@ -72,15 +72,20 @@ export class SalesController {
     const { search } = query;
     const { method, type } = querySaleMethod;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const sales = await this.salesService.findAll({
       type,
       method,
       search,
       pagination,
-      organizationId: user?.organizationId,
+      organizationId: user.organizationId,
     });
 
     return reply({ res, results: sales });
@@ -118,62 +123,27 @@ export class SalesController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (status === 'SOLD') {
-      await this.salesService.updateOne(
-        { saleId },
-        {
-          note,
-          price,
-          phone,
-          method,
-          soldTo,
-          animalId: findOneAnimal.id,
-          userCreatedId: user?.id,
-        },
-      );
+    await this.salesService.updateOne(
+      { saleId: findOneSale.id },
+      {
+        note,
+        price,
+        phone,
+        method,
+        soldTo,
+        userCreatedId: user?.id,
+      },
+    );
 
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        { status: status },
-      );
-    }
-
-    if (status === 'ACTIVE') {
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal.id },
-        { status: status },
-      );
-
-      await this.salesService.updateOne(
-        { saleId: findOneSale.id },
-        { deletedAt: new Date() },
-      );
-    }
-
-    if (status === 'DEAD') {
-      await this.deathsService.createOne({
-        animalId: findOneAnimal.id,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
-      });
-
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal.id },
-        { status: status },
-      );
-
-      await this.salesService.updateOne(
-        { saleId: findOneSale.id },
-        { deletedAt: new Date() },
-      );
-    }
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      { status: status },
+    );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: findOneSale.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a sale`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a sale in ${findOneSale.type}`,
     });
 
     return reply({ res, results: 'Sale Updated Successfully' });
@@ -184,10 +154,35 @@ export class SalesController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkSalesDto) {
     const { user } = req;
-    const { note, phone, email, price, method, soldTo, animals, address } =
-      body;
+    const {
+      note,
+      phone,
+      email,
+      price,
+      method,
+      soldTo,
+      animals,
+      quantity,
+      address,
+      assignTypeId,
+    } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      assignTypeId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneUser = await this.usersService.findOneBy({ email });
+    const findUniqueUser = await this.usersService.findMe({
+      userId: user.id,
+    });
+    if (!findUniqueUser)
+      throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
 
     const newAnimalArrayPdf: any = [];
     const animalArrayPdfCodes: any = [];
@@ -199,23 +194,24 @@ export class SalesController {
       const findOneAnimal = await this.animalsService.findOneBy({
         code: animal.code,
       });
-      if (findOneAnimal.status === 'SOLD')
+      console.log('====>', findOneAnimal);
+      if (findOneAnimal?.status === 'SOLD')
         throw new HttpException(
           `Animal ${findOneAnimal?.code} doesn't exists or already SOLD please change`,
           HttpStatus.NOT_FOUND,
         );
 
-      const findOneAnimalSold = await this.salesService.findOneBy({
-        animalId: findOneAnimal.id,
-      });
-      if (findOneAnimalSold)
-        throw new HttpException(
-          `Animal ${findOneAnimal?.code} already SOLD please change`,
-          HttpStatus.NOT_FOUND,
-        );
+      // const findOneAnimalSold = await this.salesService.findOneBy({
+      //   saleId,
+      // });
+      // if (findOneAnimalSold)
+      //   throw new HttpException(
+      //     `Animal ${findOneAnimal?.code} already SOLD please change`,
+      //     HttpStatus.NOT_FOUND,
+      //   );
 
       newAnimalArrayPdf.push({
-        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/view/${findOneAnimal.id}`,
+        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/view/${findOneAnimal?.id}`,
         fit: 80,
         margin: [0, 0, 0, 20],
         display: 'flex',
@@ -231,37 +227,35 @@ export class SalesController {
       animalArrayPdfGenders.push(findOneAnimal?.gender);
       animalArrayPdfTypes.push(findOneAnimal?.animalType.name);
 
-      const sale = await this.salesService.createOne({
-        note,
-        email,
-        price,
-        phone,
-        method,
-        soldTo,
-        address,
-        animalId: findOneAnimal.id,
-        animalCode: findOneAnimal.code,
-        type: findOneAnimal.animalType.name,
-        animalTypeId: findOneAnimal.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
-      });
-
-      await this.activitylogsService.createOne({
-        userId: user.id,
-        date: new Date(),
-        actionId: sale.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a sale`,
-        organizationId: user.organizationId,
-      });
-
       if (findOneAnimal) {
         await this.animalsService.updateOne(
-          { animalId: sale.animalId },
+          { animalId: findOneAnimal.id },
           { status: 'SOLD' },
         );
       }
     }
+
+    const sale = await this.salesService.createOne({
+      note,
+      email,
+      price,
+      phone,
+      method,
+      soldTo,
+      address,
+      animals: animals,
+      quantity: animals.length,
+      assigneTypeId: findOneAssignType.id,
+      type: findOneAssignType.animalType.slug,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} sold ${animals.lenght} ${sale.type} to ${soldTo}`,
+    });
 
     const fonts = {
       Helvetica: {
@@ -316,12 +310,12 @@ export class SalesController {
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Address: ${user?.profile?.address} || 'RAS'`,
+          text: `Address: ${user?.profile?.address ? user?.profile?.address : 'N/A'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Email: ${user?.email} || 'ras',  Phone:  ${user?.profile?.phone} || 'RAS'`,
+          text: `Email: ${user?.email ? user?.email : 'N/A'},  Phone: ${user?.profile?.phone ? user?.profile?.phone : 'N/A'},`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
@@ -338,12 +332,12 @@ export class SalesController {
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Adresse: ${address || 'RAS'}`,
+          text: `Adresse: ${address ? address : 'N/A'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Email: ${email || 'RAS'},  Phone:  ${phone || 'RAS'}`,
+          text: `Email: ${email ? email : 'N/A'},  Phone: ${phone ? phone : 'N/A'}`,
           style: { fontSize: 14 },
           margin: [0, 0, 0, 10],
         },
@@ -387,7 +381,7 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         {
-          text: `Price:  ${price} ${user.profile?.currency?.symbol}`,
+          text: `Price:  ${price} ${findUniqueUser?.profile?.currency?.symbol}`,
           style: { fontSize: 12 },
           bold: true,
           margin: [0, 0, 0, 20],
@@ -399,7 +393,7 @@ export class SalesController {
         },
         '\n',
         {
-          text: `Sold in ${method}, at ${user?.profile?.city}, ${formatDDMMYYDate(new Date())}`,
+          text: `Sold in ${method}, at ${user?.profile?.city} on ${formatDDMMYYDate(new Date())}`,
           style: { fontSize: 10 },
           margin: [0, 0, 0, 20],
         },
@@ -459,266 +453,6 @@ export class SalesController {
     return reply({ res, results: 'Sale saved successfully' });
   }
 
-  /** Post Bulk Bird sale */
-  @Post(`/birds/create`)
-  @UseGuards(UserAuthGuard)
-  async createOneBird(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateSalesDto,
-  ) {
-    const { user } = req;
-    const { note, phone, email, price, method, soldTo, address, animalsQty } =
-      body;
-
-    const findOneUser = await this.usersService.findOneBy({ email });
-
-    const animalArrayPdfTypes: any = [];
-    const animalArrayPdfWeight: any = [];
-    const animalArrayPdfQuantity: any = [];
-
-    for (const animalQty of animalsQty) {
-      const findOneAnimal = await this.animalsService.findOneBy({
-        code: animalQty.code,
-        organizationId: user.organizationId,
-      });
-      if (!findOneAnimal)
-        throw new HttpException(`Animal doesn't exists`, HttpStatus.NOT_FOUND);
-
-      if (findOneAnimal.quantity < animalQty.quantity)
-        throw new HttpException(
-          `Unable to sell in ${findOneAnimal.code} because of insufficient animals`,
-          HttpStatus.NOT_FOUND,
-        );
-
-      animalArrayPdfTypes.push(findOneAnimal?.animalType?.name);
-      animalArrayPdfWeight.push(findOneAnimal?.weight);
-      animalArrayPdfQuantity.push(animalQty?.quantity);
-
-      const sale = await this.salesService.createOne({
-        note,
-        email,
-        price,
-        phone,
-        method,
-        soldTo,
-        address,
-        animalId: findOneAnimal.id,
-        quantity: animalQty.quantity,
-        animalCode: findOneAnimal.code,
-        type: findOneAnimal.animalType.name,
-        animalTypeId: findOneAnimal.animalTypeId,
-        organizationId: user?.organizationId,
-        userCreatedId: user?.id,
-      });
-
-      await this.activitylogsService.createOne({
-        userId: user.id,
-        date: new Date(),
-        actionId: sale.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a sale`,
-        organizationId: user.organizationId,
-      });
-
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal.id },
-        { quantity: findOneAnimal.quantity - animalQty.quantity },
-      );
-
-      if (findOneAnimal.quantity === 0) {
-        await this.animalsService.updateOne(
-          { animalId: sale.animalId },
-          { status: 'SOLD' },
-        );
-      }
-    }
-
-    const fonts = {
-      Helvetica: {
-        normal: 'Helvetica',
-        bold: 'Helvetica-Bold',
-        italics: 'Helvetica-Oblique',
-        bolditalics: 'Helvetica-BoldOblique',
-      },
-    };
-
-    const arr = animalArrayPdfQuantity;
-    let sum = 0;
-    for (let i = 0; i < arr.length; i++) {
-      sum += arr[i];
-    }
-
-    const printer = new PdfPrinter(fonts);
-    const docDefinition = {
-      watermark: {
-        text: `${user?.organization?.name}`,
-        color: 'blue',
-        opacity: 0.1,
-        bold: true,
-        italics: false,
-      },
-      footer: function (currentPage, pageCount) {
-        return {
-          text: 'Page ' + currentPage.toString() + ' of ' + pageCount,
-          alignment: 'right',
-          style: 'normalText',
-          margin: [10, 10, 10, 10],
-        };
-      },
-
-      content: [
-        {
-          text: `${user?.organization?.logo}`,
-          alignment: 'center',
-          style: { fontSize: 10 },
-          margin: [0, 10],
-        },
-        {
-          text: `Animals sale reciept`,
-          alignment: 'center',
-          bold: true,
-          style: { fontSize: 20 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Agreement between`,
-          alignment: 'center',
-          style: { fontSize: 12 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Seller: ${user?.organization?.name}`,
-          style: { fontSize: 14 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Address: ${user?.profile?.address}`,
-          style: { fontSize: 14 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Email: ${user?.email},  Phone:  ${user?.profile?.phone}`,
-          style: { fontSize: 14 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `- AND -`,
-          alignment: 'center',
-          bold: true,
-          style: { fontSize: 16 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Buyer: ${soldTo}`,
-          style: { fontSize: 14 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Adresse: ${address || 'RAS'}`,
-          style: { fontSize: 14 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          text: `Email: ${email || 'RAS'},  Phone:  ${phone || 'RAS'}`,
-          style: { fontSize: 14 },
-          margin: [0, 0, 0, 10],
-        },
-        '\n',
-        {
-          text: `Below are your animals details;`,
-          style: { fontSize: 12 },
-          margin: [0, 0, 0, 10],
-        },
-        {
-          table: {
-            body: [
-              ['Type', 'Weight(kg)', 'Number', 'Note'],
-              [
-                animalArrayPdfTypes,
-                animalArrayPdfWeight,
-                animalArrayPdfQuantity,
-                note,
-              ],
-            ],
-          },
-        },
-        '\n',
-        {
-          text: `Quantity: ${sum} animals`,
-          style: { fontSize: 12 },
-          bold: true,
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `Price:  ${price} ${user?.profile?.currency?.symbol}`,
-          style: { fontSize: 12 },
-          bold: true,
-          margin: [0, 0, 0, 20],
-        },
-        {
-          text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues thanks`,
-          style: { fontSize: 12 },
-          margin: [0, 0, 0, 20],
-        },
-        '\n',
-        {
-          text: `Sold in ${method} at ${user?.profile?.city}, ${formatDDMMYYDate(new Date())}`,
-          style: { fontSize: 10 },
-          margin: [0, 0, 0, 20],
-        },
-      ],
-      defaultStyle: {
-        font: 'Helvetica',
-      },
-    } as TDocumentDefinitions;
-
-    const nameFile = `${formatNowDateYYMMDD(new Date())}-${generateUUID()}`;
-    const fileName = `${nameFile}.pdf`;
-    const pdfDoc = printer.createPdfKitDocument(docDefinition);
-    pdfDoc.compress = true;
-    const chunks = [] as any;
-    await new Promise((resolve, reject) => {
-      const stream = new Writable({
-        write: (chunk, _, next) => {
-          chunks.push(chunk);
-          next();
-        },
-      });
-      stream.once('error', (err) => reject(err));
-      stream.once('close', () => resolve('ok'));
-
-      pdfDoc.pipe(stream);
-      pdfDoc.end();
-    });
-
-    await awsS3ServiceAdapter({
-      fileName: fileName,
-      mimeType: 'application/pdf',
-      folder: 'sales-pdf',
-      file: Buffer.concat(chunks),
-    });
-
-    if (findOneUser) {
-      await emailPDFAttachment({
-        user,
-        email: findOneUser?.email,
-        filename: fileName,
-        content: Buffer.concat(chunks),
-      });
-    }
-
-    if (!findOneUser) {
-      await emailPDFAttachment({
-        user,
-        email: email,
-        filename: fileName,
-        content: Buffer.concat(chunks),
-      });
-    }
-
-    return reply({ res, results: 'Sale saved successfully' });
-  }
-
   /** Get one Sale */
   @Get(`/view/:saleId`)
   @UseGuards(UserAuthGuard)
@@ -746,12 +480,18 @@ export class SalesController {
   @Get(`/export`)
   @UseGuards(UserAuthGuard)
   async getDownloadSales(@Res() res, @Req() req) {
+    const { user } = req;
     try {
       await this.salesService.downloadToExcel(res, req);
       res.setHeader(
         'Content-Disposition',
         'attachment; filename= ' + 'SalesExport.xlsx',
       );
+      await this.activitylogsService.createOne({
+        userId: user.id,
+        organizationId: user.organizationId,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} exported animals sale`,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).send('Error during download.');
@@ -779,7 +519,7 @@ export class SalesController {
   }
 
   /** Delete one Sale */
-  @Delete(`/delete/:saleId`)
+  @Delete(`/:saleId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -798,9 +538,8 @@ export class SalesController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a sale`,
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a sale ${findOneSale.type}`,
     });
 
     return reply({ res, results: sale });

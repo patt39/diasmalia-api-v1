@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { getIpRequest, getUserAgent } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -83,8 +82,13 @@ export class BreedingsController {
     const { animalId } = queryBreeding;
     const { user } = req;
     const { search } = query;
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
@@ -116,26 +120,15 @@ export class BreedingsController {
     @Body() body: CreateOrUpdateBreedingsDto,
   ) {
     const { user } = req;
-    const { note, method, codeMale, codeFemale, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { note, method, codeMale, codeFemale } = body;
 
     const findOneMale = await this.animalsService.findOneBy({
       code: codeMale,
       gender: 'MALE',
       status: 'ACTIVE',
-      isCastrated: 'FALSE',
-      isIsolated: 'FALSE',
+      isCastrated: false,
+      isIsolated: false,
       productionPhase: 'REPRODUCTION',
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneMale)
       throw new HttpException(
@@ -147,9 +140,8 @@ export class BreedingsController {
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      isIsolated: 'FALSE',
+      isIsolated: false,
       productionPhase: 'REPRODUCTION',
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -186,21 +178,19 @@ export class BreedingsController {
     const breeding = await this.breedingsService.createOne({
       note,
       method,
+      maleCode: findOneMale.code,
+      femaleCode: findOneFemale.code,
       animalMaleId: findOneMale.id,
       animalFemaleId: findOneFemale.id,
-      animalTypeId: findOneAssignType.animalTypeId,
+      animalTypeId: findOneMale.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: breeding.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} breeded ${findOneMale?.code} with ${findOneFemale?.code} in ${findOneAssignType.animalType.name}`,
-      ipAddress: getIpRequest(req),
-      userAgent: getUserAgent(req),
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} breeded ${findOneMale?.code} with ${findOneFemale?.code} in ${findOneMale.animalType.name}`,
     });
 
     return reply({
@@ -223,23 +213,12 @@ export class BreedingsController {
     @Param('breedingId', ParseUUIDPipe) breedingId: string,
   ) {
     const { user } = req;
-    const { note, method, codeMale, codeFemale, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { note, method } = body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
       checkStatus: false,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneBreeding)
       throw new HttpException(
@@ -247,81 +226,19 @@ export class BreedingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneMale = await this.animalsService.findOneBy({
-      code: codeMale,
-      gender: 'MALE',
-      status: 'ACTIVE',
-      isCastrated: 'FALSE',
-      isIsolated: 'FALSE',
-      productionPhase: 'REPRODUCTION',
-      organizationId: user.organizationId,
-    });
-    if (!findOneMale)
-      throw new HttpException(
-        `Animal ${codeMale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
-      gender: 'FEMALE',
-      status: 'ACTIVE',
-      isCastrated: 'FALSE',
-      isIsolated: 'FALSE',
-      productionPhase: 'REPRODUCTION',
-      organizationId: user.organizationId,
-    });
-    if (!findOneFemale)
-      throw new HttpException(
-        `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase  or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    /** This is to check that animals are of same type */
-    if (findOneMale.animalType.name !== findOneFemale.animalType.name)
-      throw new HttpException(
-        `Unable to perform breeding animals aren't of same type please change`,
-        HttpStatus.BAD_REQUEST,
-      );
-
-    /** This is to check for parenty in other to avoid inbreeding */
-    if (
-      findOneMale.code === findOneFemale.codeFather &&
-      findOneMale.codeMother === findOneFemale.code
-    ) {
-      throw new HttpException(
-        `Unable to perform breeding animals have same parents`,
-        HttpStatus.BAD_REQUEST,
-      );
-    } else if (
-      findOneMale.codeMother === findOneFemale.codeMother &&
-      findOneMale.codeFather === findOneFemale.codeFather
-    ) {
-      throw new HttpException(
-        `Unable to perform breeding animals are siblings`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
     const breeding = await this.breedingsService.updateOne(
       { breedingId: findOneBreeding.id },
       {
         note,
         method,
-        animalMaleId: findOneMale.id,
-        animalFemaleId: findOneFemale.id,
         userCreatedId: user.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: breeding.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated the breeding ${findOneMale?.code} with ${findOneFemale?.code} in ${findOneAssignType.animalType.name}`,
-      ipAddress: getIpRequest(req),
-      userAgent: getUserAgent(req),
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated the breeding between ${findOneBreeding?.maleCode} with ${findOneBreeding?.femaleCode} in ${findOneBreeding.animalTypeId}`,
     });
 
     return reply({
@@ -372,12 +289,11 @@ export class BreedingsController {
       breedingId,
       organizationId: user.organizationId,
     });
-    if (!findOneBreeding) {
+    if (!findOneBreeding)
       throw new HttpException(
         `Breeding ${breedingId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    }
 
     await this.breedingsService.updateOne(
       { breedingId: findOneBreeding.id },
@@ -386,12 +302,8 @@ export class BreedingsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      date: new Date(),
-      actionId: breedingId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a breeding`,
-      ipAddress: getIpRequest(req),
-      userAgent: getUserAgent(req),
       organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a breeding`,
     });
 
     return reply({ res, results: findOneBreeding });

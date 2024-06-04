@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { SortType } from './request-pagination.dto';
 
 export type WithPaginationResponse = {
@@ -14,13 +15,14 @@ export type PaginationType = {
   offset?: number;
   cursor?: string;
   orderBy?: any;
+  sortBy?: string;
   isPaginate?: string;
   sort: SortType;
 };
 
 export const addPagination = (options: PaginationType) => {
   const pagination: any = {};
-  const { page, take, sort, isPaginate } = options;
+  const { page, take, sort, isPaginate, sortBy } = options;
   const takePage = Number(page);
   const currentTake = Number(take);
   const takeSkip = (Number(page) - 1) * currentTake;
@@ -29,6 +31,9 @@ export const addPagination = (options: PaginationType) => {
     take: currentTake,
     skip: takeSkip < 0 ? takeSkip * -1 : takeSkip,
   };
+  if (sortBy) {
+    pagination.orderBy = { [sortBy as string]: sort as Prisma.SortOrder };
+  }
   pagination.page = pageTakeSkip?.page;
   pagination.limit = pageTakeSkip?.take;
   pagination.offset = takeSkip;
@@ -61,7 +66,7 @@ export const withPagination = async (options: WithPaginationResponse) => {
     prev_page: prev_page,
     last_page: n_pages ? n_pages : undefined,
     skip: pagination?.skip,
-    sort: pagination?.sort ?? 'DESC',
+    sort: pagination?.sort ?? 'desc',
     is_paginate: pagination?.isPaginate ?? 'false',
     total_page: n_pages,
     total_value: Array.isArray(value) ? value.length : 0,

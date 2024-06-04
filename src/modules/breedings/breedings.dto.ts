@@ -24,11 +24,6 @@ export class CreateOrUpdateBreedingsDto {
   @IsString()
   @IsEnum(MethodBreeding)
   method: MethodBreeding;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class GetAnimalBreedingsDto {
