@@ -6,8 +6,22 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateEggHavestingsDto {
+export class CreateIncubationsDto {
   @IsNotEmpty()
+  @IsNumber()
+  quantityStart: number;
+
+  @IsOptional()
+  @IsString()
+  dueDate: Date;
+
+  @IsNotEmpty()
+  @IsString()
+  code: string;
+}
+
+export class UpdateIncubationsDto {
+  @IsOptional()
   @IsNumber()
   quantityEnd: number;
 
@@ -15,23 +29,22 @@ export class CreateOrUpdateEggHavestingsDto {
   @IsNumber()
   quantityStart: number;
 
-  @IsOptional()
-  @IsString()
-  note: string;
-
   @IsNotEmpty()
   @IsString()
   dueDate: Date;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  eggHavestingId: string;
+  code: string;
 }
 
 export class IncubationQueryDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

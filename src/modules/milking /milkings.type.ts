@@ -26,52 +26,18 @@ export type UpdateMilkingsOptions = Partial<Milking>;
 export const MilkingSelect = {
   createdAt: true,
   id: true,
-  note: true,
-  date: true,
   method: true,
   quantity: true,
   animalId: true,
   animal: {
     select: {
-      productionPhase: true,
-      weight: true,
-      status: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      birthday: true,
-      gender: true,
       code: true,
-      locationId: true,
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breedId: true,
-      breed: {
-        select: {
-          name: true,
-        },
-      },
-      organizationId: true,
-      organization: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
-  userCreatedId: true,
 };

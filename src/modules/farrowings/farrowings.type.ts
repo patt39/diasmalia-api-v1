@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetFarrowingsSelections = {
   search?: string;
+  periode?: number;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -10,6 +11,7 @@ export type GetFarrowingsSelections = {
 
 export type GetOneFarrowingsSelections = {
   farrowingId?: Farrowing['id'];
+  animalId?: Farrowing['animalId'];
   animalTypeId?: Farrowing['animalTypeId'];
   organizationId?: Farrowing['organizationId'];
 };
@@ -27,42 +29,15 @@ export const FarrowingSelect = {
   id: true,
   litter: true,
   note: true,
-  date: true,
-  organizationId: true,
-  userCreatedId: true,
   animalId: true,
   animal: {
     select: {
-      id: true,
       code: true,
-      productionPhase: true,
-      weight: true,
-      electronicCode: true,
-      status: true,
-      gender: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },

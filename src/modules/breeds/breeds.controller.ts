@@ -22,13 +22,17 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { AnimalTypesService } from '../animal-type/animal-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateBreedsDto, GetBreedsTypeDto } from './breeds.dto';
 import { BreedsService } from './breeds.service';
 
 @Controller('breeds')
 export class BreedsController {
-  constructor(private readonly breedsService: BreedsService) {}
+  constructor(
+    private readonly breedsService: BreedsService,
+    private readonly animalTypesService: AnimalTypesService,
+  ) {}
 
   /** Get all breeds */
   @Get(`/`)
@@ -72,6 +76,15 @@ export class BreedsController {
     if (findOneBreed)
       throw new HttpException(
         `Breed ${name} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneType = await this.animalTypesService.findOneBy({
+      animalTypeId,
+    });
+    if (!findOneType)
+      throw new HttpException(
+        `AnimalTypeId: ${animalTypeId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 

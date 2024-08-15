@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Death, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,8 @@ export class DeathsService {
     selections: GetDeathsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.DeathWhereInput;
-    const { search, animalTypeId, organizationId, pagination } = selections;
+    const { search, periode, animalTypeId, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +41,15 @@ export class DeathsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const deaths = await this.client.death.findMany({
@@ -98,7 +112,6 @@ export class DeathsService {
         note,
         number,
         animalId,
-        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -114,15 +127,13 @@ export class DeathsService {
     options: UpdateDeathsOptions,
   ): Promise<Death> {
     const { deathId } = selections;
-    const { note, date, number, animalId, userCreatedId, deletedAt } = options;
+    const { note, number, userCreatedId, deletedAt } = options;
 
     const death = this.client.death.update({
       where: { id: deathId },
       data: {
-        date,
         note,
         number,
-        animalId,
         userCreatedId,
         deletedAt,
       },

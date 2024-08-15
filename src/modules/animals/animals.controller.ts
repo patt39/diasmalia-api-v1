@@ -100,7 +100,6 @@ export class AnimalsController {
       codeMother,
       codeFather,
       locationId,
-      animalTypeId,
       electronicCode,
       productionPhase,
     } = body;
@@ -116,20 +115,9 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
       organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
     });
     if (!findOneLocation)
       throw new HttpException(
@@ -137,17 +125,11 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation?.productionPhase !== productionPhase)
-      throw new HttpException(
-        `Animal can't be placed in this location code: ${findOneLocation?.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneLocation?.animalTypeId !== findOneAssignType?.animalTypeId)
-      throw new HttpException(
-        `Animal can't be created in this type`,
-        HttpStatus.NOT_FOUND,
-      );
+    // if (findOneLocation?.productionPhase !== productionPhase)
+    //   throw new HttpException(
+    //     `Animal can't be placed in this location code: ${findOneLocation?.code} please change`,
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
@@ -182,14 +164,14 @@ export class AnimalsController {
       breedId: findOneBreed.id,
       locationId: findOneLocation.id,
       code: code ? code : `${orgInitials}${generateNumber(4)}${appInitials}`,
-      animalTypeId: findOneAssignType.animalTypeId,
+      animalTypeId: findOneBreed.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created an animal with code ${animal?.code} in ${findOneLocation.animalType.name}`,
       organizationId: user.organizationId,
     });
 
@@ -224,7 +206,6 @@ export class AnimalsController {
       codeFather,
       codeMother,
       locationId,
-      animalTypeId,
       electronicCode,
     } = body;
 
@@ -251,22 +232,6 @@ export class AnimalsController {
     if (!findOneLocation)
       throw new HttpException(
         `LocationId: ${locationId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneLocation?.animalTypeId !== findOneAssignType?.animalTypeId)
-      throw new HttpException(
-        `Animal can't be created in this type`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -300,7 +265,7 @@ export class AnimalsController {
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an animal with code ${animal?.code} in ${findOneAssignType.animalType.name}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an animal with code ${animal?.code} in ${findOneAnimal.animalType.name}`,
     });
 
     return reply({

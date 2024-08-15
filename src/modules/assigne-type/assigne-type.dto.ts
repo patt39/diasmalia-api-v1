@@ -6,19 +6,13 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateAssignTypesDto {
-  @IsNotEmpty()
-  @IsUUID()
-  animalTypeId: string;
-}
-
 export class BulkCreateAssignTypesDto {
   @IsNotEmpty()
   @IsArray()
   animalTypeIds: any;
 }
 
-export class GetAssignTasksDto {
+export class GetAssignTypesDto {
   @IsOptional()
   @IsString()
   @IsUUID()

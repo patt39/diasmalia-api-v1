@@ -44,7 +44,7 @@ export const AllAssignedTypeSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
+      photo: true,
       name: true,
       slug: true,
       description: true,

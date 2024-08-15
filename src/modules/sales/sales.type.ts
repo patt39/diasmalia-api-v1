@@ -3,10 +3,13 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetSalesSelections = {
   search?: string;
+  periode?: number;
   organizationId: string;
   pagination?: PaginationType;
   method?: Sale['method'];
   type?: Sale['type'];
+  detail?: Sale['detail'];
+  animalTypeId?: string;
 };
 
 export type GetOneSaleSelections = {
@@ -25,33 +28,15 @@ export type UpdateSalesOptions = Partial<Sale>;
 export const SalesSelect = {
   createdAt: true,
   id: true,
-  date: true,
   price: true,
   soldTo: true,
   type: true,
   phone: true,
   note: true,
+  detail: true,
   email: true,
-  quantity: true,
+  number: true,
   method: true,
-  organizationId: true,
-  organization: {
-    select: {
-      name: true,
-      logo: true,
-    },
-  },
-  assigneTypeId: true,
-  assigneType: {
-    select: {
-      animalTypeId: true,
-      animalType: {
-        select: {
-          name: true,
-          slug: true,
-        },
-      },
-    },
-  },
-  userCreatedId: true,
+  address: true,
+  animalId: true,
 };

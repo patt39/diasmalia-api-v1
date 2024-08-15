@@ -84,7 +84,7 @@ export class ProfilesController {
       );
 
     await this.profilesService.updateOne(
-      { profileId: user.profile.id },
+      { profileId: user.profile?.id },
       {
         city,
         phone,

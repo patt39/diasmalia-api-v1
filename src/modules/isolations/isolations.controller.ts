@@ -24,12 +24,12 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkIsolationsDto,
-  CreateOrUpdateIsolationsDto,
+  CreateIsolationsDto,
   IsolationsQueryDto,
+  UpdateIsolationsDto,
 } from './isolations.dto';
 import { IsolationsService } from './isolations.service';
 
@@ -38,7 +38,6 @@ export class IsolationsController {
   constructor(
     private readonly isolationsService: IsolationsService,
     private readonly animalsService: AnimalsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -54,7 +53,7 @@ export class IsolationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryIsolations;
+    const { animalTypeId, periode } = queryIsolations;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -68,10 +67,60 @@ export class IsolationsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 
     return reply({ res, results: castrations });
+  }
+
+  /** Post one aves isolation */
+  @Post(`/create/aves`)
+  @UseGuards(UserAuthGuard)
+  async createOne(@Res() res, @Req() req, @Body() body: CreateIsolationsDto) {
+    const { user } = req;
+    const { code, number, note } = body;
+
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+      status: 'ACTIVE',
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneAnimal.quantity <= 0)
+      throw new HttpException(
+        `Unable to isolate, animals doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const isolation = await this.isolationsService.createOne({
+      note,
+      number,
+      animalId: findOneAnimal.id,
+      animalTypeId: findOneAnimal.animalTypeId,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} put ${number} ${findOneAnimal.animalType.name} in ${findOneAnimal?.code} in isolation`,
+      organizationId: user.organizationId,
+    });
+
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: isolation,
+        message: `Animal Created Successfully`,
+      },
+    });
   }
 
   /** Post one Bulk isolation */
@@ -84,7 +133,7 @@ export class IsolationsController {
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         status: 'ACTIVE',
-        code: animal.code,
+        code: animal,
       });
       if (!findOneAnimal)
         throw new HttpException(
@@ -121,11 +170,11 @@ export class IsolationsController {
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateIsolationsDto,
+    @Body() body: UpdateIsolationsDto,
     @Param('isolationId', ParseUUIDPipe) isolationId: string,
   ) {
     const { user } = req;
-    const { note } = body;
+    const { note, number } = body;
 
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
@@ -141,6 +190,7 @@ export class IsolationsController {
       { isolationId: findOneIsolation?.id },
       {
         note,
+        number,
         userCreatedId: user.id,
       },
     );
@@ -154,8 +204,8 @@ export class IsolationsController {
     return reply({ res, results: isolation });
   }
 
-  /** Get one incubation */
-  @Get(`/view/:isolationId`)
+  /** Get one isolation */
+  @Get(`/:isolationId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdWeaning(
     @Res() res,
@@ -178,7 +228,7 @@ export class IsolationsController {
   }
 
   /** Delete one isolation */
-  @Delete(`/delete/:isolationId`)
+  @Delete(`/:isolationId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -200,6 +250,11 @@ export class IsolationsController {
     await this.isolationsService.updateOne(
       { isolationId: findOneIsolation.id },
       { deletedAt: new Date() },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneIsolation.animal.id },
+      { isIsolated: false },
     );
 
     await this.activitylogsService.createOne({

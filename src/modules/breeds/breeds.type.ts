@@ -29,7 +29,7 @@ export const BreedsSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
+      photo: true,
       name: true,
     },
   },

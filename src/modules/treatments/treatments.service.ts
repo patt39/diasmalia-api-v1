@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Treatment } from '@prisma/client';
-import { Slug, generateNumber } from 'src/app/utils/commons';
+import {
+  Slug,
+  dateTimeNowUtc,
+  generateNumber,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -23,7 +28,8 @@ export class TreatmentsService {
     selections: GetTreatmentsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTreatment = {} as Prisma.TreatmentWhereInput;
-    const { search, animalTypeId, organizationId, pagination } = selections;
+    const { search, periode, animalTypeId, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhereTreatment, {
@@ -37,6 +43,15 @@ export class TreatmentsService {
 
     if (organizationId) {
       Object.assign(prismaWhereTreatment, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhereTreatment, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const treatments = await this.client.treatment.findMany({
@@ -103,7 +118,6 @@ export class TreatmentsService {
         note,
         name,
         dose,
-        date: new Date(),
         slug: `${Slug(name)}-${generateNumber(4)}`,
         method,
         animalId,
@@ -124,8 +138,16 @@ export class TreatmentsService {
     options: UpdateTreatmentsOptions,
   ): Promise<Treatment> {
     const { treatmentId } = selections;
-    const { note, name, dose, method, animalId, diagnosis, deletedAt } =
-      options;
+    const {
+      note,
+      name,
+      dose,
+      method,
+      diagnosis,
+      medication,
+      animalId,
+      deletedAt,
+    } = options;
 
     const treatment = this.client.treatment.update({
       where: { id: treatmentId },
@@ -136,6 +158,7 @@ export class TreatmentsService {
         method,
         animalId,
         diagnosis,
+        medication,
         deletedAt,
       },
     });

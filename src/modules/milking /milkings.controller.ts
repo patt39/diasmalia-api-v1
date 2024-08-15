@@ -83,7 +83,7 @@ export class MilkingsController {
     for (const animal of animals) {
       const findOneFemale = await this.animalsService.findOneBy({
         status: 'ACTIVE',
-        code: animal?.code,
+        code: animal,
         gender: 'FEMALE',
         isIsolated: false,
         productionPhase: 'LACTATION',
@@ -113,7 +113,7 @@ export class MilkingsController {
     return reply({ res, results: 'Saved' });
   }
 
-  /** Update one feeding */
+  /** Update one milking */
   @Put(`/:milkingId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
@@ -138,8 +138,8 @@ export class MilkingsController {
     await this.milkingsService.updateOne(
       { milkingId: findOneMilking?.id },
       {
-        quantity,
         method,
+        quantity,
         userCreatedId: user?.id,
       },
     );

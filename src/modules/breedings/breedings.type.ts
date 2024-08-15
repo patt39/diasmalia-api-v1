@@ -32,8 +32,8 @@ export type UpdateBreedingsOptions = Partial<Breeding>;
 export const BreedingSelect = {
   createdAt: true,
   id: true,
-  date: true,
   note: true,
+  result: true,
   maleCode: true,
   femaleCode: true,
   animalFemaleId: true,
@@ -43,7 +43,6 @@ export const BreedingSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },

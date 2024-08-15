@@ -1,4 +1,4 @@
-import { AnimalStatus, sellingMethod } from '@prisma/client';
+import { sellingDetail, sellingMethod } from '@prisma/client';
 import {
   IsArray,
   IsEnum,
@@ -8,7 +8,6 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateSalesDto {
@@ -18,7 +17,12 @@ export class CreateOrUpdateSalesDto {
 
   @IsOptional()
   @IsString()
-  animalCode: string;
+  @IsEnum(sellingDetail)
+  detail: sellingDetail;
+
+  @IsOptional()
+  @IsString()
+  code: string;
 
   @IsOptional()
   @IsString()
@@ -29,16 +33,16 @@ export class CreateOrUpdateSalesDto {
   phone: string;
 
   @IsOptional()
-  @IsNumber()
-  quantity: number;
-
-  @IsOptional()
   @IsString()
   email: string;
 
   @IsNotEmpty()
   @IsNumber()
   price: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  number: number;
 
   @IsOptional()
   @IsString()
@@ -48,28 +52,14 @@ export class CreateOrUpdateSalesDto {
   @IsString()
   @IsEnum(sellingMethod)
   method: sellingMethod;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(AnimalStatus)
-  status: AnimalStatus;
-
-  @IsNotEmpty()
-  @IsArray()
-  animalsQty: any;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class BulkSalesDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   note: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   soldTo: string;
 
@@ -86,27 +76,21 @@ export class BulkSalesDto {
   phone: string;
 
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber()
   price: number;
 
   @IsOptional()
   @IsInt()
-  quantity: number;
+  number: number;
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(sellingMethod)
   method: sellingMethod;
 
   @IsNotEmpty()
   @IsArray()
   animals: any;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  assignTypeId: string;
 }
 export class SalesDto {
   @IsOptional()
@@ -116,7 +100,17 @@ export class SalesDto {
 
   @IsOptional()
   @IsString()
-  type: string;
+  @IsEnum(sellingDetail)
+  detail: sellingDetail;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }
 
 export class GetOneUploadsDto {

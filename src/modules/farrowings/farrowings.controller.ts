@@ -24,11 +24,11 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
-  CreateOrUpdateFarrowingsDto,
+  CreateFarrowingsDto,
   FarrowingQueryDto,
+  UpdateFarrowingsDto,
 } from './farrowings.dto';
 import { FarrowingsService } from './farrowings.service';
 
@@ -37,7 +37,6 @@ export class FarrowingsController {
   constructor(
     private readonly farrowingsService: FarrowingsService,
     private readonly animalsService: AnimalsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -53,7 +52,7 @@ export class FarrowingsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryFarrowing;
+    const { animalTypeId, periode } = queryFarrowing;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -67,6 +66,7 @@ export class FarrowingsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 
@@ -76,11 +76,7 @@ export class FarrowingsController {
   /** Post one farrowing */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateFarrowingsDto,
-  ) {
+  async createOne(@Res() res, @Req() req, @Body() body: CreateFarrowingsDto) {
     const { user } = req;
     const { litter, note, codeFemale } = body;
 
@@ -135,11 +131,11 @@ export class FarrowingsController {
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateFarrowingsDto,
+    @Body() body: UpdateFarrowingsDto,
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note } = body;
+    const { litter } = body;
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
@@ -154,15 +150,9 @@ export class FarrowingsController {
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing.id },
       {
-        note,
         litter,
         userCreatedId: user.id,
       },
-    );
-
-    await this.animalsService.updateOne(
-      { animalId: findOneFarrowing.animal.id },
-      { productionPhase: 'LACTATION' },
     );
 
     await this.activitylogsService.createOne({
@@ -181,7 +171,7 @@ export class FarrowingsController {
   }
 
   /** Get one farrowing */
-  @Get(`/view/:farrowingId`)
+  @Get(`/:farrowingId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdFarrowing(
     @Res() res,
@@ -204,7 +194,7 @@ export class FarrowingsController {
   }
 
   /** Delete one farrowing */
-  @Delete(`/delete/:farrowingId`)
+  @Delete(`/:farrowingId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -226,6 +216,11 @@ export class FarrowingsController {
     await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing.id },
       { deletedAt: new Date() },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneFarrowing.animalId },
+      { productionPhase: 'GESTATION' },
     );
 
     await this.activitylogsService.createOne({

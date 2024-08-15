@@ -104,7 +104,6 @@ export class MilkingsService {
         quantity,
         animalId,
         animalTypeId,
-        date: new Date(),
         organizationId,
         userCreatedId,
       },
@@ -119,22 +118,13 @@ export class MilkingsService {
     options: UpdateMilkingsOptions,
   ): Promise<Milking> {
     const { milkingId } = selections;
-    const {
-      method,
-      quantity,
-      animalId,
-      userCreatedId,
-      animalTypeId,
-      deletedAt,
-    } = options;
+    const { method, quantity, userCreatedId, deletedAt } = options;
 
     const milking = this.client.milking.update({
       where: { id: milkingId },
       data: {
         method,
         quantity,
-        animalId,
-        animalTypeId,
         userCreatedId,
         deletedAt,
       },

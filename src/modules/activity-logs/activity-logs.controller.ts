@@ -38,8 +38,8 @@ export class ActivityLogsController {
 
     const activityLog = await this.activitylogsService.findAll({
       search,
-      periode,
       pagination,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 

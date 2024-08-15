@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Gestation, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,8 @@ export class GestationsService {
     selections: GetGestationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.GestationWhereInput;
-    const { search, animalTypeId, organizationId, pagination } = selections;
+    const { search, periode, animalTypeId, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +41,15 @@ export class GestationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const gestations = await this.client.gestation.findMany({
@@ -60,7 +74,8 @@ export class GestationsService {
   /** Find one Gestation in database. */
   async findOneBy(selections: GetOneGestationSelections) {
     const prismaWhere = {} as Prisma.GestationWhereInput;
-    const { gestationId, animalId, animalTypeId } = selections;
+    const { gestationId, animalId, animalTypeId, checkPregnancyId } =
+      selections;
 
     if (gestationId) {
       Object.assign(prismaWhere, { id: gestationId });
@@ -72,6 +87,10 @@ export class GestationsService {
 
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (checkPregnancyId) {
+      Object.assign(prismaWhere, { checkPregnancyId });
     }
 
     const gestation = await this.client.gestation.findFirst({
@@ -86,9 +105,12 @@ export class GestationsService {
   async createOne(options: CreateGestationsOptions): Promise<Gestation> {
     const {
       note,
+      method,
       animalId,
-      organizationId,
+      breedingId,
       farrowingDate,
+      organizationId,
+      checkPregnancyId,
       userCreatedId,
       animalTypeId,
     } = options;
@@ -96,11 +118,14 @@ export class GestationsService {
     const gestation = this.client.gestation.create({
       data: {
         note,
+        method,
         animalId,
+        breedingId,
         farrowingDate,
-        animalTypeId,
         organizationId,
+        checkPregnancyId,
         userCreatedId,
+        animalTypeId,
       },
     });
 
@@ -113,13 +138,13 @@ export class GestationsService {
     options: UpdateGestationsOptions,
   ): Promise<Gestation> {
     const { gestationId } = selections;
-    const { note, animalId, farrowingDate, userCreatedId, deletedAt } = options;
+    const { note, method, farrowingDate, userCreatedId, deletedAt } = options;
 
     const gestation = this.client.gestation.update({
       where: { id: gestationId },
       data: {
         note,
-        animalId,
+        method,
         farrowingDate,
         userCreatedId,
         deletedAt,

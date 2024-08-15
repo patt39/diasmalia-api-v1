@@ -1,15 +1,17 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { MethodCheckPregnancy } from '@prisma/client';
+import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class CreateOrUpdateGestationsDto {
+export class UpdateGestationsDto {
   @IsOptional()
   @IsString()
   note: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  codeFemale: string;
+  @IsEnum(MethodCheckPregnancy)
+  method: MethodCheckPregnancy;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   farrowingDate: Date;
 }
@@ -19,4 +21,8 @@ export class GestationsQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

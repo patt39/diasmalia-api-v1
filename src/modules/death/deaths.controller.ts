@@ -23,12 +23,12 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { SalesService } from '../sales/sales.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkDeathsDto,
-  CreateOrUpdateDeathsDto,
+  CreateDeathsDto,
   DeathQueryDto,
+  UpdateDeathsDto,
 } from './deaths.dto';
 import { DeathsService } from './deaths.service';
 
@@ -37,7 +37,6 @@ export class DeathsController {
   constructor(
     private readonly deathsService: DeathsService,
     private readonly animalsService: AnimalsService,
-    private readonly salesService: SalesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -53,7 +52,7 @@ export class DeathsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryDeath;
+    const { animalTypeId, periode } = queryDeath;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -67,29 +66,39 @@ export class DeathsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user?.organizationId,
     });
 
     return reply({ res, results: deaths });
   }
 
-  /** Post one birth death */
+  /** Post one aves death */
   @Post(`/create/aves`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateDeathsDto,
-  ) {
+  async createOne(@Res() res, @Req() req, @Body() body: CreateDeathsDto) {
     const { user } = req;
-    const { code, number } = body;
+    const { code, number, note } = body;
 
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
+      status: 'ACTIVE',
       organizationId: user.organizationId,
     });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneAnimal.quantity <= 0)
+      throw new HttpException(
+        `Animals doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const death = await this.deathsService.createOne({
+      note,
       number,
       animalId: findOneAnimal.id,
       animalTypeId: findOneAnimal.animalTypeId,
@@ -104,7 +113,7 @@ export class DeathsController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created an animal with code ${findOneAnimal?.code} in ${findOneAnimal.animalType.name}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} added a dead ${findOneAnimal.animalType.name} with code ${findOneAnimal?.code} `,
       organizationId: user.organizationId,
     });
 
@@ -113,7 +122,7 @@ export class DeathsController {
       results: {
         status: HttpStatus.CREATED,
         data: death,
-        message: `Animal Created Successfully`,
+        message: `Death Created Successfully`,
       },
     });
   }
@@ -127,13 +136,13 @@ export class DeathsController {
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
-        code: animal.code,
+        code: animal,
       });
-      if (findOneAnimal.status === 'DEAD')
-        throw new HttpException(
-          `Animal ${findOneAnimal.code} doesn't exists or already death, please change`,
-          HttpStatus.NOT_FOUND,
-        );
+      // if (findOneAnimal.status === 'DEAD')
+      //   throw new HttpException(
+      //     `Animal ${findOneAnimal.code} doesn't exists or already death, please change`,
+      //     HttpStatus.NOT_FOUND,
+      //   );
 
       const death = await this.deathsService.createOne({
         note,
@@ -159,7 +168,7 @@ export class DeathsController {
   }
 
   /** Get one Death */
-  @Get(`/view/:deathId`)
+  @Get(`/:deathId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdDeath(
     @Res() res,
@@ -184,10 +193,10 @@ export class DeathsController {
   /** Update one death */
   @Put(`/:deathId/edit`)
   @UseGuards(UserAuthGuard)
-  async updateOneBulk(
+  async updateOneDeath(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateDeathsDto,
+    @Body() body: UpdateDeathsDto,
     @Param('deathId', ParseUUIDPipe) deathId: string,
   ) {
     const { user } = req;
@@ -203,11 +212,24 @@ export class DeathsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await this.deathsService.createOne({
-      note,
-      number,
-      userCreatedId: user.id,
-    });
+    await this.deathsService.updateOne(
+      { deathId: findOneDeath?.id },
+      {
+        note,
+        number,
+        userCreatedId: user.id,
+      },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneDeath.animalId },
+      { quantity: findOneDeath.animal.quantity + findOneDeath.number },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneDeath.animalId },
+      { quantity: findOneDeath.animal.quantity - number },
+    );
 
     await this.activitylogsService.createOne({
       userId: user.id,
@@ -219,7 +241,7 @@ export class DeathsController {
   }
 
   /** Delete one Death */
-  @Delete(`/delete/:deathId`)
+  @Delete(`/:deathId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -241,6 +263,11 @@ export class DeathsController {
     const death = await this.deathsService.updateOne(
       { deathId: findOneDeadAnimal.id },
       { deletedAt: new Date() },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneDeadAnimal.animalId },
+      { status: 'ACTIVE' },
     );
 
     await this.activitylogsService.createOne({

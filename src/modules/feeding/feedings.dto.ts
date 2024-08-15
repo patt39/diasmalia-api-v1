@@ -7,21 +7,30 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
-export class CreateOrUpdateFeedingsDto {
+export class UpdateFeedingsDto {
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
+
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  note: string;
+  code: string;
 
+  @IsOptional()
+  @IsString()
+  @IsEnum(FeedType)
+  feedType: FeedType;
+}
+
+export class CreateFeedingsDto {
   @IsNotEmpty()
+  @IsNumber()
   quantity: number;
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   code: string;
 
   @IsNotEmpty()
@@ -31,11 +40,6 @@ export class CreateOrUpdateFeedingsDto {
 }
 
 export class BulkFeedingsDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  note: string;
-
   @IsNotEmpty()
   @IsArray()
   animals: any;
@@ -53,11 +57,10 @@ export class BulkFeedingsDto {
 export class GetFeedQueryDto {
   @IsOptional()
   @IsString()
-  @IsEnum(FeedType)
-  feedType: FeedType;
+  @IsUUID()
+  animalTypeId: string;
 
   @IsOptional()
   @IsString()
-  @IsUUID()
-  animalTypeId: string;
+  periode: string;
 }

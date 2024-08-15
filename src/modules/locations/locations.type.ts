@@ -37,11 +37,9 @@ export const LocationsSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
-  userCreatedId: true,
   productionPhase: true,
   organizationId: true,
   organization: {

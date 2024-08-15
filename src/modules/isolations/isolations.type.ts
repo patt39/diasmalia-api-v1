@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetIsolationsSelections = {
   search?: string;
+  periode?: number;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -25,44 +26,17 @@ export type UpdateIsolationsOptions = Partial<Isolation>;
 export const IsolationsSelect = {
   createdAt: true,
   id: true,
-  date: true,
   note: true,
-  animalId: true,
+  number: true,
   animal: {
     select: {
+      id: true,
       code: true,
-      isIsolated: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      status: true,
-      gender: true,
-      weight: true,
-      electronicCode: true,
-      productionPhase: true,
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
-  animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
-  userCreatedId: true,
-  organizationId: true,
 };

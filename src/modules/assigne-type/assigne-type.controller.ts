@@ -26,8 +26,7 @@ import { AnimalTypesService } from '../animal-type/animal-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkCreateAssignTypesDto,
-  CreateOrUpdateAssignTypesDto,
-  GetAssignTasksDto,
+  GetAssignTypesDto,
 } from './assigne-type.dto';
 import { AssignTypesService } from './assigne-type.service';
 
@@ -47,11 +46,11 @@ export class AssignTypesController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryAssigneTasks: GetAssignTasksDto,
+    @Query() queryAssigneTypes: GetAssignTypesDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryAssigneTasks;
+    const { animalTypeId } = queryAssigneTypes;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -69,54 +68,6 @@ export class AssignTypesController {
     });
 
     return reply({ res, results: assignTypes });
-  }
-
-  /** Post one assignedType */
-  @Post(`/`)
-  @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateAssignTypesDto,
-  ) {
-    const { user } = req;
-    const { animalTypeId } = body;
-
-    const findOneType = await this.animalTypesService.findOneBy({
-      animalTypeId,
-    });
-    if (!findOneType)
-      throw new HttpException(
-        `AnimalTypeId: ${animalTypeId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneAnimalType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAnimalType) {
-      await this.assignTypesService.createOne({
-        userId: user.id,
-        animalTypeId: findOneType.id,
-        organizationId: user.organizationId,
-        userCreatedId: user?.id,
-      });
-    }
-
-    await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} assigned a new animal type in your organization `,
-    });
-
-    return reply({
-      res,
-      results: {
-        status: HttpStatus.CREATED,
-        message: `Animal Type assigned successfully`,
-      },
-    });
   }
 
   /** Post one multiple select assigne type */
@@ -140,11 +91,27 @@ export class AssignTypesController {
           HttpStatus.NOT_FOUND,
         );
 
-      await this.assignTypesService.createOne({
+      const findOneAssignedType = await this.assignTypesService.findOneBy({
+        animalTypeId,
+      });
+      if (!findOneAssignedType) {
+        await this.assignTypesService.createOne({
+          userId: user?.id,
+          animalTypeId: findOneType?.id,
+          organizationId: user?.organizationId,
+          userCreatedId: user?.id,
+        });
+      } else {
+        throw new HttpException(
+          ` ${findOneAssignedType.animalType.name} already assigned please change`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      await this.activitylogsService.createOne({
         userId: user.id,
-        animalTypeId: findOneType.id,
         organizationId: user.organizationId,
-        userCreatedId: user.id,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} assigned animal type: ${findOneType?.name} in your organization `,
       });
     }
 
@@ -175,7 +142,7 @@ export class AssignTypesController {
   }
 
   /** Delete one assignType */
-  @Delete(`/delete/:assignTypeId`)
+  @Delete(`/:assignTypeId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,

@@ -48,17 +48,12 @@ export class CreateOrUpdateAnimalsDto {
   @IsString()
   electronicCode: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsUUID()
   locationId: string;
 
   @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
-
-  @IsOptional()
   @IsString()
   @IsUUID()
   breedId: string;

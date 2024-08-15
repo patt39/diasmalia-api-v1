@@ -7,22 +7,24 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateDeathsDto {
-  @IsOptional()
+export class UpdateDeathsDto {
+  @IsNotEmpty()
   @IsString()
   note: string;
 
-  @IsNotEmpty()
-  @IsString()
-  code: string;
-
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   number: number;
 }
 
+export class CreateDeathsDto extends UpdateDeathsDto {
+  @IsNotEmpty()
+  @IsString()
+  code: string;
+}
+
 export class BulkDeathsDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   note: string;
 
@@ -36,4 +38,8 @@ export class DeathQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

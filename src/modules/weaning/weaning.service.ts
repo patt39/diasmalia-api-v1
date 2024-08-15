@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Weaning } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,8 @@ export class WeaningsService {
     selections: GetWeaningsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.WeaningWhereInput;
-    const { search, animalTypeId, organizationId, pagination } = selections;
+    const { search, periode, animalTypeId, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +41,15 @@ export class WeaningsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const weanings = await this.client.weaning.findMany({
@@ -101,7 +115,6 @@ export class WeaningsService {
         animalId,
         farrowingId,
         animalTypeId,
-        date: new Date(),
         organizationId,
         userCreatedId,
       },
@@ -116,14 +129,13 @@ export class WeaningsService {
     options: UpdateWeaningsOptions,
   ): Promise<Weaning> {
     const { weaningId } = selections;
-    const { litter, animalId, userCreatedId } = options;
+    const { litter, deletedAt } = options;
 
     const weaning = this.client.weaning.update({
       where: { id: weaningId },
       data: {
         litter,
-        animalId,
-        userCreatedId,
+        deletedAt,
       },
     });
 

@@ -24,12 +24,12 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
-  CreateOrUpdateBreedingsDto,
+  CreateBreedingsDto,
   GetAnimalBreedingsDto,
   GetAnimalBreedingsQueryDto,
+  UpdateBreedingsDto,
 } from './breedings.dto';
 import { BreedingsService } from './breedings.service';
 
@@ -38,7 +38,6 @@ export class BreedingsController {
   constructor(
     private readonly breedingsService: BreedingsService,
     private readonly animalsService: AnimalsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -54,7 +53,7 @@ export class BreedingsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { method } = queryBreedings;
+    const { method, animalTypeId } = queryBreedings;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
@@ -63,6 +62,7 @@ export class BreedingsController {
       method,
       search,
       pagination,
+      animalTypeId,
       organizationId: user?.organizationId,
     });
 
@@ -114,11 +114,7 @@ export class BreedingsController {
   /** Post one breeding */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateBreedingsDto,
-  ) {
+  async createOne(@Res() res, @Req() req, @Body() body: CreateBreedingsDto) {
     const { user } = req;
     const { note, method, codeMale, codeFemale } = body;
 
@@ -179,8 +175,8 @@ export class BreedingsController {
       note,
       method,
       maleCode: findOneMale.code,
-      femaleCode: findOneFemale.code,
       animalMaleId: findOneMale.id,
+      femaleCode: findOneFemale.code,
       animalFemaleId: findOneFemale.id,
       animalTypeId: findOneMale.animalTypeId,
       organizationId: user.organizationId,
@@ -209,15 +205,14 @@ export class BreedingsController {
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateBreedingsDto,
+    @Body() body: UpdateBreedingsDto,
     @Param('breedingId', ParseUUIDPipe) breedingId: string,
   ) {
     const { user } = req;
-    const { note, method } = body;
+    const { note, method, codeMale, codeFemale } = body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
-      checkStatus: false,
       organizationId: user.organizationId,
     });
     if (!findOneBreeding)
@@ -226,19 +221,75 @@ export class BreedingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneMale = await this.animalsService.findOneBy({
+      code: codeMale,
+      gender: 'MALE',
+      status: 'ACTIVE',
+      isCastrated: false,
+      isIsolated: false,
+      productionPhase: 'REPRODUCTION',
+    });
+    if (!findOneMale)
+      throw new HttpException(
+        `Animal ${codeMale} doesn't exists, isn't in REPRODUCTION phase, isCastrated or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneFemale = await this.animalsService.findOneBy({
+      code: codeFemale,
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      isIsolated: false,
+      productionPhase: 'REPRODUCTION',
+    });
+    if (!findOneFemale)
+      throw new HttpException(
+        `Animal ${codeFemale} doesn't exists, isn't in REPRODUCTION phase, is Isolated or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    /** This is to check that animals are of same type */
+    if (findOneMale.animalType.name !== findOneFemale.animalType.name)
+      throw new HttpException(
+        `Unable to perform breeding animals aren't of same type please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    /** This is to check for parenty in other to avoid inbreeding */
+    if (
+      findOneMale.code === findOneFemale.codeFather &&
+      findOneMale.codeMother === findOneFemale.code
+    ) {
+      throw new HttpException(
+        `Unable to perform breeding animals have same parents`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (
+      findOneMale.codeMother === findOneFemale.codeMother &&
+      findOneMale.codeFather === findOneFemale.codeFather
+    ) {
+      throw new HttpException(
+        `Unable to perform breeding animals are siblings`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const breeding = await this.breedingsService.updateOne(
       { breedingId: findOneBreeding.id },
       {
         note,
         method,
-        userCreatedId: user.id,
+        maleCode: findOneMale.code,
+        animalMaleId: findOneMale.id,
+        femaleCode: findOneFemale.code,
+        animalFemaleId: findOneFemale.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated the breeding between ${findOneBreeding?.maleCode} with ${findOneBreeding?.femaleCode} in ${findOneBreeding.animalTypeId}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated the breeding between ${findOneBreeding?.maleCode} with ${findOneBreeding?.femaleCode} in ${findOneMale.animalType.name}`,
     });
 
     return reply({
@@ -252,7 +303,7 @@ export class BreedingsController {
   }
 
   /** Get one breeding */
-  @Get(`/view/:breedingId`)
+  @Get(`/:breedingId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdBreeding(
     @Res() res,
@@ -261,7 +312,7 @@ export class BreedingsController {
   ) {
     const { user } = req;
 
-    const findOnebreeding = await this.breedingsService.findOneBreedingBy({
+    const findOnebreeding = await this.breedingsService.findOneBy({
       breedingId,
       organizationId: user.organizationId,
     });
@@ -276,7 +327,7 @@ export class BreedingsController {
   }
 
   /** Delete one breeding */
-  @Delete(`/delete/:breedingId`)
+  @Delete(`/:breedingId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,

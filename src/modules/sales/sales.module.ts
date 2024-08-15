@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
-import { DeathsService } from '../death/deaths.service';
+import { FinancesService } from '../finances/finances.service';
 import { UsersService } from '../users/users.service';
 import { SalesController } from './sales.controller';
 import { SalesService } from './sales.service';
@@ -12,10 +12,10 @@ import { SalesService } from './sales.service';
   providers: [
     SalesService,
     AnimalsService,
-    DeathsService,
     UsersService,
     ActivityLogsService,
     AssignTypesService,
+    FinancesService,
   ],
 })
 export class SalesModule {}

@@ -5,23 +5,12 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateCheckPregnanciesDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  note: string;
-
-  @IsNotEmpty()
-  @IsString()
   farrowingDate: Date;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  breedingId: string;
 
   @IsNotEmpty()
   @IsString()
@@ -35,16 +24,6 @@ export class CreateOrUpdateCheckPregnanciesDto {
 }
 
 export class checkPregancyQueryDto {
-  @IsOptional()
-  @IsString()
-  @IsEnum(MethodCheckPregnancy)
-  method: MethodCheckPregnancy;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(ResultCheckPregnancy)
-  result: ResultCheckPregnancy;
-
   @IsOptional()
   @IsString()
   @IsUUID()

@@ -7,18 +7,10 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateFatteningsDto {
-  @IsNotEmpty()
-  @IsString()
-  code: string;
-
-  @IsNotEmpty()
+export class UpdateFatteningsDto {
+  @IsOptional()
   @IsNumber()
   actualWeight: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  initialWeight: number;
 }
 
 export class BulkFatteningsDto {
@@ -32,4 +24,8 @@ export class GetCastrationsQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

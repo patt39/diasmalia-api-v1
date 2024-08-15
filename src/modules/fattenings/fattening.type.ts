@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetFatteningsSelections = {
   search?: string;
+  periode?: number;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -32,38 +33,14 @@ export const fatteningsSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
   animalId: true,
   animal: {
     select: {
+      id: true,
       code: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      status: true,
-      gender: true,
-      weight: true,
-      electronicCode: true,
-      productionPhase: true,
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
-  userCreatedId: true,
-  organizationId: true,
 };

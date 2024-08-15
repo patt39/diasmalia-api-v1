@@ -5,6 +5,7 @@ export type GetDeathsSelections = {
   search?: string;
   organizationId?: string;
   animalTypeId?: string;
+  periode?: number;
   pagination?: PaginationType;
 };
 
@@ -31,34 +32,12 @@ export const DeathSelect = {
   animal: {
     select: {
       code: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      status: true,
-      gender: true,
-      weight: true,
-      electronicCode: true,
-      productionPhase: true,
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
+      quantity: true,
     },
   },
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },

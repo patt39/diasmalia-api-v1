@@ -8,8 +8,8 @@ export type GetAnimalsSelections = {
   animalIds?: string[];
   code?: Animal['code'];
   status?: Animal['status'];
-  animalTypeId?: Animal['animalTypeId'];
   gender?: Animal['gender'];
+  animalTypeId?: Animal['animalTypeId'];
   productionPhase?: Animal['productionPhase'];
 };
 
@@ -76,7 +76,9 @@ export const AnimalSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
+      id: true,
+      slug: true,
+      photo: true,
       name: true,
     },
   },

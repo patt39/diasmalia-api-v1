@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Farrowing, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,8 @@ export class FarrowingsService {
     selections: GetFarrowingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FarrowingWhereInput;
-    const { search, organizationId, animalTypeId, pagination } = selections;
+    const { search, periode, organizationId, animalTypeId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +41,15 @@ export class FarrowingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const farrowings = await this.client.farrowing.findMany({
@@ -60,10 +74,14 @@ export class FarrowingsService {
   /** Find one farrowing in database. */
   async findOneBy(selections: GetOneFarrowingsSelections) {
     const prismaWhere = {} as Prisma.FarrowingWhereInput;
-    const { farrowingId, animalTypeId } = selections;
+    const { farrowingId, animalTypeId, animalId } = selections;
 
     if (farrowingId) {
       Object.assign(prismaWhere, { id: farrowingId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
     }
 
     if (animalTypeId) {
@@ -94,7 +112,6 @@ export class FarrowingsService {
         note,
         litter,
         animalId,
-        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,

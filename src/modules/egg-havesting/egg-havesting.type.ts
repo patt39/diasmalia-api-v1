@@ -1,23 +1,22 @@
-import { EggHavesting, PickingMethod, Size } from '@prisma/client';
+import { EggHavesting } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetEggHavestingsSelections = {
   search?: string;
-  size?: Size;
-  method?: PickingMethod;
+  periode?: number;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneEggHavestingSelections = {
-  eggHavestingId?: EggHavesting['id'];
-  organizationId?: EggHavesting['id'];
+  eggHarvestingId?: EggHavesting['id'];
+  organizationId?: EggHavesting['organizationId'];
   animalTypeId?: EggHavesting['animalTypeId'];
 };
 
 export type UpdateEggHavestingsSelections = {
-  eggHavestingId: EggHavesting['id'];
+  eggHarvestingId: EggHavesting['id'];
 };
 
 export type CreateEggHavestingsOptions = Partial<EggHavesting>;
@@ -32,7 +31,6 @@ export const EggHarvestingsSelect = {
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
@@ -40,13 +38,6 @@ export const EggHarvestingsSelect = {
   animal: {
     select: {
       code: true,
-    },
-  },
-  organizationId: true,
-  organization: {
-    select: {
-      date: true,
-      name: true,
     },
   },
   userCreatedId: true,
