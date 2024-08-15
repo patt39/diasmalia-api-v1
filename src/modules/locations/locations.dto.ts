@@ -29,11 +29,6 @@ export class CreateOrUpdateLocationsDto {
   @IsString()
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 export class GetLocationsQueryDto {
   @IsOptional()

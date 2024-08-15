@@ -24,7 +24,6 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { FarrowingsService } from '../farrowings/farrowings.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateWeaningsDto, WeaningDto } from './weaning.dto';
@@ -36,7 +35,6 @@ export class WeaningsController {
     private readonly weaningsService: WeaningsService,
     private readonly animalsService: AnimalsService,
     private readonly farrowingsService: FarrowingsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -51,7 +49,7 @@ export class WeaningsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryWeaning;
+    const { animalTypeId, periode } = queryWeaning;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -65,6 +63,7 @@ export class WeaningsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 
@@ -80,10 +79,10 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, codeFemale, farrowingId } = body;
+    const { litter, code } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
+      code: code,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
@@ -91,17 +90,16 @@ export class WeaningsController {
     });
     if (!findOneFemale)
       throw new HttpException(
-        `Female animal ${codeFemale} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
+        `Female animal ${code} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
-      farrowingId,
-      organizationId: user.organizationId,
+      animalId: findOneFemale?.id,
     });
     if (!findOneFarrowing)
       throw new HttpException(
-        `FarrowingId: ${farrowingId} doesn't exists, please change`,
+        `Farrowing doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -114,9 +112,9 @@ export class WeaningsController {
     const weaning = await this.weaningsService.createOne({
       litter,
       animalId: findOneFemale.id,
-      farrowingId: findOneFarrowing.id,
+      farrowingId: findOneFarrowing?.id,
       animalTypeId: findOneFemale.animalTypeId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
       userCreatedId: user.id,
     });
 
@@ -174,7 +172,7 @@ export class WeaningsController {
   }
 
   /** Get one Weaning */
-  @Get(`/view/:weaningId`)
+  @Get(`/:weaningId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdWeaning(
     @Res() res,
@@ -197,7 +195,7 @@ export class WeaningsController {
   }
 
   /** Delete Weaning */
-  @Delete(`/delete/:weaningId`)
+  @Delete(`/:weaningId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -219,6 +217,11 @@ export class WeaningsController {
     await this.weaningsService.updateOne(
       { weaningId: findOneWeaning.id },
       { deletedAt: new Date() },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneWeaning.animalId },
+      { productionPhase: 'LACTATION' },
     );
 
     await this.activitylogsService.createOne({

@@ -9,11 +9,6 @@ import {
 } from 'class-validator';
 
 export class CreateOrUpdateFinancesDto {
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
-  note: string;
-
   @IsOptional()
   @IsString()
   @MaxLength(100)

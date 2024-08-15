@@ -27,8 +27,8 @@ import { AnimalsService } from '../animals/animals.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkFatteningsDto,
-  CreateOrUpdateFatteningsDto,
   GetCastrationsQueryDto,
+  UpdateFatteningsDto,
 } from './fattening.dto';
 import { FatteningsService } from './fattening.service';
 
@@ -52,7 +52,7 @@ export class FatteningsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryCastration;
+    const { animalTypeId, periode } = queryCastration;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -66,6 +66,7 @@ export class FatteningsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 
@@ -80,13 +81,14 @@ export class FatteningsController {
     const { animals } = body;
 
     for (const animal of animals) {
-      const findOneAnimal = await this.animalsService.findOneBy({
+      const findOneAnimal = await this.animalsService.findOneByCode({
+        code: animal,
         status: 'ACTIVE',
-        code: animal.code,
+        productionPhase: 'GROWTH',
       });
       if (!findOneAnimal)
         throw new HttpException(
-          `Animal ${animal.code} doesn't exists please change`,
+          `Animal ${animal.code} isn't ACTIVE or isn't in GROWTH phase please change`,
           HttpStatus.NOT_FOUND,
         );
 
@@ -95,17 +97,13 @@ export class FatteningsController {
       });
       if (!findOneFattening) {
         await this.fatteningsService.createOne({
-          initialWeight: findOneAnimal.weight,
           animalId: findOneAnimal.id,
+          initialWeight: findOneAnimal.weight,
+          actualWeight: findOneAnimal.weight,
           animalTypeId: findOneAnimal.animalTypeId,
           organizationId: user.organizationId,
           userCreatedId: user.id,
         });
-      } else {
-        throw new HttpException(
-          `Animals already in fattening`,
-          HttpStatus.NOT_FOUND,
-        );
       }
 
       await this.animalsService.updateOne(
@@ -129,7 +127,7 @@ export class FatteningsController {
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateFatteningsDto,
+    @Body() body: UpdateFatteningsDto,
     @Param('fatteningId', ParseUUIDPipe) fatteningId: string,
   ) {
     const { user } = req;
@@ -152,6 +150,11 @@ export class FatteningsController {
         updatedAt: new Date(),
         userCreatedId: user.id,
       },
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneFattening.animal.id },
+      { weight: actualWeight },
     );
 
     await this.activitylogsService.createOne({
@@ -188,12 +191,17 @@ export class FatteningsController {
       { deletedAt: new Date() },
     );
 
+    await this.animalsService.updateOne(
+      { animalId: findOneFattening?.animalId },
+      { productionPhase: 'GROWTH' },
+    );
+
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a castration`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a fattening in ${findOneFattening.animalType.name}`,
     });
 
-    return reply({ res, results: 'Castration deleted successfully' });
+    return reply({ res, results: 'Fattening deleted successfully' });
   }
 }

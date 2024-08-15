@@ -22,7 +22,7 @@ export class CheckPregnanciesService {
     selections: GetCheckPregnanciesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.CheckPregnancyWhereInput;
-    const { search, method, animalTypeId, result, organizationId, pagination } =
+    const { search, animalTypeId, result, organizationId, pagination } =
       selections;
 
     if (search) {
@@ -37,10 +37,6 @@ export class CheckPregnanciesService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
-    }
-
-    if (method) {
-      Object.assign(prismaWhere, { method });
     }
 
     if (result) {
@@ -70,14 +66,8 @@ export class CheckPregnanciesService {
   async findOneBy(selections: GetOneCheckPregnanciesSelections) {
     const prismaWhere = {} as Prisma.CheckPregnancyWhereInput;
 
-    const {
-      checkPregnancyId,
-      animalTypeId,
-      organizationId,
-      result,
-      animalId,
-      breedingId,
-    } = selections;
+    const { checkPregnancyId, animalTypeId, organizationId, result, animalId } =
+      selections;
 
     if (checkPregnancyId) {
       Object.assign(prismaWhere, { id: checkPregnancyId });
@@ -95,10 +85,6 @@ export class CheckPregnanciesService {
       Object.assign(prismaWhere, { animalTypeId });
     }
 
-    if (breedingId) {
-      Object.assign(prismaWhere, { breedingId });
-    }
-
     if (animalId) {
       Object.assign(prismaWhere, { animalId });
     }
@@ -114,24 +100,14 @@ export class CheckPregnanciesService {
   async createOne(
     options: CreateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
-    const {
-      method,
-      result,
-      animalId,
-      breedingId,
-      animalTypeId,
-      organizationId,
-      userCreatedId,
-    } = options;
+    const { result, animalId, animalTypeId, organizationId, userCreatedId } =
+      options;
 
     const checkPregnancy = this.client.checkPregnancy.create({
       data: {
-        method,
         result,
         animalId,
-        breedingId,
         animalTypeId,
-        date: new Date(),
         organizationId,
         userCreatedId,
       },
@@ -146,15 +122,12 @@ export class CheckPregnanciesService {
     options: UpdateCheckPregnanciesOptions,
   ): Promise<CheckPregnancy> {
     const { checkPregnancyId } = selections;
-    const { method, animalId, result, breedingId, deletedAt } = options;
+    const { result, deletedAt } = options;
 
     const checkPregnancy = this.client.checkPregnancy.update({
       where: { id: checkPregnancyId },
       data: {
-        method,
         result,
-        animalId,
-        breedingId,
         deletedAt,
       },
     });

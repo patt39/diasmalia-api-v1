@@ -1,4 +1,4 @@
-import { PickingMethod, Size } from '@prisma/client';
+import { Size } from '@prisma/client';
 import {
   IsEnum,
   IsNotEmpty,
@@ -8,26 +8,32 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateEggHavestingsDto {
+export class CreateEggHavestingsDto {
   @IsNotEmpty()
   @IsNumber()
   quantity: number;
-
-  @IsOptional()
-  @IsString()
-  note: string;
 
   @IsNotEmpty()
   @IsString()
   @IsEnum(Size)
   size: Size;
 
+  @IsNotEmpty()
+  @IsString()
+  code: string;
+}
+
+export class UpdateEggHavestingsDto {
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
+
   @IsOptional()
   @IsString()
-  @IsEnum(PickingMethod)
-  method: PickingMethod;
+  @IsEnum(Size)
+  size: Size;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   code: string;
 }
@@ -35,13 +41,7 @@ export class CreateOrUpdateEggHavestingsDto {
 export class EggHavestingQueryDto {
   @IsOptional()
   @IsString()
-  @IsEnum(Size)
-  size: Size;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(PickingMethod)
-  method: PickingMethod;
+  periode: string;
 
   @IsOptional()
   @IsString()

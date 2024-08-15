@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Post,
   Put,
   Query,
   Res,
@@ -60,28 +59,6 @@ export class AnimalTypesController {
     return reply({ res, results: animalType });
   }
 
-  /** Post one animalType */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(@Res() res, @Body() body: CreateOrUpdateAnimalTypesDto) {
-    const { name, slug, type, habitat, icon, description } = body;
-
-    const findOneType = await this.animalTypesService.findOneBy({ name });
-
-    const animalType = !findOneType
-      ? await this.animalTypesService.createOne({
-          name,
-          icon,
-          slug,
-          type,
-          habitat,
-          description,
-        })
-      : 'AnimalType already Created';
-
-    return reply({ res, results: animalType });
-  }
-
   /** Update one animalType */
   @Put(`/:animalTypeId/edit`)
   @UseGuards(UserAuthGuard)
@@ -90,7 +67,7 @@ export class AnimalTypesController {
     @Body() body: CreateOrUpdateAnimalTypesDto,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
-    const { name, icon, slug, habitat, description, status } = body;
+    const { name, photo, slug, habitat, description, status } = body;
 
     const findOneType = await this.animalTypesService.findOneBy({
       animalTypeId,
@@ -105,7 +82,7 @@ export class AnimalTypesController {
       { animalTypeId: findOneType?.id },
       {
         name,
-        icon,
+        photo,
         slug,
         status,
         habitat,

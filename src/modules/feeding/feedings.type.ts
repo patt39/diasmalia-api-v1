@@ -1,11 +1,11 @@
-import { FeedType, Feeding } from '@prisma/client';
+import { Feeding } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetFeedingsSelections = {
   search?: string;
   organizationId?: string;
-  feedType?: FeedType;
   animalTypeId?: string;
+  periode?: number;
   pagination?: PaginationType;
 };
 
@@ -28,38 +28,17 @@ export const FeedingSelect = {
   updatedAt: true,
   id: true,
   quantity: true,
-  date: true,
   feedType: true,
-  productionPhase: true,
-  animalId: true,
   animal: {
     select: {
       code: true,
-      weight: true,
       productionPhase: true,
-      gender: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      locationId: true,
-      location: {
-        select: {
-          code: true,
-        },
-      },
     },
   },
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
-  organizationId: true,
-  userCreatedId: true,
 };

@@ -38,9 +38,7 @@ export class AnimalsService {
       Object.assign(prismaWhere, {
         OR: [
           { code: { contains: search, mode: 'insensitive' } },
-          { codeFather: { contains: search, mode: 'insensitive' } },
           { electronicCode: { contains: search, mode: 'insensitive' } },
-          { codeMother: { contains: search, mode: 'insensitive' } },
         ],
       });
     }

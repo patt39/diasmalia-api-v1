@@ -8,7 +8,7 @@ export class CreateOrUpdateAnimalTypesDto {
 
   @IsNotEmpty()
   @IsString()
-  icon: string;
+  photo: string;
 
   @IsNotEmpty()
   @IsString()

@@ -25,12 +25,8 @@ export type UpdateFinancesOptions = Partial<Finance>;
 export const FinancesSelect = {
   createdAt: true,
   id: true,
-  date: true,
   slug: true,
-  note: true,
   amount: true,
   type: true,
   detail: true,
-  userCreatedId: true,
-  organizationId: true,
 };

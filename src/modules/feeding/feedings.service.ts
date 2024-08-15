@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Feeding, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,7 @@ export class FeedingsService {
     selections: GetFeedingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FeedingWhereInput;
-    const { search, feedType, organizationId, animalTypeId, pagination } =
+    const { search, periode, organizationId, animalTypeId, pagination } =
       selections;
 
     if (search) {
@@ -39,8 +43,13 @@ export class FeedingsService {
       Object.assign(prismaWhere, { animalTypeId });
     }
 
-    if (feedType) {
-      Object.assign(prismaWhere, { feedType });
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const feeding = await this.client.feeding.findMany({
@@ -103,10 +112,9 @@ export class FeedingsService {
       data: {
         quantity,
         feedType,
-        productionPhase,
         animalId,
-        date: new Date(),
         animalTypeId,
+        productionPhase,
         organizationId,
         userCreatedId,
       },
@@ -121,14 +129,7 @@ export class FeedingsService {
     options: UpdateFeedingsOptions,
   ): Promise<Feeding> {
     const { feedingId } = selections;
-    const {
-      quantity,
-      feedType,
-      animalId,
-      productionPhase,
-      userCreatedId,
-      deletedAt,
-    } = options;
+    const { quantity, feedType, animalId, userCreatedId, deletedAt } = options;
 
     const feeding = this.client.feeding.update({
       where: { id: feedingId },
@@ -136,7 +137,6 @@ export class FeedingsService {
         quantity,
         feedType,
         animalId,
-        productionPhase,
         userCreatedId,
         deletedAt,
       },

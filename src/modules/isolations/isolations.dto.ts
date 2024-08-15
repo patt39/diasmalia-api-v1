@@ -1,34 +1,36 @@
 import {
   IsArray,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateIsolationsDto {
+export class UpdateIsolationsDto {
   @IsNotEmpty()
   @IsString()
   note: string;
 
+  @IsNotEmpty()
+  @IsNumber()
+  number: number;
+}
+
+export class CreateIsolationsDto extends UpdateIsolationsDto {
   @IsNotEmpty()
   @IsString()
   code: string;
 }
 
 export class BulkIsolationsDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   note: string;
 
   @IsNotEmpty()
   @IsArray()
   animals: any;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class IsolationsQueryDto {
@@ -36,4 +38,8 @@ export class IsolationsQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

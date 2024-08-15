@@ -75,32 +75,16 @@ export class LocationsController {
   }
 
   /** Post one location */
-  @Post(`/create`)
+  @Post(`/:animalTypeId/create`)
   @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateLocationsDto,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
     const { user } = req;
-    const {
-      code,
-      manger,
-      through,
-      squareMeter,
-      productionPhase,
-      animalTypeId,
-    } = body;
-
-    const findOneLocation = await this.locationsService.findOneByCode({
-      code,
-      organizationId: user.organizationId,
-    });
-    if (findOneLocation)
-      throw new HttpException(
-        `Location ${findOneLocation?.code} already exists please change`,
-        HttpStatus.FOUND,
-      );
+    const { code, manger, through, squareMeter, productionPhase } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -180,16 +164,15 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, code } = body;
+    const { squareMeter, manger, through, code, productionPhase } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
-      code,
       locationId,
       organizationId: user?.organizationId,
     });
     if (!findOneLocation)
       throw new HttpException(
-        `Location ${code} doesn't exists please change`,
+        `Location doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -200,7 +183,7 @@ export class LocationsController {
         manger,
         through,
         squareMeter,
-        userCreatedId: user?.id,
+        productionPhase,
       },
     );
 

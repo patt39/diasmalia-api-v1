@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Fattening, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,7 @@ export class FatteningsService {
     selections: GetFatteningsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FatteningWhereInput;
-    const { search, animalTypeId, pagination } = selections;
+    const { search, periode, animalTypeId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -32,6 +36,15 @@ export class FatteningsService {
 
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const fattenings = await this.client.fattening.findMany({

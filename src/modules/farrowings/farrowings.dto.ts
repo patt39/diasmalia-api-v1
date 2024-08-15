@@ -6,7 +6,7 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateFarrowingsDto {
+export class CreateFarrowingsDto {
   @IsNotEmpty()
   @IsNumber()
   litter: number;
@@ -20,9 +20,19 @@ export class CreateOrUpdateFarrowingsDto {
   codeFemale: string;
 }
 
+export class UpdateFarrowingsDto {
+  @IsOptional()
+  @IsNumber()
+  litter: number;
+}
+
 export class FarrowingQueryDto {
   @IsOptional()
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

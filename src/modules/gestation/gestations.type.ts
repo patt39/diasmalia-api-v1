@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetGestationsSelections = {
   search?: string;
+  periode?: number;
   organizationId: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -11,7 +12,8 @@ export type GetGestationsSelections = {
 export type GetOneGestationSelections = {
   gestationId?: Gestation['id'];
   animalId?: Gestation['animalId'];
-  organizationId?: Gestation['id'];
+  organizationId?: Gestation['organizationId'];
+  checkPregnancyId?: Gestation['checkPregnancyId'];
   animalTypeId?: Gestation['animalTypeId'];
 };
 
@@ -26,38 +28,25 @@ export type UpdateGestationsOptions = Partial<Gestation>;
 export const GestationSelect = {
   createdAt: true,
   id: true,
-  animalId: true,
+  note: true,
+  method: true,
+  checkPregnancyId: true,
+  farrowingDate: true,
   animal: {
     select: {
       code: true,
-      productionPhase: true,
-      weight: true,
-      electronicCode: true,
-      status: true,
-      gender: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          name: true,
-        },
-      },
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
   animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
+    },
+  },
+  breedingId: true,
+  breeding: {
+    select: {
+      checkStatus: true,
     },
   },
   organizationId: true,
@@ -66,6 +55,4 @@ export const GestationSelect = {
       name: true,
     },
   },
-  userCreatedId: true,
-  note: true,
 };

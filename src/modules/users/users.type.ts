@@ -59,7 +59,6 @@ export const UserSelect = {
       phone: true,
       photo: true,
       description: true,
-      currencyId: true,
       currency: {
         select: {
           symbol: true,
@@ -67,7 +66,11 @@ export const UserSelect = {
       },
     },
   },
-  organizationId: true,
+  _count: {
+    select: {
+      contributors: true,
+    },
+  },
   organization: {
     select: {
       logo: true,

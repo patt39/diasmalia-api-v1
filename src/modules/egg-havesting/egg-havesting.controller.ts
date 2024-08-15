@@ -26,12 +26,13 @@ import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
-  CreateOrUpdateEggHavestingsDto,
+  CreateEggHavestingsDto,
   EggHavestingQueryDto,
+  UpdateEggHavestingsDto,
 } from './egg-havesting.dto';
 import { EggHavestingsService } from './egg-havesting.service';
 
-@Controller('egg-havestings')
+@Controller('egg-harvestings')
 export class EggHavestingsController {
   constructor(
     private readonly eggHavestingsService: EggHavestingsService,
@@ -50,7 +51,7 @@ export class EggHavestingsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { size, method, animalTypeId } = queryEggHavesting;
+    const { animalTypeId, periode } = queryEggHavesting;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -61,41 +62,45 @@ export class EggHavestingsController {
     });
 
     const eggHavestings = await this.eggHavestingsService.findAll({
-      size,
-      method,
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 
     return reply({ res, results: eggHavestings });
   }
 
-  /** Post one eggHavesting */
+  /** Post one eggHarvesting */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateEggHavestingsDto,
+    @Body() body: CreateEggHavestingsDto,
   ) {
     const { user } = req;
-    const { size, quantity, method, code } = body;
+    const { size, quantity, code } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
+    const findOneAnimal = await this.animalsService.findOneByCode({
       code,
-      productionPhase: 'LAYING',
+      status: 'ACTIVE',
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${findOneAnimal.code} doesn't exists or isn't in LAYING phase`,
+        `Animal ${code} doesn't exists or isn't in LAYING phase`,
         HttpStatus.NOT_FOUND,
       );
 
-    const eggHavesting = await this.eggHavestingsService.createOne({
+    if (findOneAnimal.quantity <= 0)
+      throw new HttpException(
+        `Unable to collect eggs, animals doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const eggHarvesting = await this.eggHavestingsService.createOne({
       size,
-      method,
       quantity,
       animalId: findOneAnimal.id,
       animalTypeId: findOneAnimal.animalTypeId,
@@ -103,43 +108,57 @@ export class EggHavestingsController {
       userCreatedId: user.id,
     });
 
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal.id },
+      { productionPhase: 'LAYING' },
+    );
+
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
       message: `${user.profile?.firstName} ${user.profile?.lastName} created an egg-havesting in ${findOneAnimal.animalType.name} for ${findOneAnimal.code}`,
     });
 
-    return reply({ res, results: eggHavesting });
+    return reply({ res, results: eggHarvesting });
   }
 
-  /** Update one EggHavesting */
-  @Put(`/:eggHavestingId/edit`)
+  /** Update one EggHarvesting */
+  @Put(`/:eggHarvestingId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateEggHavestingsDto,
-    @Param('eggHavestingId', ParseUUIDPipe) eggHavestingId: string,
+    @Body() body: UpdateEggHavestingsDto,
+    @Param('eggHarvestingId', ParseUUIDPipe) eggHarvestingId: string,
   ) {
     const { user } = req;
-    const { size, quantity, method } = body;
+    const { size, quantity, code } = body;
+
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${code} doesn't exists or isn't in LAYING phase`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
-      eggHavestingId,
+      eggHarvestingId,
       organizationId: user.organizationId,
     });
     if (!findOneEggHavesting)
       throw new HttpException(
-        `EggHavestingId: ${eggHavestingId} doesn't exists, please change`,
+        `EggHarvestingId: ${eggHarvestingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const eggHavesting = await this.eggHavestingsService.updateOne(
-      { eggHavestingId: findOneEggHavesting.id },
+      { eggHarvestingId: findOneEggHavesting.id },
       {
         size,
-        method,
         quantity,
+        animalId: findOneAnimal.id,
         userCreatedId: user.id,
       },
     );
@@ -153,37 +172,37 @@ export class EggHavestingsController {
     return reply({ res, results: eggHavesting });
   }
 
-  /** Delete eggHavesting */
-  @Delete(`/delete/:eggHavestingId`)
+  /** Delete eggHarvesting */
+  @Delete(`/:eggHarvestingId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
     @Req() req,
-    @Param('eggHavestingId', ParseUUIDPipe) eggHavestingId: string,
+    @Param('eggHarvestingId', ParseUUIDPipe) eggHarvestingId: string,
   ) {
     const { user } = req;
 
-    const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
-      eggHavestingId,
+    const findOneEggHarvesting = await this.eggHavestingsService.findOneBy({
+      eggHarvestingId,
       organizationId: user.organizationId,
     });
-    if (!findOneEggHavesting)
+    if (!findOneEggHarvesting)
       throw new HttpException(
-        `EggHavestingId: ${eggHavestingId} doesn't exists, please change`,
+        `EggHarvestingId: ${eggHarvestingId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
     await this.eggHavestingsService.updateOne(
-      { eggHavestingId: findOneEggHavesting.id },
+      { eggHarvestingId: findOneEggHarvesting?.id },
       { deletedAt: new Date() },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an egg-havesting`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an egg-havesting ${findOneEggHarvesting.animalType.name} `,
     });
 
-    return reply({ res, results: 'EggHavesting deleted successfully' });
+    return reply({ res, results: 'EggHarvesting deleted successfully' });
   }
 }

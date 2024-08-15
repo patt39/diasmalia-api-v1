@@ -24,11 +24,10 @@ export const AnimalTypesSelect = {
   createdAt: true,
   id: true,
   name: true,
-  icon: true,
+  photo: true,
   status: true,
   slug: true,
   habitat: true,
-  type: true,
   description: true,
   _count: {
     select: {

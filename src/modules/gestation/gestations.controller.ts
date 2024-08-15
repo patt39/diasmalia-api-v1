@@ -21,22 +21,15 @@ import {
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
-import {
-  CreateOrUpdateGestationsDto,
-  GestationsQueryDto,
-} from './gestations.dto';
+import { GestationsQueryDto, UpdateGestationsDto } from './gestations.dto';
 import { GestationsService } from './gestations.service';
 
 @Controller('gestations')
 export class GestationsController {
   constructor(
     private readonly gestationsService: GestationsService,
-    private readonly animalsService: AnimalsService,
     private readonly activitylogsService: ActivityLogsService,
-    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all gestations */
@@ -51,7 +44,7 @@ export class GestationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryGestation;
+    const { animalTypeId, periode } = queryGestation;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -65,6 +58,7 @@ export class GestationsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user?.organizationId,
     });
 
@@ -72,16 +66,16 @@ export class GestationsController {
   }
 
   /** Update one gestation */
-  @Put(`/:gestationId`)
+  @Put(`/:gestationId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateGestationsDto,
+    @Body() body: UpdateGestationsDto,
     @Param('gestationId', ParseUUIDPipe) gestationId: string,
   ) {
     const { user } = req;
-    const { note, farrowingDate } = body;
+    const { note, method, farrowingDate } = body;
 
     const findOneGestation = await this.gestationsService.findOneBy({
       gestationId,
@@ -98,6 +92,7 @@ export class GestationsController {
       { gestationId: findOneGestation.id },
       {
         note,
+        method,
         farrowingDate,
         userCreatedId: user.id,
       },
@@ -120,7 +115,7 @@ export class GestationsController {
   }
 
   /** Get one gestation */
-  @Get(`/view/gestationId`)
+  @Get(`/:gestationId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdGestation(
     @Res() res,
@@ -131,7 +126,7 @@ export class GestationsController {
 
     const findOneGestation = await this.gestationsService.findOneBy({
       gestationId,
-      organizationId: user.organization,
+      organizationId: user?.organization,
     });
     if (!findOneGestation) {
       throw new HttpException(

@@ -23,12 +23,12 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkFeedingsDto,
-  CreateOrUpdateFeedingsDto,
+  CreateFeedingsDto,
   GetFeedQueryDto,
+  UpdateFeedingsDto,
 } from './feedings.dto';
 import { FeedingsService } from './feedings.service';
 
@@ -38,7 +38,6 @@ export class FeedingsController {
     private readonly feedingsService: FeedingsService,
     private readonly animalsService: AnimalsService,
     private readonly activitylogsService: ActivityLogsService,
-    private readonly assignTypesService: AssignTypesService,
   ) {}
 
   /** Get all Feedings */
@@ -53,7 +52,7 @@ export class FeedingsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryFeeding;
+    const { animalTypeId, periode } = queryFeeding;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -67,10 +66,61 @@ export class FeedingsController {
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user?.organizationId,
     });
 
     return reply({ res, results: feedings });
+  }
+
+  /** Post one aves feeding */
+  @Post(`/create/aves`)
+  @UseGuards(UserAuthGuard)
+  async createOne(@Res() res, @Req() req, @Body() body: CreateFeedingsDto) {
+    const { user } = req;
+    const { code, quantity, feedType } = body;
+
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+      status: 'ACTIVE',
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneAnimal.quantity <= 0)
+      throw new HttpException(
+        `Unable to feed, animals doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const feeding = await this.feedingsService.createOne({
+      quantity,
+      feedType,
+      animalId: findOneAnimal?.id,
+      productionPhase: findOneAnimal?.productionPhase,
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user.organizationId,
+      userCreatedId: user.id,
+    });
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} added a feeding for ${findOneAnimal.animalType.name} with code ${findOneAnimal?.code} `,
+      organizationId: user.organizationId,
+    });
+
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: feeding,
+        message: `Feeding Created Successfully`,
+      },
+    });
   }
 
   /** Post one Bulk feeding */
@@ -83,7 +133,7 @@ export class FeedingsController {
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         status: 'ACTIVE',
-        code: animal?.code,
+        code: animal,
       });
       if (!findOneAnimal)
         throw new HttpException(
@@ -117,11 +167,11 @@ export class FeedingsController {
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateFeedingsDto,
+    @Body() body: UpdateFeedingsDto,
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { quantity, feedType } = body;
+    const { quantity, feedType, code } = body;
 
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
@@ -133,11 +183,22 @@ export class FeedingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Code: ${code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     await this.feedingsService.updateOne(
       { feedingId: findOneFeeding?.id },
       {
         quantity,
         feedType,
+        animalId: findOneAnimal?.id,
         userCreatedId: user?.id,
       },
     );
@@ -148,41 +209,7 @@ export class FeedingsController {
       message: `${user.profile?.firstName} ${user.profile?.lastName} updated a feeding in ${findOneFeeding.animalType.name} for ${findOneFeeding.animal.code}`,
     });
 
-    return reply({ res, results: 'Feeding Created Successfully' });
-  }
-
-  /** Get one feeding */
-  @Get(`/view/feedingId`)
-  @UseGuards(UserAuthGuard)
-  async getOneByIdFeeding(
-    @Res() res,
-    @Res() req,
-    @Param('feedingId', ParseUUIDPipe) feedingId: string,
-  ) {
-    const { user } = req;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      status: true,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AnimalType not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const findOneFeeding = await this.feedingsService.findOneBy({
-      feedingId,
-      organizationId: user.organizationId,
-      animalTypeId: findOneAssignType.animalTypeId,
-    });
-    if (!findOneFeeding)
-      throw new HttpException(
-        `FeedingId: ${feedingId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    return reply({ res, results: findOneFeeding });
+    return reply({ res, results: 'Feeding Updated Successfully' });
   }
 
   /** Delete one feeding */

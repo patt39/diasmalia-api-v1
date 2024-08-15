@@ -5,14 +5,15 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
 
 export class CreateOrUpdateTreatmentsDto {
-  @IsNotEmpty()
-  @IsInt()
+  @IsOptional()
+  @IsNumber()
   dose: number;
 
   @IsNotEmpty()
@@ -23,10 +24,9 @@ export class CreateOrUpdateTreatmentsDto {
   @IsString()
   diagnosis: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsUUID()
-  animalId: string;
+  code: string;
 
   @IsOptional()
   @IsString()
@@ -41,11 +41,6 @@ export class CreateOrUpdateTreatmentsDto {
   @IsString()
   @IsEnum(MedicationTypes)
   medication: MedicationTypes;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class BulkTreatmentsDto {
@@ -58,7 +53,7 @@ export class BulkTreatmentsDto {
   diagnosis: string;
 
   @IsOptional()
-  @IsString()
+  @IsInt()
   dose: number;
 
   @IsOptional()
@@ -66,14 +61,10 @@ export class BulkTreatmentsDto {
   name: string;
 
   @IsNotEmpty()
-  @IsString()
-  date: Date;
-
-  @IsNotEmpty()
   @IsArray()
   animals: any;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(MethodTreatment)
   method: MethodTreatment;
@@ -82,11 +73,6 @@ export class BulkTreatmentsDto {
   @IsString()
   @IsEnum(MedicationTypes)
   medication: MedicationTypes;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
 }
 
 export class TreatmentDto {
@@ -94,4 +80,8 @@ export class TreatmentDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

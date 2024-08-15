@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Isolation, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,7 @@ export class IsolationsService {
     selections: GetIsolationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.IsolationWhereInput;
-    const { search, animalTypeId, pagination } = selections;
+    const { search, periode, animalTypeId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -32,6 +36,15 @@ export class IsolationsService {
 
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const isolations = await this.client.isolation.findMany({
@@ -81,12 +94,19 @@ export class IsolationsService {
 
   /** Create one isolation in database. */
   async createOne(options: CreateIsolationsOptions): Promise<Isolation> {
-    const { note, animalId, animalTypeId, organizationId, userCreatedId } =
-      options;
+    const {
+      note,
+      number,
+      animalId,
+      animalTypeId,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const isolation = this.client.isolation.create({
       data: {
         note,
+        number,
         animalId,
         animalTypeId,
         organizationId,
@@ -103,11 +123,11 @@ export class IsolationsService {
     options: UpdateIsolationsOptions,
   ): Promise<Isolation> {
     const { isolationId } = selections;
-    const { note, animalId, deletedAt } = options;
+    const { note, number, deletedAt } = options;
 
     const isolation = this.client.isolation.update({
       where: { id: isolationId },
-      data: { note, animalId, deletedAt },
+      data: { note, number, deletedAt },
     });
 
     return isolation;

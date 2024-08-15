@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetTreatmentsSelections = {
   search?: string;
+  periode?: number;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -25,45 +26,20 @@ export type UpdateTreatmentsOptions = Partial<Treatment>;
 export const TreatmentSelect = {
   createdAt: true,
   id: true,
-  method: true,
   note: true,
   dose: true,
   name: true,
-  date: true,
+  method: true,
   medication: true,
   diagnosis: true,
-  animalId: true,
   animal: {
     select: {
       code: true,
       productionPhase: true,
-      weight: true,
-      electronicCode: true,
-      status: true,
-      gender: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
-  animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
@@ -73,5 +49,4 @@ export const TreatmentSelect = {
       name: true,
     },
   },
-  userCreatedId: true,
 };

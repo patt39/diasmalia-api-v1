@@ -37,7 +37,7 @@ $ postgreSQL```
 $ prisma```
 
 # Database Seeding
-$ npx prisma db seed
+$ npx prisma db seed -- --environment development
 
 ## Installation
 

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -55,7 +54,7 @@ export class CheckPregnanciesController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { method, result, animalTypeId } = queryMethod;
+    const { animalTypeId } = queryMethod;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -66,8 +65,6 @@ export class CheckPregnanciesController {
     });
 
     const CheckPregnancies = await this.checkPregnanciesService.findAll({
-      method,
-      result,
       search,
       pagination,
       animalTypeId,
@@ -78,15 +75,16 @@ export class CheckPregnanciesController {
   }
 
   /** Post one checkPregnancy */
-  @Post(`/create`)
+  @Post(`/:breedingId/check`)
   @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateCheckPregnanciesDto,
+    @Param('breedingId', ParseUUIDPipe) breedingId: string,
   ) {
     const { user } = req;
-    const { note, result, method, breedingId, farrowingDate } = body;
+    const { result, method, farrowingDate } = body;
 
     const findOneBreeding = await this.breedingsService.findOneBy({
       breedingId,
@@ -94,46 +92,31 @@ export class CheckPregnanciesController {
       organizationId: user.organizationId,
     });
 
-    const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
-      breedingId,
+    const checkPregnancy = await this.checkPregnanciesService.createOne({
+      result,
+      animalId: findOneBreeding.animalFemaleId,
+      animalTypeId: findOneBreeding.animalTypeId,
       organizationId: user.organizationId,
+      userCreatedId: user.id,
     });
-    if (!findOnecheckPregnancy) {
-      await this.checkPregnanciesService.createOne({
-        method,
-        result,
-        breedingId: findOneBreeding.id,
-        animalId: findOneBreeding.femaleCode,
-        animalTypeId: findOneBreeding.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
-      });
 
-      await this.activitylogsService.createOne({
-        userId: user.id,
-        organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} checked a pregnancy in ${findOneBreeding.animalTypeId}`,
-      });
-    } else {
-      throw new HttpException(
-        `Animal already checked please change`,
-        HttpStatus.FOUND,
-      );
-    }
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} checked a pregnancy in ${findOneBreeding.animalTypeId}`,
+    });
 
     await this.breedingsService.updateOne(
       { breedingId: findOneBreeding.id },
       { checkStatus: true },
     );
 
-    const findOneGestation = await this.gestationsService.findOneBy({
-      animalId: findOneBreeding.animalFemaleId,
-      animalTypeId: findOneBreeding.animalTypeId,
-    });
-    if (result === 'PREGNANT' && !findOneGestation) {
+    if (result === 'PREGNANT') {
       await this.gestationsService.createOne({
-        note,
-        farrowingDate: farrowingDate,
+        method: method,
+        breedingId: findOneBreeding.id,
+        checkPregnancyId: checkPregnancy.id,
+        farrowingDate: new Date(farrowingDate),
         animalId: findOneBreeding.animalFemaleId,
         animalTypeId: findOneBreeding.animalTypeId,
         organizationId: user.organizationId,
@@ -145,17 +128,30 @@ export class CheckPregnanciesController {
         { productionPhase: 'GESTATION' },
       );
 
-      await this.activitylogsService.createOne({
-        userId: user.id,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} created a gestation for ${findOneGestation.animalType.name}`,
-      });
+      await this.breedingsService.updateOne(
+        { breedingId: findOneBreeding.id },
+        { result: result },
+      );
     }
 
-    return reply({ res, results: 'CheckPregnancy Created Successfully' });
+    if (result === 'OPEN') {
+      await this.breedingsService.updateOne(
+        { breedingId: findOneBreeding.id },
+        { result: result },
+      );
+    }
+
+    await this.activitylogsService.createOne({
+      userId: user.id,
+      organizationId: user.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created a gestation for ${findOneBreeding.femaleCode}`,
+    });
+
+    return reply({ res, results: 'Breeding checked Successfully' });
   }
 
   /** Update one checkPregnancy */
-  @Put(`/:checkPregnancyId/edit`)
+  @Put(`/:checkPregnancyId/recheck`)
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
@@ -164,7 +160,7 @@ export class CheckPregnanciesController {
     @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
   ) {
     const { user } = req;
-    const { method, result, breedingId } = body;
+    const { result, method } = body;
 
     const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
       checkPregnancyId,
@@ -176,82 +172,7 @@ export class CheckPregnanciesController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneBreeding = await this.breedingsService.findOneBy({
-      breedingId,
-      checkStatus: false,
-      organizationId: user.organizationId,
-    });
-    if (!findOneBreeding)
-      throw new HttpException(
-        `Animal ${findOneBreeding.id} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const checkPregnancy = await this.checkPregnanciesService.updateOne(
-      { checkPregnancyId: findOnecheckPregnancy.id },
-      {
-        method,
-        result,
-        breedingId: findOneBreeding.id,
-        animalId: findOneBreeding.animalFemaleId,
-        userCreatedId: user.id,
-      },
-    );
-
-    if (result === 'OPEN' && findOneBreeding.animalFemaleId) {
-      await this.gestationsService.updateOne(
-        { gestationId: findOneBreeding.animalFemaleId },
-        { deletedAt: new Date() },
-      );
-      await this.animalsService.updateOne(
-        { animalId: findOneBreeding.animalFemaleId },
-        { productionPhase: 'REPRODUCTION' },
-      );
-    }
-
-    await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a checkPregnancy in ${findOnecheckPregnancy.animalTypeId}`,
-    });
-
-    return reply({ res, results: checkPregnancy });
-  }
-
-  /** Get one checkPregnancy */
-  @Get(`/view/checkPregnancyId`)
-  @UseGuards(UserAuthGuard)
-  async getOneByIdCheckPregnancy(
-    @Res() res,
-    @Req() req,
-    @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
-  ) {
-    const { user } = req;
-
-    const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
-      checkPregnancyId,
-      organizationId: user.organizationId,
-    });
-    if (!findOnecheckPregnancy)
-      throw new HttpException(
-        `CheckPregnancyId: ${checkPregnancyId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    return reply({ res, results: findOnecheckPregnancy });
-  }
-
-  /** Delete one checkPregnancy */
-  @Delete(`/delete/:checkPregnancyId`)
-  @UseGuards(UserAuthGuard)
-  async deleteOne(
-    @Res() res,
-    @Req() req,
-    @Param('checkPregnancyId', ParseUUIDPipe) checkPregnancyId: string,
-  ) {
-    const { user } = req;
-
-    const findOnecheckPregnancy = await this.checkPregnanciesService.findOneBy({
+    const findOneGestation = await this.gestationsService.findOneBy({
       checkPregnancyId,
       organizationId: user.organizationId,
     });
@@ -263,15 +184,29 @@ export class CheckPregnanciesController {
 
     await this.checkPregnanciesService.updateOne(
       { checkPregnancyId: findOnecheckPregnancy.id },
-      { deletedAt: new Date() },
+      { result },
     );
+
+    if (result === 'OPEN' && findOneGestation) {
+      await this.gestationsService.updateOne(
+        { gestationId: findOneGestation.id },
+        { deletedAt: new Date() },
+      );
+    }
+
+    if (result === 'PREGNANT' && findOneGestation) {
+      await this.gestationsService.updateOne(
+        { gestationId: findOneGestation.id },
+        { method: method },
+      );
+    }
 
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a checkPregnancy`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a checkPregnancy in ${findOnecheckPregnancy.animalTypeId}`,
     });
 
-    return reply({ res, results: 'CheckPregnancy deleted successfully' });
+    return reply({ res, results: 'CheckPregnancy updated successfully' });
   }
 }

@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetWeaningsSelections = {
   search?: string;
+  periode?: number;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -26,33 +27,15 @@ export const WeaningSelect = {
   createdAt: true,
   id: true,
   litter: true,
-  date: true,
   animalId: true,
   animal: {
     select: {
       code: true,
-      animalTypeId: true,
-      animalType: {
-        select: {
-          icon: true,
-          name: true,
-        },
-      },
       status: true,
       gender: true,
       weight: true,
       electronicCode: true,
       productionPhase: true,
-      location: {
-        select: {
-          code: true,
-        },
-      },
-      breed: {
-        select: {
-          name: true,
-        },
-      },
     },
   },
   farrowingId: true,
@@ -67,12 +50,9 @@ export const WeaningSelect = {
       name: true,
     },
   },
-  animalTypeId: true,
   animalType: {
     select: {
-      icon: true,
       name: true,
     },
   },
-  userCreatedId: true,
 };

@@ -144,9 +144,9 @@ export class LocationsService {
     const {
       code,
       manger,
+      status,
       through,
       squareMeter,
-      status,
       productionPhase,
       deletedAt,
     } = options;

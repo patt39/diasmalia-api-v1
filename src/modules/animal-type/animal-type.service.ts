@@ -75,14 +75,13 @@ export class AnimalTypesService {
 
   /** Create one animalType in database. */
   async createOne(options: CreateAnimalTypesOptions): Promise<AnimalType> {
-    const { name, slug, type, habitat, icon, description } = options;
+    const { name, slug, habitat, photo, description } = options;
 
     const animalType = this.client.animalType.create({
       data: {
         name,
-        icon,
         slug,
-        type,
+        photo,
         habitat,
         description,
       },
@@ -97,15 +96,14 @@ export class AnimalTypesService {
     options: UpdateAnimalTypesOptions,
   ): Promise<AnimalType> {
     const { animalTypeId } = selections;
-    const { name, icon, type, slug, habitat, status, description } = options;
+    const { name, photo, slug, habitat, status, description } = options;
 
     const animalType = this.client.animalType.update({
       where: { id: animalTypeId },
       data: {
         name,
-        icon,
+        photo,
         slug,
-        type,
         status,
         habitat,
         description,

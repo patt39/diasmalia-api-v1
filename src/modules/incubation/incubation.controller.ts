@@ -23,11 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
+import { AnimalsService } from '../animals/animals.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
-  CreateOrUpdateEggHavestingsDto,
+  CreateIncubationsDto,
   IncubationQueryDto,
+  UpdateIncubationsDto,
 } from './incubation.dto';
 import { IncubationsService } from './incubation.service';
 
@@ -35,7 +36,7 @@ import { IncubationsService } from './incubation.service';
 export class IncubationsController {
   constructor(
     private readonly incubationsService: IncubationsService,
-    private readonly eggHavestingsService: EggHavestingsService,
+    private readonly animalsService: AnimalsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -50,7 +51,7 @@ export class IncubationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId } = queryIncubation;
+    const { animalTypeId, periode } = queryIncubation;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -60,50 +61,47 @@ export class IncubationsController {
       sortBy,
     });
 
-    const eggHavestings = await this.incubationsService.findAll({
+    const incubations = await this.incubationsService.findAll({
       search,
       pagination,
       animalTypeId,
+      periode: Number(periode),
       organizationId: user.organizationId,
     });
 
-    return reply({ res, results: eggHavestings });
+    return reply({ res, results: incubations });
   }
 
   /** Post one incubation */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateEggHavestingsDto,
-  ) {
+  async createOne(@Res() res, @Req() req, @Body() body: CreateIncubationsDto) {
     const { user } = req;
-    const { dueDate, quantityStart, eggHavestingId } = body;
+    const { dueDate, quantityStart, code } = body;
 
-    const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
-      eggHavestingId,
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+      productionPhase: 'LAYING',
       organizationId: user.organizationId,
     });
-    if (!findOneEggHavesting)
+    if (!findOneAnimal)
       throw new HttpException(
-        `EggHavesting: ${eggHavestingId} doesn't exists`,
+        `Band: ${code} doesn't exists`,
         HttpStatus.NOT_FOUND,
       );
 
     const incubation = await this.incubationsService.createOne({
       dueDate,
       quantityStart,
-      eggHavestingId: findOneEggHavesting.id,
-      animalTypeId: findOneEggHavesting.animalTypeId,
+      animalTypeId: findOneAnimal.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created an incubation in ${findOneEggHavesting}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} created an incubation for ${findOneAnimal.animalType.name}`,
     });
 
     return reply({ res, results: incubation });
@@ -115,7 +113,7 @@ export class IncubationsController {
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateEggHavestingsDto,
+    @Body() body: UpdateIncubationsDto,
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
@@ -148,7 +146,8 @@ export class IncubationsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
+      userId: user?.id,
+      organizationId: user?.organizationId,
       message: `${user.profile?.firstName} ${user.profile?.lastName} updated an incubation in ${findOneIncubation.animalType.name}`,
     });
 
@@ -156,7 +155,7 @@ export class IncubationsController {
   }
 
   /** Delete Incubation */
-  @Delete(`/delete/:incubationId`)
+  @Delete(`/:incubationId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -176,7 +175,7 @@ export class IncubationsController {
       );
 
     await this.incubationsService.updateOne(
-      { incubationId: findOneIncubation.id },
+      { incubationId: findOneIncubation?.id },
       { deletedAt: new Date() },
     );
 

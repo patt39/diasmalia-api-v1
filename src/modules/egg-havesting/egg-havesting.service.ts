@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { EggHavesting, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,21 +26,13 @@ export class EggHavestingsService {
     selections: GetEggHavestingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.EggHavestingWhereInput;
-    const { search, size, animalTypeId, method, organizationId, pagination } =
+    const { search, periode, animalTypeId, organizationId, pagination } =
       selections;
 
     if (search) {
       Object.assign(prismaWhere, {
-        OR: [{ date: { contains: search, mode: 'insensitive' } }],
+        OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
-    }
-
-    if (size) {
-      Object.assign(prismaWhere, { size });
-    }
-
-    if (method) {
-      Object.assign(prismaWhere, { method });
     }
 
     if (animalTypeId) {
@@ -45,6 +41,15 @@ export class EggHavestingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const eggHavestings = await this.client.eggHavesting.findMany({
@@ -68,10 +73,10 @@ export class EggHavestingsService {
   /** Find one egg-havesting in database. */
   async findOneBy(selections: GetOneEggHavestingSelections) {
     const prismaWhere = {} as Prisma.EggHavestingWhereInput;
-    const { eggHavestingId, animalTypeId, organizationId } = selections;
+    const { eggHarvestingId, animalTypeId, organizationId } = selections;
 
-    if (eggHavestingId) {
-      Object.assign(prismaWhere, { id: eggHavestingId });
+    if (eggHarvestingId) {
+      Object.assign(prismaWhere, { id: eggHarvestingId });
     }
 
     if (organizationId) {
@@ -94,7 +99,6 @@ export class EggHavestingsService {
   async createOne(options: CreateEggHavestingsOptions): Promise<EggHavesting> {
     const {
       size,
-      method,
       quantity,
       animalId,
       animalTypeId,
@@ -105,10 +109,8 @@ export class EggHavestingsService {
     const egghavesting = this.client.eggHavesting.create({
       data: {
         size,
-        method,
         quantity,
         animalId,
-        date: new Date(),
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -123,19 +125,20 @@ export class EggHavestingsService {
     selections: UpdateEggHavestingsSelections,
     options: UpdateEggHavestingsOptions,
   ): Promise<EggHavesting> {
-    const { eggHavestingId } = selections;
-    const { size, method, quantity, userCreatedId } = options;
+    const { eggHarvestingId } = selections;
+    const { size, quantity, animalId, userCreatedId, deletedAt } = options;
 
-    const eggHavesting = this.client.eggHavesting.update({
-      where: { id: eggHavestingId },
+    const eggHarvesting = this.client.eggHavesting.update({
+      where: { id: eggHarvestingId },
       data: {
         size,
-        method,
         quantity,
+        animalId,
+        deletedAt,
         userCreatedId,
       },
     });
 
-    return eggHavesting;
+    return eggHarvesting;
   }
 }

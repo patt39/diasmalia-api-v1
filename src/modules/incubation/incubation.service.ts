@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Incubation, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -22,7 +26,8 @@ export class IncubationsService {
     selections: IncubationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.IncubationWhereInput;
-    const { search, animalTypeId, organizationId, pagination } = selections;
+    const { search, periode, animalTypeId, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +41,15 @@ export class IncubationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const incubations = await this.client.incubation.findMany({
@@ -59,8 +73,7 @@ export class IncubationsService {
   /** Find one incubation in database. */
   async findOneBy(selections: GetOneIncubationSelections) {
     const prismaWhere = {} as Prisma.IncubationWhereInput;
-    const { incubationId, eggHavestingId, animalTypeId, organizationId } =
-      selections;
+    const { incubationId, animalTypeId, organizationId } = selections;
 
     if (incubationId) {
       Object.assign(prismaWhere, { id: incubationId });
@@ -68,10 +81,6 @@ export class IncubationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
-    }
-
-    if (eggHavestingId) {
-      Object.assign(prismaWhere, { eggHavestingId });
     }
 
     if (animalTypeId) {
@@ -93,7 +102,6 @@ export class IncubationsService {
       quantityEnd,
       quantityStart,
       animalTypeId,
-      eggHavestingId,
       organizationId,
       userCreatedId,
     } = options;
@@ -104,8 +112,6 @@ export class IncubationsService {
         quantityEnd,
         quantityStart,
         animalTypeId,
-        date: new Date(),
-        eggHavestingId,
         organizationId,
         userCreatedId,
       },
@@ -124,20 +130,20 @@ export class IncubationsService {
       dueDate,
       quantityEnd,
       quantityStart,
-      animalTypeId,
       organizationId,
       userCreatedId,
+      deletedAt,
     } = options;
 
     const incubation = this.client.incubation.update({
       where: { id: incubationId },
       data: {
         dueDate,
-        animalTypeId,
         quantityEnd,
         quantityStart,
         organizationId,
         userCreatedId,
+        deletedAt,
       },
     });
 

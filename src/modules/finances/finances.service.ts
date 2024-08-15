@@ -62,6 +62,7 @@ export class FinancesService {
   async findOneBy(selections: GetOneFinanceSelections) {
     const prismaWhere = {} as Prisma.FinanceWhereInput;
     const { financeId, slug, organizationId } = selections;
+
     if (financeId) {
       Object.assign(prismaWhere, { id: financeId });
     }
@@ -75,6 +76,7 @@ export class FinancesService {
     }
 
     const finance = await this.client.finance.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
       select: FinancesSelect,
     });
 
@@ -90,7 +92,6 @@ export class FinancesService {
         type,
         detail,
         amount,
-        date: new Date(),
         slug: `${Slug(detail)}-${generateNumber(4)}`,
         organizationId,
         userCreatedId,

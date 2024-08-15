@@ -134,6 +134,29 @@ export class FinanceController {
     return reply({ res, results: finance });
   }
 
+  /** Get one finance */
+  @Get(`/:financeId/view`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdUser(
+    @Res() res,
+    @Req() req,
+    @Param('financeId', ParseUUIDPipe) financeId: string,
+  ) {
+    const { user } = req;
+
+    const findOneFinance = await this.financeService.findOneBy({
+      financeId,
+      organizationId: user.organizationId,
+    });
+    if (!findOneFinance)
+      throw new HttpException(
+        `FinanceId: ${financeId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneFinance });
+  }
+
   /** Delete one finance */
   @Delete(`/delete/:financeId`)
   @UseGuards(UserAuthGuard)

@@ -7,7 +7,7 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateBreedingsDto {
+export class CreateBreedingsDto {
   @IsNotEmpty()
   @IsString()
   codeMale: string;
@@ -21,6 +21,25 @@ export class CreateOrUpdateBreedingsDto {
   note: string;
 
   @IsNotEmpty()
+  @IsString()
+  @IsEnum(MethodBreeding)
+  method: MethodBreeding;
+}
+
+export class UpdateBreedingsDto {
+  @IsOptional()
+  @IsString()
+  codeMale: string;
+
+  @IsOptional()
+  @IsString()
+  codeFemale: string;
+
+  @IsOptional()
+  @IsString()
+  note: string;
+
+  @IsOptional()
   @IsString()
   @IsEnum(MethodBreeding)
   method: MethodBreeding;

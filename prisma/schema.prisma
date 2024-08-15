@@ -233,7 +233,6 @@ model AssignType {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  sales          Sale[]
 }
 
 model Location {
@@ -286,8 +285,8 @@ model Animal {
   productionPhase  ProductionPhase
   electronicCode   String?
   status           AnimalStatus     @default(ACTIVE)
-  locationId       String
-  location         Location         @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId       String?
+  location         Location?        @relation(fields: [locationId], references: [id], onDelete: Cascade)
   breedId          String?
   breed            Breed?           @relation(fields: [breedId], references: [id], onDelete: Cascade)
   organizationId   String
@@ -303,7 +302,8 @@ model Animal {
   isolations       Isolation[]
   eggHavestings    EggHavesting[]
   checkPregnancies CheckPregnancy[]
-  Fattening        Fattening[]
+  fattening        Fattening[]
+  sale             Sale[]
 }
 
 model AnimalType {
@@ -312,10 +312,9 @@ model AnimalType {
   deletedAt        DateTime?
   id               String           @id @default(uuid())
   name             String
-  icon             String?
+  photo            String?
   slug             String?
   habitat          String?
-  type             String?
   status           AnimalTypeStatus @default(ACTIVE)
   description      String           @db.Text
   locations        Location[]
@@ -335,6 +334,7 @@ model AnimalType {
   breedings        Breeding[]
   treatments       Treatment[]
   fattening        Fattening[]
+  sale             Sale[]
 }
 
 enum Gender {
@@ -363,24 +363,23 @@ enum ProductionPhase {
 }
 
 model Treatment {
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
-  id             String          @id @default(uuid())
+  id             String           @id @default(uuid())
   name           String?
-  date           DateTime?
-  note           String?
+  note           String?          @db.Text
   slug           String?
   dose           Int?
-  diagnosis      String
+  diagnosis      String?          @db.Text
   medication     MedicationTypes
-  method         MethodTreatment
+  method         MethodTreatment?
   animalTypeId   String
-  animalType     AnimalType      @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
-  animalId       String?
-  animal         Animal?         @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalType     AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalId       String
+  animal         Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
 }
 
@@ -411,29 +410,29 @@ enum MedicationTypes {
 }
 
 model Breeding {
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   deletedAt      DateTime?
-  id             String           @id @default(uuid())
-  date           DateTime?
-  note           String?          @db.Text
+  id             String          @id @default(uuid())
+  note           String?         @db.Text
   method         MethodBreeding?
-  checkStatus    Boolean          @default(false)
+  result         String?
+  checkStatus    Boolean         @default(false)
   animalFemaleId String
   animalMaleId   String
   femaleCode     String
   maleCode       String
   animalTypeId   String
-  animalType     AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType     AnimalType      @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  checkPregnancy CheckPregnancy[]
+  gestation      Gestation[]
 }
 
 enum MethodBreeding {
   NATURAL
-  INVITRO_FERTILISATION
+  INVITRO
 }
 
 model CheckPregnancy {
@@ -441,8 +440,6 @@ model CheckPregnancy {
   updatedAt      DateTime             @updatedAt
   deletedAt      DateTime?
   id             String               @id @default(uuid())
-  date           DateTime
-  method         MethodCheckPregnancy
   result         ResultCheckPregnancy
   animalId       String
   animal         Animal               @relation(fields: [animalId], references: [id], onDelete: Cascade)
@@ -450,9 +447,8 @@ model CheckPregnancy {
   animalType     AnimalType           @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  breedingId     String
-  breeding       Breeding             @relation(fields: [breedingId], references: [id], onDelete: Cascade)
   userCreatedId  String
+  gestation      Gestation[]
 }
 
 enum MethodCheckPregnancy {
@@ -474,7 +470,6 @@ model Farrowing {
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   note           String?      @db.Text
-  date           DateTime?
   litter         Int?
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
@@ -491,7 +486,6 @@ model Weaning {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  date           DateTime?
   litter         Int?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -505,19 +499,24 @@ model Weaning {
 }
 
 model Gestation {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  note           String?      @db.Text
-  farrowingDate  DateTime
-  animalTypeId   String
-  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
-  animalId       String
-  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId  String
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  deletedAt        DateTime?
+  id               String               @id @default(uuid())
+  note             String?              @db.Text
+  method           MethodCheckPregnancy
+  farrowingDate    DateTime
+  animalTypeId     String
+  animalType       AnimalType           @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalId         String
+  animal           Animal               @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  breedingId       String
+  breeding         Breeding             @relation(fields: [breedingId], references: [id], onDelete: Cascade)
+  checkPregnancyId String
+  checkPregnancy   CheckPregnancy       @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId    String
 }
 
 model Death {
@@ -525,7 +524,6 @@ model Death {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  date           DateTime?
   number         Int?
   note           String?      @db.Text
   organizationId String
@@ -542,7 +540,6 @@ model Milking {
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
   id             String         @id @default(uuid())
-  date           DateTime?
   method         MethodMilking?
   quantity       Int?
   animalTypeId   String
@@ -564,7 +561,6 @@ model Feeding {
   updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
   id              String           @id @default(uuid())
-  date            DateTime?
   quantity        Int?
   feedType        FeedType
   animalTypeId    String
@@ -597,19 +593,22 @@ model Sale {
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
   id             String         @id @default(uuid())
-  date           DateTime
   note           String?        @db.Text
   phone          String?
   email          String?
   address        String?
+  code           String?
   type           String
   price          Int
-  quantity       Int?
+  number         Int?
   animals        Json?
   soldTo         String
   method         sellingMethod?
-  assigneTypeId  String
-  assigneType    AssignType     @relation(fields: [assigneTypeId], references: [id], onDelete: Cascade)
+  detail         sellingDetail?
+  animalId       String?
+  animal         Animal?        @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalTypeId   String
+  animalType     AnimalType     @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
@@ -624,12 +623,17 @@ enum sellingMethod {
   OTHER
 }
 
+enum sellingDetail {
+  EGGS
+  CHICKS
+  CHICKENS
+}
+
 model Finance {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  date           DateTime
   type           financeType
   slug           String
   amount         Int?
@@ -650,6 +654,7 @@ model Isolation {
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   note           String?      @db.Text
+  number         Int?
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animalId       String
@@ -686,22 +691,19 @@ enum CastrationMethod {
 }
 
 model EggHavesting {
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-  id             String        @id @default(uuid())
-  date           DateTime?
+  id             String       @id @default(uuid())
   quantity       Int
   size           Size
-  method         PickingMethod
   animalId       String
-  animal         Animal        @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
   animalTypeId   String
-  animalType     AnimalType    @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  Incubations    Incubation[]
 }
 
 enum Size {
@@ -710,22 +712,14 @@ enum Size {
   MEDIUM
 }
 
-enum PickingMethod {
-  HAND
-  MACHINE
-}
-
 model Incubation {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  date           DateTime?
   quantityStart  Int
   quantityEnd    Int?
   dueDate        DateTime?
-  eggHavestingId String
-  eggHavesting   EggHavesting @relation(fields: [eggHavestingId], references: [id], onDelete: Cascade)
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
