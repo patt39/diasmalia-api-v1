@@ -1,4 +1,10 @@
-import { AnimalStatus, Gender, ProductionPhase } from '@prisma/client';
+import {
+  AnimalStatus,
+  CastratedStatus,
+  Gender,
+  IsolatedStatus,
+  ProductionPhase,
+} from '@prisma/client';
 import {
   IsEnum,
   IsNotEmpty,
@@ -9,7 +15,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class CreateOrUpdateAnimalsDto {
+export class CreateAnimalsDto {
   @IsOptional()
   @IsString()
   code: string;
@@ -25,10 +31,6 @@ export class CreateOrUpdateAnimalsDto {
   @IsOptional()
   @IsNumber()
   weight: number;
-
-  @IsOptional()
-  @IsNumber()
-  quantity: number;
 
   @IsOptional()
   @IsString()
@@ -50,13 +52,99 @@ export class CreateOrUpdateAnimalsDto {
 
   @IsOptional()
   @IsString()
-  @IsUUID()
-  locationId: string;
+  locationCode: string;
 
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  breedId: string;
+  breedName: string;
+}
+
+export class UpdateAnimalsDto {
+  @IsOptional()
+  @IsString()
+  code: string;
+
+  @IsOptional()
+  @IsString()
+  codeFather: string;
+
+  @IsOptional()
+  @IsString()
+  codeMother: string;
+
+  @IsOptional()
+  @IsNumber()
+  weight: number;
+
+  @IsOptional()
+  @IsString()
+  birthday: Date;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(Gender)
+  gender: Gender;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(CastratedStatus)
+  isCastrated: CastratedStatus;
+
+  @IsOptional()
+  @IsString()
+  electronicCode: string;
+
+  @IsOptional()
+  @IsString()
+  locationCode: string;
+
+  @IsOptional()
+  @IsString()
+  breedName: string;
+}
+
+export class CreateOrUpdateAvesDto {
+  @IsOptional()
+  @IsString()
+  code: string;
+
+  @IsOptional()
+  @IsNumber()
+  weight: number;
+
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
+
+  @IsOptional()
+  @IsString()
+  birthday: Date;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
+
+  @IsOptional()
+  @IsString()
+  electronicCode: string;
+
+  @IsOptional()
+  @IsString()
+  locationCode: string;
+
+  @IsOptional()
+  @IsNumber()
+  female: number;
+
+  @IsOptional()
+  @IsNumber()
+  male: number;
 }
 
 export class GetAnimalsQuery {
@@ -75,6 +163,11 @@ export class GetAnimalsQuery {
   @IsString()
   @IsEnum(AnimalStatus)
   status: AnimalStatus;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(IsolatedStatus)
+  isIsolated: IsolatedStatus;
 
   @IsOptional()
   @IsString()

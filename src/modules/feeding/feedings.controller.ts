@@ -87,11 +87,11 @@ export class FeedingsController {
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        `Animal ${code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneAnimal.quantity <= 0)
+    if (findOneAnimal?.quantity === 0)
       throw new HttpException(
         `Unable to feed, animals doesn't exists please change`,
         HttpStatus.NOT_FOUND,
@@ -103,14 +103,14 @@ export class FeedingsController {
       animalId: findOneAnimal?.id,
       productionPhase: findOneAnimal?.productionPhase,
       animalTypeId: findOneAnimal?.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a feeding for ${findOneAnimal.animalType.name} with code ${findOneAnimal?.code} `,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a feeding for ${findOneAnimal?.animalType?.name} with code ${findOneAnimal?.code} `,
+      organizationId: user?.organizationId,
     });
 
     return reply({
@@ -147,14 +147,14 @@ export class FeedingsController {
         animalId: findOneAnimal?.id,
         productionPhase: findOneAnimal?.productionPhase,
         animalTypeId: findOneAnimal?.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
       });
 
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} feeded ${animals.lenght} ${findOneAnimal.animalType.name} with ${feedType}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} ${findOneAnimal?.animalType?.name} with ${feedType}`,
       });
     }
 
@@ -204,9 +204,9 @@ export class FeedingsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a feeding in ${findOneFeeding.animalType.name} for ${findOneFeeding.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a feeding in ${findOneFeeding?.animalType.name} for ${findOneFeeding?.animal?.code}`,
     });
 
     return reply({ res, results: 'Feeding Updated Successfully' });
@@ -233,14 +233,14 @@ export class FeedingsController {
       );
 
     const feeding = await this.feedingsService.updateOne(
-      { feedingId: findOneFeeding.id },
+      { feedingId: findOneFeeding?.id },
       { deletedAt: new Date() },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a feeding in ${findOneFeeding.animalType.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a feeding in ${findOneFeeding?.animalType?.name}`,
     });
 
     return reply({ res, results: feeding });

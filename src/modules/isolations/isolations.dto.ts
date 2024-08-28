@@ -12,9 +12,13 @@ export class UpdateIsolationsDto {
   @IsString()
   note: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   number: number;
+
+  @IsOptional()
+  @IsString()
+  code: string;
 }
 
 export class CreateIsolationsDto extends UpdateIsolationsDto {

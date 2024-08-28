@@ -84,7 +84,7 @@ export class FarrowingsController {
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      isIsolated: false,
+      isIsolated: 'NO',
       productionPhase: 'GESTATION',
     });
     if (!findOneFemale) {

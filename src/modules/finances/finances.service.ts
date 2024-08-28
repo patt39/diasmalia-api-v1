@@ -122,4 +122,31 @@ export class FinancesService {
 
     return finance;
   }
+
+  /** Get finances transactiions. */
+  async getFinanceTransactions() {
+    const [totalIncome, totalExpenses] = await this.client.$transaction([
+      this.client.finance.findMany({
+        where: { type: 'INCOME', deletedAt: null },
+      }),
+      this.client.finance.findMany({
+        where: { type: 'EXPENSE', deletedAt: null },
+      }),
+    ]);
+
+    const initialValue = 0;
+    const sumIncome = totalIncome.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.amount,
+      initialValue,
+    );
+
+    const sumExpense = totalExpenses.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.amount,
+      initialValue,
+    );
+
+    return { sumIncome, sumExpense };
+  }
 }

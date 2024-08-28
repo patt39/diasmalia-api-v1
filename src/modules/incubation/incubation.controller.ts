@@ -93,6 +93,7 @@ export class IncubationsController {
     const incubation = await this.incubationsService.createOne({
       dueDate,
       quantityStart,
+      animalId: findOneAnimal.id,
       animalTypeId: findOneAnimal.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
@@ -117,7 +118,18 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const { quantityEnd, quantityStart, dueDate } = body;
+    const { quantityEnd, quantityStart, dueDate, code } = body;
+
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+      productionPhase: 'LAYING',
+      organizationId: user.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Band: ${code} doesn't exists`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
@@ -141,6 +153,7 @@ export class IncubationsController {
         dueDate,
         quantityEnd,
         quantityStart,
+        animalId: findOneAnimal.id,
         userCreatedId: user.id,
       },
     );
@@ -152,6 +165,30 @@ export class IncubationsController {
     });
 
     return reply({ res, results: incubation });
+  }
+
+  /** Get one incubation */
+  @Get(`/:incubationId/view`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdGestation(
+    @Res() res,
+    @Req() req,
+    @Param('incubationId', ParseUUIDPipe) incubationId: string,
+  ) {
+    const { user } = req;
+
+    const findOneIncubation = await this.incubationsService.findOneBy({
+      incubationId,
+      organizationId: user?.organization,
+    });
+    if (!findOneIncubation) {
+      throw new HttpException(
+        `IncubationId: ${incubationId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOneIncubation });
   }
 
   /** Delete Incubation */

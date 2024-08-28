@@ -35,4 +35,11 @@ export const IncubationsSelect = {
       name: true,
     },
   },
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
+      productionPhase: true,
+    },
+  },
 };

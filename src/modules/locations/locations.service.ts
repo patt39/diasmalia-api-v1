@@ -75,8 +75,14 @@ export class LocationsService {
   async findOneBy(selections: GetOneLocationsSelections) {
     const prismaWhere = {} as Prisma.LocationWhereInput;
 
-    const { locationId, animalTypeId, code, productionPhase, organizationId } =
-      selections;
+    const {
+      locationId,
+      animalTypeId,
+      code,
+      productionPhase,
+      status,
+      organizationId,
+    } = selections;
 
     if (locationId) {
       Object.assign(prismaWhere, { id: locationId });
@@ -84,6 +90,10 @@ export class LocationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
     }
 
     if (animalTypeId) {

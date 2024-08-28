@@ -32,6 +32,8 @@ export const DeathSelect = {
   animal: {
     select: {
       code: true,
+      male: true,
+      female: true,
       quantity: true,
     },
   },

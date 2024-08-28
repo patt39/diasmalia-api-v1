@@ -9,6 +9,7 @@ export type GetAnimalsSelections = {
   code?: Animal['code'];
   status?: Animal['status'];
   gender?: Animal['gender'];
+  isIsolated?: Animal['isIsolated'];
   animalTypeId?: Animal['animalTypeId'];
   productionPhase?: Animal['productionPhase'];
 };
@@ -20,7 +21,7 @@ export type GetOneAnimalsSelections = {
   quantity?: Animal['quantity'];
   electronicCode?: Animal['electronicCode'];
   animalTypeId?: Animal['animalTypeId'];
-  isIsolated?: Boolean;
+  isIsolated?: Animal['isIsolated'];
   isCastrated?: Boolean;
   deletedAt?: Animal['deletedAt'];
   status?: Animal['status'];
@@ -46,10 +47,14 @@ export const AnimalSelect = {
   gender: true,
   weight: true,
   status: true,
+  male: true,
+  female: true,
   quantity: true,
   birthday: true,
   codeFather: true,
   codeMother: true,
+  isIsolated: true,
+  isCastrated: true,
   productionPhase: true,
   electronicCode: true,
   organizationId: true,
@@ -84,15 +89,7 @@ export const AnimalSelect = {
   },
   _count: {
     select: {
-      milkings: true,
-      weanings: true,
-      gestations: true,
-      farrowings: true,
       treatments: true,
     },
   },
-};
-
-export const AnimalMale = {
-  gender: 'MALE',
 };

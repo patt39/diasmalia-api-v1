@@ -1,4 +1,4 @@
-import { Injectable, Res } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Res } from '@nestjs/common';
 import { Animal, Prisma } from '@prisma/client';
 import * as exceljs from 'exceljs';
 import { DatabaseService } from '../../app/database/database.service';
@@ -6,6 +6,8 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
+import { GetOneBreedingsSelections } from '../breedings/breedings.type';
 import {
   AnimalSelect,
   CreateAnimalsOptions,
@@ -17,7 +19,10 @@ import {
 
 @Injectable()
 export class AnimalsService {
-  constructor(private readonly client: DatabaseService) {}
+  constructor(
+    private readonly client: DatabaseService,
+    private readonly assignTypesService: AssignTypesService,
+  ) {}
 
   async findAll(
     selections: GetAnimalsSelections,
@@ -27,6 +32,7 @@ export class AnimalsService {
       search,
       status,
       gender,
+      isIsolated,
       animalTypeId,
       productionPhase,
       organizationId,
@@ -53,6 +59,10 @@ export class AnimalsService {
 
     if (status) {
       Object.assign(prismaWhere, { status });
+    }
+
+    if (isIsolated) {
+      Object.assign(prismaWhere, { isIsolated });
     }
 
     if (animalTypeId) {
@@ -155,6 +165,204 @@ export class AnimalsService {
     return animal;
   }
 
+  /** Find one breeding in database. */
+  async findOneAnimalDetails(
+    selections: GetOneBreedingsSelections,
+  ): Promise<any> {
+    const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
+    const prismaWhereAnimal = {} as Prisma.AnimalWhereInput;
+
+    const { animalId, gender, organizationId } = selections;
+
+    if (animalId) {
+      Object.assign(prismaWhereAnimal, { id: animalId });
+    }
+
+    if (animalId && gender === 'MALE') {
+      Object.assign(prismaWhereBreeding, { animalMaleId: animalId });
+    }
+
+    if (animalId && gender === 'FEMALE') {
+      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
+    }
+
+    const animal = await this.client.animal.findFirst({
+      where: {
+        ...prismaWhereAnimal,
+        deletedAt: null,
+        organizationId,
+      },
+      select: AnimalSelect,
+    });
+
+    const breedingCount = await this.client.breeding.count({
+      where: { animalMaleId: animal.id, deletedAt: null, organizationId },
+    });
+
+    const saleChicken = await this.client.sale.findMany({
+      where: {
+        animalId: animal?.id,
+        detail: 'CHICKENS',
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+
+    const saleEgg = await this.client.sale.findMany({
+      where: {
+        animalId: animal.id,
+        detail: 'EGGS',
+        deletedAt: null,
+        organizationId,
+      },
+    });
+
+    const saleChick = await this.client.sale.findMany({
+      where: {
+        animalId: animal.id,
+        detail: 'CHICKS',
+        deletedAt: null,
+        organizationId,
+      },
+    });
+
+    const sumEggIncubated = await this.client.incubation.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+
+    const sumDeaths = await this.client.death.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+
+    const sumFeedings = await this.client.feeding.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+    const sumIsolations = await this.client.isolation.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+    const sumEggHarvestings = await this.client.eggHavesting.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+    const sumFarrowings = await this.client.farrowing.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+    const sumWeanings = await this.client.weaning.findMany({
+      where: {
+        deletedAt: null,
+        organizationId,
+        animalTypeId: animal.animalTypeId,
+      },
+    });
+
+    const initialValue = 0;
+    const feedingsCount = sumFeedings.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantity,
+      initialValue,
+    );
+
+    const deathsCount = sumDeaths.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const isolatedCount = sumIsolations.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const eggHavestedCount = sumEggHarvestings.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantity,
+      initialValue,
+    );
+
+    const incubationCount = sumEggIncubated.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantityStart,
+      initialValue,
+    );
+
+    const eggHatchedCount = sumEggIncubated.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantityEnd,
+      initialValue,
+    );
+
+    const chickenSaleCount = saleChicken.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const chickSaleCount = saleChick.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const eggSaleCount = saleEgg.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const farrowinglitterCount = sumFarrowings.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.litter,
+      initialValue,
+    );
+
+    const weaninglitterCount = sumWeanings.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.litter,
+      initialValue,
+    );
+
+    return {
+      ...animal,
+      breedingCount,
+      feedingsCount,
+      deathsCount,
+      isolatedCount,
+      eggHavestedCount,
+      incubationCount,
+      eggHatchedCount,
+      chickenSaleCount,
+      chickSaleCount,
+      eggSaleCount,
+      farrowinglitterCount,
+      weaninglitterCount,
+    };
+  }
+
   /** Find one Animal in database. */
   async findOneByCode(selections: GetOneAnimalsSelections) {
     const { code } = selections;
@@ -178,6 +386,8 @@ export class AnimalsService {
   async createOne(options: CreateAnimalsOptions): Promise<Animal> {
     const {
       code,
+      male,
+      female,
       status,
       weight,
       gender,
@@ -197,6 +407,8 @@ export class AnimalsService {
     const animal = this.client.animal.create({
       data: {
         code,
+        male,
+        female,
         status,
         weight,
         gender,
@@ -225,6 +437,8 @@ export class AnimalsService {
     const { animalId } = selections;
     const {
       code,
+      male,
+      female,
       photo,
       weight,
       gender,
@@ -234,6 +448,8 @@ export class AnimalsService {
       quantity,
       codeFather,
       codeMother,
+      isIsolated,
+      isCastrated,
       productionPhase,
       electronicCode,
       locationId,
@@ -245,6 +461,8 @@ export class AnimalsService {
       data: {
         code,
         photo,
+        male,
+        female,
         weight,
         gender,
         status,
@@ -253,6 +471,8 @@ export class AnimalsService {
         quantity,
         codeFather,
         codeMother,
+        isIsolated,
+        isCastrated,
         productionPhase,
         electronicCode,
         locationId,
@@ -349,15 +569,342 @@ export class AnimalsService {
   }
 
   /** Load data to database. */
-  async getAnimalTransactions() {
-    const [totalMales, totalFemales] = await this.client.$transaction([
+  async getAnimalTransactions(animalTypeId: any) {
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    const [
+      sumMales,
+      sumFemales,
+      sumFemaleGrowth,
+      sumMaleGrowth,
+      sumAnimalFattening,
+      sumFemaleReproduction,
+      sumMaleReproduction,
+      sumFemaleGestation,
+      sumFemaleLactation,
+      totalFarrowings,
+      totalWeanings,
+      totalSumAnimals,
+      totalEggHarvested,
+      totalDeaths,
+      totalFeedings,
+      totalIncubations,
+      sumAnimalGrowthSale,
+      sumFemaleGestationSold,
+      sumAnimalFatteningSold,
+      sumFemaleReproductionSold,
+      sumMaleReproductionSold,
+      sumAnimalGrowthDead,
+      sumAnimalFatteningDead,
+      sumTreatments,
+    ] = await this.client.$transaction([
       this.client.animal.count({
-        where: { gender: 'MALE', deletedAt: null },
+        where: {
+          gender: 'MALE',
+          status: 'ACTIVE',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
       }),
       this.client.animal.count({
-        where: { gender: 'FEMALE', deletedAt: null },
+        where: {
+          gender: 'FEMALE',
+          status: 'ACTIVE',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          gender: 'FEMALE',
+          status: 'ACTIVE',
+          productionPhase: 'GROWTH',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          gender: 'MALE',
+          status: 'ACTIVE',
+          productionPhase: 'GROWTH',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'ACTIVE',
+          productionPhase: 'FATTENING',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          gender: 'FEMALE',
+          status: 'ACTIVE',
+          animalTypeId: animalTypeId,
+          productionPhase: 'REPRODUCTION',
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          gender: 'MALE',
+          status: 'ACTIVE',
+          animalTypeId: animalTypeId,
+          productionPhase: 'REPRODUCTION',
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          gender: 'FEMALE',
+          status: 'ACTIVE',
+          animalTypeId: animalTypeId,
+          productionPhase: 'GESTATION',
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          gender: 'FEMALE',
+          status: 'ACTIVE',
+          animalTypeId: animalTypeId,
+          productionPhase: 'LACTATION',
+          deletedAt: null,
+        },
+      }),
+      this.client.farrowing.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.weaning.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.animal.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.eggHavesting.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.death.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.feeding.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.incubation.findMany({
+        where: {
+          deletedAt: null,
+          animalTypeId: animalTypeId,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          productionPhase: 'GROWTH',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          gender: 'FEMALE',
+          productionPhase: 'GESTATION',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          productionPhase: 'FATTENING',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          gender: 'FEMALE',
+          productionPhase: 'REPRODUCTION',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          gender: 'MALE',
+          productionPhase: 'REPRODUCTION',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          gender: 'FEMALE',
+          productionPhase: 'REPRODUCTION',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          gender: 'MALE',
+          productionPhase: 'REPRODUCTION',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'DEAD',
+          productionPhase: 'GROWTH',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.animal.count({
+        where: {
+          status: 'SOLD',
+          productionPhase: 'FATTENING',
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+      }),
+      this.client.treatment.count({
+        where: {
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
       }),
     ]);
-    return { totalMales, totalFemales };
+    const initialValue = 0;
+    const sumFarrowings = totalFarrowings?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.litter,
+      initialValue,
+    );
+
+    const sumWeanings = totalWeanings?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.litter,
+      initialValue,
+    );
+
+    const sumAnimalsQuantity = totalSumAnimals?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantity,
+      initialValue,
+    );
+
+    const sumFemaleAnimals = totalSumAnimals?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.female,
+      initialValue,
+    );
+
+    const sumMaleAnimals = totalSumAnimals?.reduce(
+      (accumulator: any, currentValue: any) => accumulator + currentValue.male,
+      initialValue,
+    );
+
+    const sumWeightAnimals = totalSumAnimals?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.weight,
+      initialValue,
+    );
+
+    const averageWeight = sumWeightAnimals / Number(totalSumAnimals?.length);
+
+    const sumEggHarvested = totalEggHarvested?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantity,
+      initialValue,
+    );
+
+    const sumDeaths = totalDeaths?.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const sumFeedings = totalFeedings.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantity,
+      initialValue,
+    );
+
+    const sumIncubations = totalIncubations.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantityStart,
+      initialValue,
+    );
+
+    const sumHatched = totalIncubations.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.quantityEnd,
+      initialValue,
+    );
+
+    return {
+      sumMales,
+      sumFemales,
+      sumFemaleGrowth,
+      sumMaleGrowth,
+      sumAnimalFattening,
+      sumFemaleReproduction,
+      sumMaleReproduction,
+      sumFemaleGestation,
+      sumFemaleLactation,
+      sumFarrowings,
+      sumWeanings,
+      sumAnimalsQuantity,
+      sumFemaleAnimals,
+      sumMaleAnimals,
+      averageWeight,
+      sumEggHarvested,
+      sumDeaths,
+      sumFeedings,
+      sumIncubations,
+      sumHatched,
+      sumAnimalGrowthSale,
+      sumFemaleGestationSold,
+      sumAnimalFatteningSold,
+      sumFemaleReproductionSold,
+      sumMaleReproductionSold,
+      sumAnimalGrowthDead,
+      sumAnimalFatteningDead,
+      sumTreatments,
+    };
   }
 }

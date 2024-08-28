@@ -22,6 +22,7 @@ export type PaginationType = {
 
 export const addPagination = (options: PaginationType) => {
   const pagination: any = {};
+
   const { page, take, sort, isPaginate, sortBy } = options;
   const takePage = Number(page);
   const currentTake = Number(take);

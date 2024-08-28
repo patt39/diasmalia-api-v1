@@ -5,10 +5,9 @@ export class CreateOrUpdateBreedsDto {
   @IsString()
   name: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsUUID()
-  animalTypeId: string;
+  animalTypeName: string;
 }
 
 export class GetBreedsTypeDto {

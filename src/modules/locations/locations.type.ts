@@ -13,6 +13,7 @@ export type GetLocationsSelections = {
 export type GetOneLocationsSelections = {
   locationId?: Location['id'];
   code?: Location['code'];
+  status?: Location['status'];
   animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];

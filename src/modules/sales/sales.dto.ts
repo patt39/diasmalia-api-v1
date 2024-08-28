@@ -15,12 +15,12 @@ export class CreateOrUpdateSalesDto {
   @IsString()
   note: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   @IsEnum(sellingDetail)
   detail: sellingDetail;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   code: string;
 
@@ -40,9 +40,17 @@ export class CreateOrUpdateSalesDto {
   @IsNumber()
   price: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   number: number;
+
+  @IsOptional()
+  @IsNumber()
+  male: number;
+
+  @IsOptional()
+  @IsNumber()
+  female: number;
 
   @IsOptional()
   @IsString()

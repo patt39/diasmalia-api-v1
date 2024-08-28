@@ -95,6 +95,17 @@ export const formatDateJsToUtc = (date: Date) => {
   return DateTime.fromJSDate(date).toUTC().toJSDate();
 };
 
+export const formatDateDifference = (date: Date) => {
+  const birthDate = DateTime.fromISO(String(date).split('T')[0]);
+  const now = DateTime.now();
+  const years = Math.floor(now.diff(birthDate, 'years').years);
+  const months = Math.floor(now.diff(birthDate, 'months').months);
+
+  const age = years >= 1 ? `${years} years` : `${months} mths`;
+
+  return age;
+};
+
 export const addToDateUtc = ({
   date,
   plus,

@@ -70,7 +70,8 @@ export class IsolationsService {
   async findOneBy(selections: GetOneIsolationsSelections) {
     const prismaWhere = {} as Prisma.IsolationWhereInput;
 
-    const { isolationId, animalTypeId, organizationId } = selections;
+    const { isolationId, animalTypeId, animalId, deletedAt, organizationId } =
+      selections;
 
     if (isolationId) {
       Object.assign(prismaWhere, { id: isolationId });
@@ -78,6 +79,14 @@ export class IsolationsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
+    }
+
+    if (deletedAt) {
+      Object.assign(prismaWhere, { deletedAt });
     }
 
     if (animalTypeId) {
@@ -123,11 +132,11 @@ export class IsolationsService {
     options: UpdateIsolationsOptions,
   ): Promise<Isolation> {
     const { isolationId } = selections;
-    const { note, number, deletedAt } = options;
+    const { note, number, animalId, deletedAt } = options;
 
     const isolation = this.client.isolation.update({
       where: { id: isolationId },
-      data: { note, number, deletedAt },
+      data: { note, animalId, number, deletedAt },
     });
 
     return isolation;
