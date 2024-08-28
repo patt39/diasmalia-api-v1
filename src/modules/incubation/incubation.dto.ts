@@ -11,7 +11,7 @@ export class CreateIncubationsDto {
   @IsNumber()
   quantityStart: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   dueDate: Date;
 
@@ -33,7 +33,7 @@ export class UpdateIncubationsDto {
   @IsString()
   dueDate: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   code: string;
 }

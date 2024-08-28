@@ -21,8 +21,8 @@ import { config } from '../../app/config/index';
 import { generateUUID } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
-  PaginationType,
   addPagination,
+  PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
@@ -37,6 +37,7 @@ import { emailPDFAttachment } from '../users/mails/email-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
 import {
+  formatDateDifference,
   formatDDMMYYDate,
   formatNowDateYYMMDD,
 } from './../../app/utils/commons/formate-date';
@@ -93,6 +94,14 @@ export class SalesController {
     return reply({ res, results: sales });
   }
 
+  /** Get sales statistics */
+  @Get(`/statistics`)
+  @UseGuards(UserAuthGuard)
+  async getSaleStatistics(@Res() res) {
+    const salesCount = await this.salesService.getSaleTransactions();
+    return reply({ res, results: salesCount });
+  }
+
   /** Update one Sale */
   @Put(`/:saleId/edit`)
   @UseGuards(UserAuthGuard)
@@ -147,6 +156,8 @@ export class SalesController {
     const { user } = req;
     const {
       code,
+      male,
+      female,
       detail,
       phone,
       email,
@@ -175,16 +186,26 @@ export class SalesController {
     if (!findUniqueUser)
       throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
 
+    const sumAnimals = Number(male + female);
+
+    if (findOneAnimal.quantity < number || findOneAnimal.quantity < sumAnimals)
+      throw new HttpException(
+        `Impossible to sell insuficient animals available`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const sale = await this.salesService.createOne({
+      male,
+      female,
       phone,
       email,
       price,
       method,
       soldTo,
       address,
-      number,
       detail,
       animalId: findOneAnimal.id,
+      number: number ? number : sumAnimals,
       type: findOneAnimal.animalType.name,
       animalTypeId: findOneAnimal.animalTypeId,
       organizationId: user.organizationId,
@@ -290,12 +311,19 @@ export class SalesController {
         {
           table: {
             body: [
-              ['Code', 'Weight(kg)', 'Number', 'Type'],
               [
-                findOneAnimal?.code,
-                findOneAnimal?.weight,
-                number,
+                'Animal Type',
+                'Number',
+                'Age',
+                'Weight(kg)',
+                'Production phase',
+              ],
+              [
                 findOneAnimal.animalType.name,
+                number,
+                formatDateDifference(findOneAnimal?.birthday),
+                findOneAnimal?.weight,
+                findOneAnimal?.productionPhase,
               ],
             ],
           },

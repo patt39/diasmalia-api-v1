@@ -15,6 +15,14 @@ export class UpdateDeathsDto {
   @IsOptional()
   @IsNumber()
   number: number;
+
+  @IsOptional()
+  @IsNumber()
+  female: number;
+
+  @IsOptional()
+  @IsNumber()
+  male: number;
 }
 
 export class CreateDeathsDto extends UpdateDeathsDto {

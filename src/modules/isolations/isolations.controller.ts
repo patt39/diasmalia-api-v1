@@ -134,6 +134,7 @@ export class IsolationsController {
       const findOneAnimal = await this.animalsService.findOneBy({
         status: 'ACTIVE',
         code: animal,
+        isIsolated: 'NO',
       });
       if (!findOneAnimal)
         throw new HttpException(
@@ -150,8 +151,8 @@ export class IsolationsController {
       });
 
       await this.animalsService.updateOne(
-        { animalId: findOneAnimal.id },
-        { isIsolated: true },
+        { animalId: findOneAnimal?.id },
+        { isIsolated: 'YES' },
       );
 
       await this.activitylogsService.createOne({
@@ -174,7 +175,7 @@ export class IsolationsController {
     @Param('isolationId', ParseUUIDPipe) isolationId: string,
   ) {
     const { user } = req;
-    const { note, number } = body;
+    const { note, number, code } = body;
 
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
@@ -254,7 +255,7 @@ export class IsolationsController {
 
     await this.animalsService.updateOne(
       { animalId: findOneIsolation.animal.id },
-      { isIsolated: false },
+      { isIsolated: 'NO' },
     );
 
     await this.activitylogsService.createOne({

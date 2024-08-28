@@ -99,6 +99,7 @@ export class IncubationsService {
   async createOne(options: CreateIncubationsOptions): Promise<Incubation> {
     const {
       dueDate,
+      animalId,
       quantityEnd,
       quantityStart,
       animalTypeId,
@@ -108,6 +109,7 @@ export class IncubationsService {
 
     const incubation = this.client.incubation.create({
       data: {
+        animalId,
         dueDate,
         quantityEnd,
         quantityStart,
@@ -128,6 +130,7 @@ export class IncubationsService {
     const { incubationId } = selections;
     const {
       dueDate,
+      animalId,
       quantityEnd,
       quantityStart,
       organizationId,
@@ -139,6 +142,7 @@ export class IncubationsService {
       where: { id: incubationId },
       data: {
         dueDate,
+        animalId,
         quantityEnd,
         quantityStart,
         organizationId,

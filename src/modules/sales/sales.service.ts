@@ -127,6 +127,8 @@ export class SalesService {
       note,
       code,
       type,
+      male,
+      female,
       price,
       phone,
       email,
@@ -150,6 +152,8 @@ export class SalesService {
         price,
         phone,
         email,
+        male,
+        female,
         soldTo,
         detail,
         method,
@@ -378,5 +382,42 @@ export class SalesService {
         visibility: 'visible',
       },
     ];
+  }
+
+  /** Get sale transactiions. */
+  async getSaleTransactions() {
+    const [totalSaleChicks, totalSaleEggs, totalSaleChickens] =
+      await this.client.$transaction([
+        this.client.sale.findMany({
+          where: { detail: 'CHICKS', deletedAt: null },
+        }),
+        this.client.sale.findMany({
+          where: { detail: 'EGGS', deletedAt: null },
+        }),
+        this.client.sale.findMany({
+          where: { detail: 'CHICKENS', deletedAt: null },
+        }),
+      ]);
+
+    const initialValue = 0;
+    const sumSaleChicks = totalSaleChicks.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const sumSaleEggs = totalSaleEggs.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    const sumSaleChickens = totalSaleChickens.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue.number,
+      initialValue,
+    );
+
+    return { sumSaleChicks, sumSaleEggs, sumSaleChickens };
   }
 }

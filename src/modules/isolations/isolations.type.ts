@@ -11,8 +11,10 @@ export type GetIsolationsSelections = {
 
 export type GetOneIsolationsSelections = {
   isolationId?: Isolation['id'];
+  animalId?: Isolation['animalId'];
   animalTypeId?: Isolation['animalTypeId'];
   organizationId?: Isolation['id'];
+  deletedAt?: Isolation['deletedAt'];
 };
 
 export type UpdateIsolationsSelections = {

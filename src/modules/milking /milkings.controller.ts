@@ -52,7 +52,7 @@ export class MilkingsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { method, animalTypeId } = queryMethod;
+    const { animalTypeId } = queryMethod;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -64,7 +64,6 @@ export class MilkingsController {
 
     const milkings = await this.milkingsService.findAll({
       search,
-      method,
       pagination,
       animalTypeId,
       organizationId: user.organizationId,
@@ -78,24 +77,24 @@ export class MilkingsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkMilkingsDto) {
     const { user } = req;
-    const { method, quantity, animals } = body;
+    const { quantity, animals, note } = body;
 
     for (const animal of animals) {
       const findOneFemale = await this.animalsService.findOneBy({
         status: 'ACTIVE',
         code: animal,
         gender: 'FEMALE',
-        isIsolated: false,
+        isIsolated: 'NO',
         productionPhase: 'LACTATION',
       });
       if (!findOneFemale)
         throw new HttpException(
-          `Animal ${findOneFemale?.code} doesn't exists please change`,
+          `Animal ${animal} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
 
       await this.milkingsService.createOne({
-        method,
+        note,
         quantity,
         animalId: findOneFemale.id,
         animalTypeId: findOneFemale.animalTypeId,
@@ -123,7 +122,7 @@ export class MilkingsController {
     @Param('milkingId', ParseUUIDPipe) milkingId: string,
   ) {
     const { user } = req;
-    const { quantity, method } = body;
+    const { quantity, femaleCode } = body;
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
@@ -135,11 +134,24 @@ export class MilkingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneFemale = await this.animalsService.findOneBy({
+      status: 'ACTIVE',
+      code: femaleCode,
+      gender: 'FEMALE',
+      isIsolated: 'NO',
+      productionPhase: 'LACTATION',
+    });
+    if (!findOneFemale)
+      throw new HttpException(
+        `Animal ${findOneFemale?.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     await this.milkingsService.updateOne(
       { milkingId: findOneMilking?.id },
       {
-        method,
         quantity,
+        animalId: findOneFemale.id,
         userCreatedId: user?.id,
       },
     );

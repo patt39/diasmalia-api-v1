@@ -1,20 +1,15 @@
-import { MethodMilking } from '@prisma/client';
-
 import {
   IsArray,
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateMilkingsDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   note: string;
 
   @IsNotEmpty()
@@ -23,13 +18,7 @@ export class CreateOrUpdateMilkingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   femaleCode: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(MethodMilking)
-  method: MethodMilking;
 }
 
 export class BulkMilkingsDto {
@@ -44,19 +33,9 @@ export class BulkMilkingsDto {
   @IsNotEmpty()
   @IsNumber()
   quantity: number;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(MethodMilking)
-  method: MethodMilking;
 }
 
 export class GetMilkingsQueryDto {
-  @IsOptional()
-  @IsString()
-  @IsEnum(MethodMilking)
-  method: MethodMilking;
-
   @IsOptional()
   @IsString()
   @IsUUID()

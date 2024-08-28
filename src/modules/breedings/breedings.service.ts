@@ -6,7 +6,6 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { AnimalsService } from '../animals/animals.service';
-import { AnimalSelect } from '../animals/animals.type';
 import {
   BreedingSelect,
   CreateBreedingsOptions,
@@ -155,38 +154,6 @@ export class BreedingsService {
     return breeding;
   }
 
-  /** Find one breeding in database. */
-  async findOneBreedingBy(selections: GetOneBreedingsSelections): Promise<any> {
-    const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
-    const prismaWhereAnimal = {} as Prisma.AnimalWhereInput;
-
-    const { animalId, gender, organizationId } = selections;
-
-    if (animalId) {
-      Object.assign(prismaWhereAnimal, { id: animalId });
-    }
-
-    if (animalId && gender === 'MALE') {
-      Object.assign(prismaWhereBreeding, { animalMaleId: animalId });
-    }
-
-    if (animalId && gender === 'FEMALE') {
-      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
-    }
-    const breedingCount = await this.client.breeding.count({
-      where: { ...prismaWhereBreeding, deletedAt: null, organizationId },
-    });
-    const animal = await this.client.animal.findFirst({
-      where: {
-        ...prismaWhereAnimal,
-        deletedAt: null,
-        organizationId,
-      },
-      select: AnimalSelect,
-    });
-
-    return { breedingCount, ...animal };
-  }
   /** Create one breeding in database. */
   async createOne(options: CreateBreedingsOptions): Promise<Breeding> {
     const {

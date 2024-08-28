@@ -123,7 +123,7 @@ export class BreedingsController {
       gender: 'MALE',
       status: 'ACTIVE',
       isCastrated: false,
-      isIsolated: false,
+      isIsolated: 'NO',
       productionPhase: 'REPRODUCTION',
     });
     if (!findOneMale)
@@ -136,7 +136,7 @@ export class BreedingsController {
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      isIsolated: false,
+      isIsolated: 'NO',
       productionPhase: 'REPRODUCTION',
     });
     if (!findOneFemale)
@@ -226,7 +226,7 @@ export class BreedingsController {
       gender: 'MALE',
       status: 'ACTIVE',
       isCastrated: false,
-      isIsolated: false,
+      isIsolated: 'NO',
       productionPhase: 'REPRODUCTION',
     });
     if (!findOneMale)
@@ -239,7 +239,7 @@ export class BreedingsController {
       code: codeFemale,
       gender: 'FEMALE',
       status: 'ACTIVE',
-      isIsolated: false,
+      isIsolated: 'NO',
       productionPhase: 'REPRODUCTION',
     });
     if (!findOneFemale)

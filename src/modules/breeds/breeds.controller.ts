@@ -39,7 +39,6 @@ export class BreedsController {
   @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
-    @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
     @Query() queryTypes: GetBreedsTypeDto,
@@ -68,7 +67,7 @@ export class BreedsController {
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Body() body: CreateOrUpdateBreedsDto) {
-    const { name, animalTypeId } = body;
+    const { name, animalTypeName } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({
       name,
@@ -80,17 +79,17 @@ export class BreedsController {
       );
 
     const findOneType = await this.animalTypesService.findOneBy({
-      animalTypeId,
+      name: animalTypeName,
     });
     if (!findOneType)
       throw new HttpException(
-        `AnimalTypeId: ${animalTypeId} doesn't exists, please change`,
+        `AnimalType: ${animalTypeName} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const breed = await this.breedsService.createOne({
       name,
-      animalTypeId,
+      animalTypeId: findOneType.id,
     });
 
     return reply({ res, results: breed });
@@ -104,7 +103,7 @@ export class BreedsController {
     @Body() body: CreateOrUpdateBreedsDto,
     @Param('breedId', ParseUUIDPipe) breedId: string,
   ) {
-    const { name, animalTypeId } = body;
+    const { name } = body;
 
     const findOneBreed = await this.breedsService.findOneBy({
       breedId,
@@ -117,10 +116,7 @@ export class BreedsController {
 
     const breed = await this.breedsService.updateOne(
       { breedId: findOneBreed?.id },
-      {
-        name,
-        animalTypeId,
-      },
+      { name },
     );
 
     return reply({ res, results: breed });

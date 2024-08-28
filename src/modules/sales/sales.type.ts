@@ -35,6 +35,8 @@ export const SalesSelect = {
   note: true,
   detail: true,
   email: true,
+  male: true,
+  female: true,
   number: true,
   method: true,
   address: true,

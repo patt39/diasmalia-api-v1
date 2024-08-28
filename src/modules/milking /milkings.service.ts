@@ -22,8 +22,7 @@ export class MilkingsService {
     selections: GetMilkingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.MilkingWhereInput;
-    const { search, method, animalTypeId, organizationId, pagination } =
-      selections;
+    const { search, animalTypeId, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -37,10 +36,6 @@ export class MilkingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
-    }
-
-    if (method) {
-      Object.assign(prismaWhere, { method });
     }
 
     const milkings = await this.client.milking.findMany({
@@ -90,7 +85,7 @@ export class MilkingsService {
   /** Create one milking in database. */
   async createOne(options: CreateMilkingsOptions): Promise<Milking> {
     const {
-      method,
+      note,
       quantity,
       animalId,
       animalTypeId,
@@ -100,7 +95,7 @@ export class MilkingsService {
 
     const milking = this.client.milking.create({
       data: {
-        method,
+        note,
         quantity,
         animalId,
         animalTypeId,
@@ -118,12 +113,12 @@ export class MilkingsService {
     options: UpdateMilkingsOptions,
   ): Promise<Milking> {
     const { milkingId } = selections;
-    const { method, quantity, userCreatedId, deletedAt } = options;
+    const { note, quantity, userCreatedId, deletedAt } = options;
 
     const milking = this.client.milking.update({
       where: { id: milkingId },
       data: {
-        method,
+        note,
         quantity,
         userCreatedId,
         deletedAt,
