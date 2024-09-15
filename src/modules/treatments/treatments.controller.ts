@@ -95,6 +95,12 @@ export class TreatmentsController {
         HttpStatus.NOT_FOUND,
       );
 
+    if (findOneAnimal?.quantity === 0)
+      throw new HttpException(
+        `Unable to treat, animals doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const feeding = await this.treatmentsService.createOne({
       note,
       name,

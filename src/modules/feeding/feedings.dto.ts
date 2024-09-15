@@ -63,4 +63,8 @@ export class GetFeedQueryDto {
   @IsOptional()
   @IsString()
   periode: string;
+
+  @IsOptional()
+  @IsString()
+  feedingsCount: string;
 }

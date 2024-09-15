@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Breeding, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import {
   WithPaginationResponse,
@@ -30,6 +34,7 @@ export class BreedingsService {
       search,
       gender,
       method,
+      periode,
       animalId,
       checkStatus,
       pagination,
@@ -40,9 +45,18 @@ export class BreedingsService {
     if (search) {
       Object.assign(prismaWhereBreeding, {
         OR: [
-          { animal: { femaleCode: { contains: search, mode: 'insensitive' } } },
-          { animal: { maleCode: { contains: search, mode: 'insensitive' } } },
+          { femaleCode: { contains: search, mode: 'insensitive' } },
+          { maleCode: { contains: search, mode: 'insensitive' } },
         ],
+      });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhereBreeding, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
       });
     }
 

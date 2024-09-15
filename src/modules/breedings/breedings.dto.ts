@@ -54,6 +54,10 @@ export class GetAnimalBreedingsDto {
 export class GetAnimalBreedingsQueryDto {
   @IsOptional()
   @IsString()
+  periode: string;
+
+  @IsOptional()
+  @IsString()
   @IsEnum(MethodBreeding)
   method: MethodBreeding;
 

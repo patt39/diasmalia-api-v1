@@ -241,8 +241,9 @@ model Location {
   deletedAt       DateTime?
   id              String           @id @default(uuid())
   code            String
-  manger          Int
-  through         Int
+  manger          Int?
+  through         Int?
+  nest            Int?
   status          Boolean          @default(true)
   animalTypeId    String
   animalType      AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
@@ -285,7 +286,6 @@ model Animal {
   animalTypeId     String
   animalType       AnimalType       @relation(fields: [animalTypeId], references: [id])
   productionPhase  ProductionPhase  @default(GROWTH)
-  electronicCode   String?
   status           AnimalStatus     @default(ACTIVE)
   locationId       String?
   location         Location?        @relation(fields: [locationId], references: [id], onDelete: Cascade)
@@ -518,15 +518,15 @@ model Gestation {
   id               String               @id @default(uuid())
   note             String?              @db.Text
   method           MethodCheckPregnancy
-  farrowingDate    DateTime
+  farrowingDate    DateTime?
   animalTypeId     String
   animalType       AnimalType           @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animalId         String
   animal           Animal               @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  breedingId       String
-  breeding         Breeding             @relation(fields: [breedingId], references: [id], onDelete: Cascade)
-  checkPregnancyId String
-  checkPregnancy   CheckPregnancy       @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
+  breedingId       String?
+  breeding         Breeding?            @relation(fields: [breedingId], references: [id], onDelete: Cascade)
+  checkPregnancyId String?
+  checkPregnancy   CheckPregnancy?      @relation(fields: [checkPregnancyId], references: [id], onDelete: Cascade)
   organizationId   String
   organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId    String
@@ -612,7 +612,8 @@ model Sale {
   male           Int?           @default(0)
   female         Int?           @default(0)
   animals        Json?
-  soldTo         String
+  soldTo         String?
+  salePdf        String?
   method         sellingMethod?
   detail         sellingDetail? @default(CHICKENS)
   animalId       String?

@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { formatDDMMYYDate } from 'src/app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -24,6 +25,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { GestationsService } from '../gestation/gestations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateFarrowingsDto,
@@ -37,6 +39,7 @@ export class FarrowingsController {
   constructor(
     private readonly farrowingsService: FarrowingsService,
     private readonly animalsService: AnimalsService,
+    private readonly gestationsService: GestationsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -67,7 +70,7 @@ export class FarrowingsController {
       pagination,
       animalTypeId,
       periode: Number(periode),
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: farrowings });
@@ -87,25 +90,55 @@ export class FarrowingsController {
       isIsolated: 'NO',
       productionPhase: 'GESTATION',
     });
-    if (!findOneFemale) {
+    if (!findOneFemale)
       throw new HttpException(
         `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
+
+    if (findOneFemale?.location?.animals.length > 1)
+      throw new HttpException(
+        `Animal ${codeFemale} should be isolated before farrowing please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneGestation = await this.gestationsService.findOneBy({
+      animalId: findOneFemale?.id,
+      organizationId: user?.organization,
+    });
+    if (!findOneGestation) {
+      throw new HttpException(
+        `Gestation doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
     }
+
+    if (
+      formatDDMMYYDate(findOneGestation?.farrowingDate) !==
+      formatDDMMYYDate(new Date())
+    )
+      throw new HttpException(
+        `Impossible to create, female: ${codeFemale} hasn't reach farrowing date yet please update`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const farrowing = await this.farrowingsService.createOne({
       note,
       litter,
-      animalId: findOneFemale.id,
-      animalTypeId: findOneFemale.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      animalId: findOneFemale?.id,
+      animalTypeId: findOneFemale?.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.animalsService.updateOne(
-      { animalId: findOneFemale.id },
+      { animalId: findOneFemale?.id },
       { productionPhase: 'LACTATION' },
+    );
+
+    await this.gestationsService.updateOne(
+      { gestationId: findOneGestation?.id },
+      { deletedAt: new Date() },
     );
 
     await this.activitylogsService.createOne({
@@ -135,7 +168,7 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter } = body;
+    const { litter, note } = body;
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
@@ -149,10 +182,7 @@ export class FarrowingsController {
 
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing.id },
-      {
-        litter,
-        userCreatedId: user.id,
-      },
+      { note, litter, userCreatedId: user.id },
     );
 
     await this.activitylogsService.createOne({

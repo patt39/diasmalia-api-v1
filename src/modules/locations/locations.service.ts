@@ -76,11 +76,11 @@ export class LocationsService {
     const prismaWhere = {} as Prisma.LocationWhereInput;
 
     const {
+      code,
+      status,
       locationId,
       animalTypeId,
-      code,
       productionPhase,
-      status,
       organizationId,
     } = selections;
 
@@ -120,6 +120,7 @@ export class LocationsService {
   async createOne(options: CreateLocationsOptions): Promise<Location> {
     const {
       code,
+      nest,
       manger,
       through,
       squareMeter,
@@ -132,6 +133,7 @@ export class LocationsService {
     const location = this.client.location.create({
       data: {
         code,
+        nest,
         manger,
         through,
         squareMeter,
@@ -153,6 +155,7 @@ export class LocationsService {
     const { locationId } = selections;
     const {
       code,
+      nest,
       manger,
       status,
       through,
@@ -165,6 +168,7 @@ export class LocationsService {
       where: { id: locationId },
       data: {
         code,
+        nest,
         manger,
         status,
         through,

@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Feeding, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   dateTimeNowUtc,
+  lastDayMonth,
   substrateDaysToTimeNowUtcDate,
-} from 'src/app/utils/commons';
-import { DatabaseService } from '../../app/database/database.service';
+} from '../../app/utils/commons';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountByDateAndReturnArray } from '../analytics/analytics.utils';
 import {
   CreateFeedingsOptions,
   FeedingSelect,
@@ -69,6 +71,66 @@ export class FeedingsService {
       rowCount,
       value: feeding,
     });
+  }
+
+  /** Get animal feeding analytics. */
+  async getanimalFeedingAnalytics(selections: GetFeedingsSelections) {
+    const prismaWhere = {} as Prisma.FeedingWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupFeedingsAnalytics = await this.client.feeding.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId'],
+      where: { ...prismaWhere, deletedAt: null },
+      _sum: {
+        quantity: true,
+      },
+      _count: true,
+    });
+
+    const feedingAnalytics = groupCountByDateAndReturnArray({
+      data: groupFeedingsAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return feedingAnalytics;
   }
 
   /** Find one feeding in database. */

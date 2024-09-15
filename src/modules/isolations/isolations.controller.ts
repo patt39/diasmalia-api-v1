@@ -84,7 +84,7 @@ export class IsolationsController {
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -101,15 +101,20 @@ export class IsolationsController {
     const isolation = await this.isolationsService.createOne({
       note,
       number,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAnimal.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      animalId: findOneAnimal?.id,
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      { quantity: findOneAnimal?.quantity - isolation?.number },
+    );
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} put ${number} ${findOneAnimal.animalType.name} in ${findOneAnimal?.code} in isolation`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} put ${number} ${findOneAnimal?.animalType?.name} in ${findOneAnimal?.code} in isolation`,
       organizationId: user.organizationId,
     });
 
@@ -144,10 +149,10 @@ export class IsolationsController {
 
       await this.isolationsService.createOne({
         note,
-        animalId: findOneAnimal.id,
-        organizationId: findOneAnimal.organizationId,
-        animalTypeId: findOneAnimal.animalTypeId,
-        userCreatedId: user.id,
+        animalId: findOneAnimal?.id,
+        organizationId: findOneAnimal?.organizationId,
+        animalTypeId: findOneAnimal?.animalTypeId,
+        userCreatedId: user?.id,
       });
 
       await this.animalsService.updateOne(
@@ -158,7 +163,7 @@ export class IsolationsController {
       await this.activitylogsService.createOne({
         userId: user.id,
         organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} isolation ${animals.lenght} ${findOneAnimal.animalType.name}`,
+        message: `${user.profile?.firstName} ${user.profile?.lastName} isolation ${animals?.lenght} ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -175,7 +180,7 @@ export class IsolationsController {
     @Param('isolationId', ParseUUIDPipe) isolationId: string,
   ) {
     const { user } = req;
-    const { note, number, code } = body;
+    const { note, number } = body;
 
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
@@ -192,14 +197,14 @@ export class IsolationsController {
       {
         note,
         number,
-        userCreatedId: user.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an isolation in ${findOneIsolation.animalType.name}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an isolation in ${findOneIsolation?.animalType?.name}`,
     });
 
     return reply({ res, results: isolation });
@@ -240,7 +245,7 @@ export class IsolationsController {
 
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneIsolation)
       throw new HttpException(
@@ -249,19 +254,26 @@ export class IsolationsController {
       );
 
     await this.isolationsService.updateOne(
-      { isolationId: findOneIsolation.id },
+      { isolationId: findOneIsolation?.id },
       { deletedAt: new Date() },
     );
 
     await this.animalsService.updateOne(
-      { animalId: findOneIsolation.animal.id },
+      { animalId: findOneIsolation?.animal?.id },
       { isIsolated: 'NO' },
     );
 
+    await this.animalsService.updateOne(
+      { animalId: findOneIsolation?.animal?.id },
+      {
+        quantity: findOneIsolation?.animal?.quantity + findOneIsolation?.number,
+      },
+    );
+
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an isolation in ${findOneIsolation.animalType.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted an isolation in ${findOneIsolation?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Isolation deleted successfully' });

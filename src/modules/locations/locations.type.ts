@@ -31,6 +31,7 @@ export const LocationsSelect = {
   createdAt: true,
   id: true,
   code: true,
+  nest: true,
   status: true,
   squareMeter: true,
   through: true,
@@ -58,5 +59,10 @@ export const LocationsSelect = {
       },
     },
   },
-  // animals: true,
+  animals: {
+    where: {
+      deletedAt: null,
+      status: 'ACTIVE' as AnimalStatus,
+    },
+  },
 };

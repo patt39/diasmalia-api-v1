@@ -86,7 +86,7 @@ export class WeaningsController {
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFemale)
       throw new HttpException(
@@ -105,27 +105,27 @@ export class WeaningsController {
 
     if (litter > findOneFarrowing.litter)
       throw new HttpException(
-        `Weaning litter: ${litter} can't be greater than farrowing litter: ${findOneFarrowing.litter}`,
+        `Weaning litter: ${litter} can't be greater than farrowing litter: ${findOneFarrowing?.litter}`,
         HttpStatus.AMBIGUOUS,
       );
 
     const weaning = await this.weaningsService.createOne({
       litter,
-      animalId: findOneFemale.id,
+      animalId: findOneFemale?.id,
       farrowingId: findOneFarrowing?.id,
-      animalTypeId: findOneFemale.animalTypeId,
+      animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,
-      userCreatedId: user.id,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a weaning in ${findOneFemale.animalType.name} for animal ${findOneFemale.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a weaning in ${findOneFemale?.animalType?.name} for animal ${findOneFemale?.code}`,
     });
 
     await this.animalsService.updateOne(
-      { animalId: findOneFemale.id },
+      { animalId: findOneFemale?.id },
       { productionPhase: 'REPRODUCTION' },
     );
 
@@ -146,7 +146,7 @@ export class WeaningsController {
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
@@ -155,17 +155,17 @@ export class WeaningsController {
       );
 
     const weaning = await this.weaningsService.updateOne(
-      { weaningId: findOneWeaning.id },
+      { weaningId: findOneWeaning?.id },
       {
         litter,
-        userCreatedId: user.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a weaning in ${findOneWeaning.animalType.name} for animal ${findOneWeaning.animal.code}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a weaning in ${findOneWeaning?.animalType?.name} for animal ${findOneWeaning?.animal?.code}`,
     });
 
     return reply({ res, results: weaning });
@@ -206,7 +206,7 @@ export class WeaningsController {
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
@@ -215,19 +215,19 @@ export class WeaningsController {
       );
 
     await this.weaningsService.updateOne(
-      { weaningId: findOneWeaning.id },
+      { weaningId: findOneWeaning?.id },
       { deletedAt: new Date() },
     );
 
     await this.animalsService.updateOne(
-      { animalId: findOneWeaning.animalId },
+      { animalId: findOneWeaning?.animalId },
       { productionPhase: 'LACTATION' },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a weaning in ${findOneWeaning.animalType.name} for animal ${findOneWeaning.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a weaning in ${findOneWeaning?.animalType?.name} for animal ${findOneWeaning?.animal?.code}`,
     });
 
     return reply({ res, results: 'Weaning deleted successfully' });

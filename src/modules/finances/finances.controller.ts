@@ -46,7 +46,7 @@ export class FinanceController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { type } = queryFinances;
+    const { type, periode } = queryFinances;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -60,6 +60,7 @@ export class FinanceController {
       type,
       search,
       pagination,
+      periode: Number(periode),
       organizationId: user?.organizationId,
     });
 
@@ -130,14 +131,14 @@ export class FinanceController {
         type,
         amount,
         detail,
-        userCreatedId: user.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a transaction in your organization`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a transaction in your organization`,
     });
 
     return reply({ res, results: finance });
@@ -192,9 +193,9 @@ export class FinanceController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a transaction in your organization`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a transaction in your organization`,
     });
 
     return reply({ res, results: finance });

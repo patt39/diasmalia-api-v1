@@ -34,7 +34,6 @@ export const WeaningSelect = {
       status: true,
       gender: true,
       weight: true,
-      electronicCode: true,
       productionPhase: true,
     },
   },

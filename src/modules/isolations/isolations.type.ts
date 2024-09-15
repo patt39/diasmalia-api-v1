@@ -34,6 +34,7 @@ export const IsolationsSelect = {
     select: {
       id: true,
       code: true,
+      quantity: true,
     },
   },
   animalType: {

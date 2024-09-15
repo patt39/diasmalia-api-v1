@@ -17,9 +17,13 @@ export class BulkFatteningsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+
+  @IsNotEmpty()
+  @IsString()
+  locationCode: string;
 }
 
-export class GetCastrationsQueryDto {
+export class GetFatteningsQueryDto {
   @IsOptional()
   @IsString()
   @IsUUID()

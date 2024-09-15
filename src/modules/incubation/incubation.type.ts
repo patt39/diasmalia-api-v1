@@ -11,6 +11,7 @@ export type IncubationsSelections = {
 
 export type GetOneIncubationSelections = {
   incubationId?: Incubation['id'];
+  animalId?: Incubation['animalId'];
   organizationId?: Incubation['organizationId'];
   animalTypeId?: Incubation['animalTypeId'];
 };
