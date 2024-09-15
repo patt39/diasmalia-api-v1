@@ -6,6 +6,10 @@ export type GetFeedingsSelections = {
   organizationId?: string;
   animalTypeId?: string;
   periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
+  feedingsCount?: number;
   pagination?: PaginationType;
 };
 

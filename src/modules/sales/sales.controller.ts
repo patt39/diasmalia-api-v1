@@ -14,6 +14,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import axios from 'axios';
 import PdfPrinter from 'pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Writable } from 'stream';
@@ -29,29 +30,27 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { FinancesService } from '../finances/finances.service';
-import {
-  awsS3ServiceAdapter,
-  getFileFromAws,
-} from '../integrations/aws/aws-s3-service-adapter';
+import { awsS3ServiceAdapter } from '../integrations/aws/aws-s3-service-adapter';
+import { UploadsUtil } from '../integrations/integration.utils';
 import { emailPDFAttachment } from '../users/mails/email-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
 import {
-  formatDateDifference,
   formatDDMMYYDate,
   formatNowDateYYMMDD,
 } from './../../app/utils/commons/formate-date';
 import {
   BulkSalesDto,
-  CreateOrUpdateSalesDto,
-  GetOneUploadsDto,
+  CreateSalesDto,
   SalesDto,
+  UpdateSalesDto,
 } from './sales.dto';
 import { SalesService } from './sales.service';
 
 @Controller('sales')
 export class SalesController {
   constructor(
+    private readonly uploadsUtil: UploadsUtil,
     private readonly salesService: SalesService,
     private readonly animalsService: AnimalsService,
     private readonly usersService: UsersService,
@@ -94,25 +93,17 @@ export class SalesController {
     return reply({ res, results: sales });
   }
 
-  /** Get sales statistics */
-  @Get(`/statistics`)
-  @UseGuards(UserAuthGuard)
-  async getSaleStatistics(@Res() res) {
-    const salesCount = await this.salesService.getSaleTransactions();
-    return reply({ res, results: salesCount });
-  }
-
   /** Update one Sale */
   @Put(`/:saleId/edit`)
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateSalesDto,
+    @Body() body: UpdateSalesDto,
     @Param('saleId', ParseUUIDPipe) saleId: string,
   ) {
     const { user } = req;
-    const { note, price, method, soldTo, phone } = body;
+    const { note, price, method, soldTo, phone, detail, number } = body;
 
     const findOneSale = await this.salesService.findOneBy({
       saleId,
@@ -125,21 +116,23 @@ export class SalesController {
       );
 
     await this.salesService.updateOne(
-      { saleId: findOneSale.id },
+      { saleId: findOneSale?.id },
       {
         note,
         price,
         phone,
         method,
         soldTo,
+        detail,
+        number,
         userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a sale in ${findOneSale.type}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a sale in ${findOneSale?.type}`,
     });
 
     return reply({ res, results: 'Sale Updated Successfully' });
@@ -148,11 +141,7 @@ export class SalesController {
   /** Post one aves sale */
   @Post(`/create/aves`)
   @UseGuards(UserAuthGuard)
-  async createOne(
-    @Res() res,
-    @Req() req,
-    @Body() body: CreateOrUpdateSalesDto,
-  ) {
+  async createOne(@Res() res, @Req() req, @Body() body: CreateSalesDto) {
     const { user } = req;
     const {
       code,
@@ -168,27 +157,76 @@ export class SalesController {
       address,
     } = body;
 
-    const findOneAnimal = await this.animalsService.findOneByCode({
+    const sumAnimals = Number(male + female);
+
+    const findOneAnimal = await this.animalsService.findOneAnimalDetails({
       code,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
         `Animal ${findOneAnimal?.code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
+    const totalEggHarvested = findOneAnimal?.eggHavestedCount;
+    const totalIncubations = findOneAnimal?.incubationCount;
+    const totalEggsHatched = findOneAnimal?.eggHatchedCount;
+    const totalSaleChicks = findOneAnimal?.chickSaleCount;
+
+    const eggDifference = Number(totalEggHarvested - totalIncubations);
+    const chicksDifference = Number(totalEggsHatched - totalSaleChicks);
+
+    if (detail === 'EGGS' && eggDifference < number)
+      throw new HttpException(
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no egg or insufficient availability: ${eggDifference}`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (detail === 'CHICKS' && chicksDifference < number)
+      throw new HttpException(
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no chicks or insufficient availability: ${chicksDifference}`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (detail === 'EGGS' && findOneAnimal?._count?.eggHavestings === 0)
+      throw new HttpException(
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no egg harvested yet please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (detail === 'CHICKS' && findOneAnimal?._count?.incubations === 0)
+      throw new HttpException(
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no eggs incubated yet please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (
+      ['CHICKS', 'CHICKENS'].includes(detail) &&
+      findOneAnimal?.female < female
+    )
+      throw new HttpException(
+        `Impossible to sell in this band code: ${findOneAnimal?.code} not enough females please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (['CHICKS', 'CHICKENS'].includes(detail) && findOneAnimal?.male < male)
+      throw new HttpException(
+        `Impossible to sell in this band code: ${findOneAnimal?.code} not enough males please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const findOneUser = await this.usersService.findOneBy({ email });
     const findUniqueUser = await this.usersService.findMe({
-      userId: user.id,
+      userId: user?.id,
     });
     if (!findUniqueUser)
       throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
 
-    const sumAnimals = Number(male + female);
-
-    if (findOneAnimal.quantity < number || findOneAnimal.quantity < sumAnimals)
+    if (
+      findOneAnimal?.quantity < number ||
+      findOneAnimal?.quantity < sumAnimals
+    )
       throw new HttpException(
         `Impossible to sell insuficient animals available`,
         HttpStatus.NOT_FOUND,
@@ -204,18 +242,29 @@ export class SalesController {
       soldTo,
       address,
       detail,
-      animalId: findOneAnimal.id,
+      animalId: findOneAnimal?.id,
       number: number ? number : sumAnimals,
-      type: findOneAnimal.animalType.name,
-      animalTypeId: findOneAnimal.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      type: findOneAnimal?.animalType?.name,
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.animalsService.updateOne(
-      { animalId: findOneAnimal.id },
-      { quantity: findOneAnimal?.quantity - number },
+      { animalId: findOneAnimal?.id },
+      {
+        female: findOneAnimal?.female - female,
+        male: findOneAnimal?.male - male,
+        quantity: findOneAnimal?.quantity - sale?.number,
+      },
     );
+
+    if (findOneAnimal?.quantity - sale?.number === 0) {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        { status: 'SOLD' },
+      );
+    }
 
     await this.financesService.createOne({
       type: 'INCOME',
@@ -248,6 +297,14 @@ export class SalesController {
         opacity: 0.1,
         bold: true,
         italics: false,
+      },
+      footer: function () {
+        return {
+          text: `Generated by ${config.datasite.name}`,
+          alignment: 'right',
+          style: 'normalText',
+          margin: [10, 10, 10, 10],
+        };
       },
 
       content: [
@@ -319,9 +376,9 @@ export class SalesController {
                 'Production phase',
               ],
               [
-                findOneAnimal.animalType.name,
-                number,
-                formatDateDifference(findOneAnimal?.birthday),
+                findOneAnimal?.animalType?.slug,
+                sale?.number,
+                findOneAnimal?.birthday,
                 findOneAnimal?.weight,
                 findOneAnimal?.productionPhase,
               ],
@@ -370,17 +427,22 @@ export class SalesController {
       pdfDoc.end();
     });
 
-    await awsS3ServiceAdapter({
+    const awsPdf = await awsS3ServiceAdapter({
       fileName: fileName,
       mimeType: 'application/pdf',
       folder: 'sales-pdf',
       file: Buffer.concat(chunks),
     });
 
+    await this.salesService.updateOne(
+      { saleId: sale?.id },
+      { salePdf: awsPdf?.Location },
+    );
+
     if (findOneUser) {
       await emailPDFAttachment({
         user,
-        email: findOneUser.email,
+        email: findOneUser?.email,
         filename: fileName,
         content: Buffer.concat(chunks),
       });
@@ -439,7 +501,7 @@ export class SalesController {
         );
 
       newAnimalArrayPdf.push({
-        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/view/${findOneAnimal?.id}`,
+        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/${findOneAnimal?.id}/view`,
         fit: 80,
         margin: [0, 0, 0, 20],
         display: 'flex',
@@ -453,8 +515,8 @@ export class SalesController {
       animalArrayPdfCodes.push(findOneAnimal?.code);
       animalArrayPdfWeights.push(findOneAnimal?.weight);
       animalArrayPdfGenders.push(findOneAnimal?.gender);
-      animalArrayPdfTypesId.push(findOneAnimal?.animalType.id);
-      animalArrayPdfTypes.push(findOneAnimal?.animalType.slug);
+      animalArrayPdfTypesId.push(findOneAnimal?.animalType?.id);
+      animalArrayPdfTypes.push(findOneAnimal?.animalType?.slug);
 
       if (findOneAnimal) {
         await this.animalsService.updateOne(
@@ -476,8 +538,8 @@ export class SalesController {
       number: animals.length,
       type: animalArrayPdfTypes[0],
       animalTypeId: animalArrayPdfTypesId[0],
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
@@ -489,8 +551,8 @@ export class SalesController {
     await this.financesService.createOne({
       detail: note,
       type: 'INCOME',
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
       amount: price,
     });
 
@@ -662,17 +724,22 @@ export class SalesController {
     // pdf.pipe(fs.createWriteStream(`${nameFile}.pdf`));
     // pdf.end();
 
-    await awsS3ServiceAdapter({
+    const awsPdf = await awsS3ServiceAdapter({
       fileName: fileName,
       mimeType: 'application/pdf',
       folder: 'sales-pdf',
       file: Buffer.concat(chunks),
     });
 
+    await this.salesService.updateOne(
+      { saleId: sale?.id },
+      { salePdf: awsPdf?.Location },
+    );
+
     if (findOneUser) {
       await emailPDFAttachment({
         user,
-        email: findOneUser.email,
+        email: findOneUser?.email,
         filename: fileName,
         content: Buffer.concat(chunks),
       });
@@ -691,9 +758,9 @@ export class SalesController {
   }
 
   /** Get one Sale */
-  @Get(`/view/:saleId`)
+  @Get(`/:saleId/view`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdUser(
+  async getOneSaleById(
     @Res() res,
     @Req() req,
     @Param('saleId', ParseUUIDPipe) saleId: string,
@@ -702,7 +769,7 @@ export class SalesController {
 
     const findOneSale = await this.salesService.findOneBy({
       saleId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneSale)
       throw new HttpException(
@@ -711,6 +778,29 @@ export class SalesController {
       );
 
     return reply({ res, results: findOneSale });
+  }
+
+  /** Get one animalType sale */
+  @Get(`/:animalTypeId/view/animalType`)
+  @UseGuards(UserAuthGuard)
+  async getOneSaleByAnimalTypeId(
+    @Res() res,
+    @Req() req,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
+  ) {
+    const { user } = req;
+
+    const findOneSaleAnimalType = await this.salesService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneSaleAnimalType)
+      throw new HttpException(
+        `AnimalTypeId: ${animalTypeId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneSaleAnimalType });
   }
 
   /** Download sales */
@@ -725,9 +815,9 @@ export class SalesController {
         'attachment; filename= ' + 'SalesExport.xlsx',
       );
       await this.activitylogsService.createOne({
-        userId: user.id,
-        organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} exported animals sale`,
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} exported animals sale`,
       });
     } catch (error) {
       console.error(error);
@@ -736,19 +826,35 @@ export class SalesController {
   }
 
   /** Pdf download */
-  @Get(`/:folder/:name/download`)
-  async getOneUploadedPDF(@Res() res, @Param() params: GetOneUploadsDto) {
-    const { name, folder } = params;
+  @Get(`/:saleId/download`)
+  async getOneUploadedPDF(
+    @Res() res,
+    @Req() req,
+    @Param('saleId', ParseUUIDPipe) saleId: string,
+  ) {
+    const { user } = req;
+
+    const findOneSale = await this.salesService.findOneBy({
+      saleId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneSale)
+      throw new HttpException(
+        `SaleId: ${saleId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
     try {
-      const { fileBuffer, contentType } = await getFileFromAws({
-        folder,
-        fileName: name,
+      const pdfResponse = await axios.get(findOneSale?.salePdf, {
+        responseType: 'arraybuffer', // Ensures the PDF is handled as a binary
       });
+      const fileName = `document_${findOneSale?.id}.pdf`;
       res.status(200);
-      res.contentType(contentType);
-      res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
       res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-      res.send(fileBuffer);
+      res.send(pdfResponse.data);
     } catch (error) {
       console.error(error);
       res.status(500).send('Error during file recovering.');
@@ -774,9 +880,9 @@ export class SalesController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a sale ${findOneSale.type}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a sale ${findOneSale?.type}`,
     });
 
     return reply({ res, results: sale });

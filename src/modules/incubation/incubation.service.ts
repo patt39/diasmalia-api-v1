@@ -73,10 +73,14 @@ export class IncubationsService {
   /** Find one incubation in database. */
   async findOneBy(selections: GetOneIncubationSelections) {
     const prismaWhere = {} as Prisma.IncubationWhereInput;
-    const { incubationId, animalTypeId, organizationId } = selections;
+    const { incubationId, animalId, animalTypeId, organizationId } = selections;
 
     if (incubationId) {
       Object.assign(prismaWhere, { id: incubationId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
     }
 
     if (organizationId) {

@@ -8,10 +8,6 @@ export class CreateOrUpdateAnimalTypesDto {
 
   @IsNotEmpty()
   @IsString()
-  photo: string;
-
-  @IsNotEmpty()
-  @IsString()
   description: string;
 
   @IsNotEmpty()
@@ -21,10 +17,6 @@ export class CreateOrUpdateAnimalTypesDto {
   @IsNotEmpty()
   @IsString()
   habitat: string;
-
-  @IsNotEmpty()
-  @IsString()
-  type: string;
 
   @IsOptional()
   @IsString()

@@ -98,10 +98,21 @@ export const formatDateJsToUtc = (date: Date) => {
 export const formatDateDifference = (date: Date) => {
   const birthDate = DateTime.fromISO(String(date).split('T')[0]);
   const now = DateTime.now();
+  const days = Math.floor(now.diff(birthDate, 'days').days);
   const years = Math.floor(now.diff(birthDate, 'years').years);
   const months = Math.floor(now.diff(birthDate, 'months').months);
 
-  const age = years >= 1 ? `${years} years` : `${months} mths`;
+  //const age = years >= 1 ? `${years} years` : `${months} mths`;
+  let age = '';
+  if (years > 1) {
+    age = `${years} years`;
+  }
+  if (months >= 1 && years < 1) {
+    age = `${months} mnths`;
+  }
+  if (days < 32 && months < 1 && years < 1) {
+    age = `${days} days`;
+  }
 
   return age;
 };
@@ -132,3 +143,35 @@ export const timeMinusNowUTC = (offset: number = 0, from: OffsetUnit = 'sec') =>
   DateTime.utc()
     .minus({ seconds: offset * timeMult[from] })
     .toJSDate();
+
+export const lastDayMonth = ({
+  year,
+  month,
+}: {
+  year: number;
+  month: number;
+}) => {
+  return new Date(Number(year), Number(month), 1);
+};
+
+export const formateMMNumericDate = (date: Date) => {
+  return DateTime.fromJSDate(date).toLocaleString({ month: 'numeric' });
+};
+
+export const formateDDNumericDate = (date: Date) => {
+  return DateTime.fromJSDate(date).toLocaleString({ day: 'numeric' });
+};
+
+export const formateYYYYDate = (date: Date) => {
+  return DateTime.fromJSDate(date).toLocaleString({ year: 'numeric' });
+};
+
+export const formateDDDate = (date: Date, lang: string) => {
+  return DateTime.fromJSDate(date).setLocale(lang).toFormat('dd LLL');
+};
+
+export const formateMMDate = (date: Date, lang: string) => {
+  return DateTime.fromJSDate(date)
+    .setLocale(lang)
+    .toLocaleString({ month: 'long' });
+};

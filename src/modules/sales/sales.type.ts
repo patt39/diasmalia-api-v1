@@ -14,6 +14,7 @@ export type GetSalesSelections = {
 
 export type GetOneSaleSelections = {
   saleId?: Sale['id'];
+  animalTypeId?: Sale['animalTypeId'];
   organizationId?: Sale['organizationId'];
 };
 
@@ -40,5 +41,11 @@ export const SalesSelect = {
   number: true,
   method: true,
   address: true,
-  animalId: true,
+  animal: {
+    select: {
+      code: true,
+      status: true,
+    },
+  },
+  salePdf: true,
 };

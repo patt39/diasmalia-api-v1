@@ -19,6 +19,10 @@ export class CreateOrUpdateCheckPregnanciesDto {
 
   @IsNotEmpty()
   @IsString()
+  locationCode: string;
+
+  @IsNotEmpty()
+  @IsString()
   @IsEnum(ResultCheckPregnancy)
   result: ResultCheckPregnancy;
 }

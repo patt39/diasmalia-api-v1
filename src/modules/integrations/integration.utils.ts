@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as mime from 'mime-types';
-import { formatNowDateYYMMDD } from '../../app/utils/commons/formate-date';
 import {
-  Slug,
+  formatNowDateYYMMDD,
   generateLongUUID,
-} from '../../app/utils/commons/generate-random';
-import { awsS3ServiceAdapter } from '../integrations/aws/aws-s3-service-adapter';
+  Slug,
+} from 'src/app/utils/commons';
+import { awsS3ServiceAdapter } from './aws/aws-s3-service-adapter';
 
 type ExpressFile = Express.Multer.File;
 @Injectable()
@@ -26,7 +26,6 @@ export class UploadsUtil {
         new Date(),
       )}-${generateLongUUID(4)}`;
       fileName = `${`${nameFile}.${extension}`}`;
-
       urlAWS = await awsS3ServiceAdapter({
         fileName: fileName,
         mimeType: file?.mimetype,

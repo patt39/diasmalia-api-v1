@@ -6,6 +6,7 @@ export type GetBreedingsSelections = {
   organizationId?: string;
   pagination?: PaginationType;
   animalId?: string;
+  periode?: number;
   animalTypeId?: string;
   gender?: Animal['gender'];
   method?: Breeding['method'];

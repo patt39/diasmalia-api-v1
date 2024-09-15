@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { EggHavesting, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   dateTimeNowUtc,
+  lastDayMonth,
   substrateDaysToTimeNowUtcDate,
-} from 'src/app/utils/commons';
-import { DatabaseService } from '../../app/database/database.service';
+} from '../../app/utils/commons';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountByDateAndReturnArray } from '../analytics/analytics.utils';
 import {
   CreateEggHavestingsOptions,
   EggHarvestingsSelect,
@@ -70,10 +72,75 @@ export class EggHavestingsService {
       value: eggHavestings,
     });
   }
+
+  async findAllEggHarvestingsAnimalAnalytics(
+    selections: GetEggHavestingsSelections,
+  ) {
+    const prismaWhere = {} as Prisma.EggHavestingWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupEggHarvestingsAnalytics = await this.client.eggHavesting.groupBy(
+      {
+        by: ['createdAt', 'organizationId', 'animalTypeId'],
+        where: { ...prismaWhere, deletedAt: null },
+        _sum: {
+          quantity: true,
+        },
+        _count: true,
+      },
+    );
+
+    const eggHarvestingAnalytics = groupCountByDateAndReturnArray({
+      data: groupEggHarvestingsAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return eggHarvestingAnalytics;
+  }
+
   /** Find one egg-havesting in database. */
   async findOneBy(selections: GetOneEggHavestingSelections) {
     const prismaWhere = {} as Prisma.EggHavestingWhereInput;
-    const { eggHarvestingId, animalTypeId, organizationId } = selections;
+    const { eggHarvestingId, animalId, animalTypeId, organizationId } =
+      selections;
 
     if (eggHarvestingId) {
       Object.assign(prismaWhere, { id: eggHarvestingId });
@@ -81,6 +148,10 @@ export class EggHavestingsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
     }
 
     if (animalTypeId) {

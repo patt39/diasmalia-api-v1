@@ -11,7 +11,7 @@ export class CreateFarrowingsDto {
   @IsNumber()
   litter: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   note: string;
 
@@ -24,6 +24,10 @@ export class UpdateFarrowingsDto {
   @IsOptional()
   @IsNumber()
   litter: number;
+
+  @IsNotEmpty()
+  @IsString()
+  note: string;
 }
 
 export class FarrowingQueryDto {

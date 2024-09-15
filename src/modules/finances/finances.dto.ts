@@ -5,13 +5,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateOrUpdateFinancesDto {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   detail: string;
 
   @IsNotEmpty()
@@ -20,7 +18,6 @@ export class CreateOrUpdateFinancesDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
   @IsEnum(financeType)
   type: financeType;
 }
@@ -28,7 +25,10 @@ export class CreateOrUpdateFinancesDto {
 export class GetFinancesByType {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   @IsEnum(financeType)
   type: financeType;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 }

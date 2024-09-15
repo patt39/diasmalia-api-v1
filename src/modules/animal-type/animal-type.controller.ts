@@ -7,19 +7,25 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
+  Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
+import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateOrUpdateAnimalTypesDto,
@@ -29,7 +35,10 @@ import { AnimalTypesService } from './animal-type.service';
 
 @Controller('animal-type')
 export class AnimalTypesController {
-  constructor(private readonly animalTypesService: AnimalTypesService) {}
+  constructor(
+    private readonly animalTypesService: AnimalTypesService,
+    private readonly uploadsUtil: UploadsUtil,
+  ) {}
 
   @Get(`/`)
   @UseGuards(UserAuthGuard)
@@ -59,6 +68,37 @@ export class AnimalTypesController {
     return reply({ res, results: animalType });
   }
 
+  /** Create one animalType */
+  @Post(`/create`)
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  async createOneAnimalType(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateAnimalTypesDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const { user } = req;
+    const { name, slug, habitat, description, status } = body;
+
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'photos',
+    });
+
+    await this.animalTypesService.createOne({
+      name,
+      slug,
+      status,
+      habitat,
+      photo: urlAWS?.Location,
+      description,
+    });
+
+    return reply({ res, results: 'Animal Type created successfully' });
+  }
+
   /** Update one animalType */
   @Put(`/:animalTypeId/edit`)
   @UseGuards(UserAuthGuard)
@@ -67,7 +107,7 @@ export class AnimalTypesController {
     @Body() body: CreateOrUpdateAnimalTypesDto,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
-    const { name, photo, slug, habitat, description, status } = body;
+    const { name, slug, habitat, description, status } = body;
 
     const findOneType = await this.animalTypesService.findOneBy({
       animalTypeId,
@@ -82,7 +122,6 @@ export class AnimalTypesController {
       { animalTypeId: findOneType?.id },
       {
         name,
-        photo,
         slug,
         status,
         habitat,

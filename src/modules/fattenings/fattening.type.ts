@@ -41,6 +41,7 @@ export const fatteningsSelect = {
     select: {
       id: true,
       code: true,
+      weight: true,
     },
   },
 };

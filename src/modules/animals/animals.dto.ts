@@ -12,7 +12,6 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateAnimalsDto {
@@ -32,7 +31,7 @@ export class CreateAnimalsDto {
   @IsNumber()
   weight: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   birthday: Date;
 
@@ -48,7 +47,43 @@ export class CreateAnimalsDto {
 
   @IsOptional()
   @IsString()
-  electronicCode: string;
+  locationCode: string;
+
+  @IsNotEmpty()
+  @IsString()
+  breedName: string;
+}
+
+export class BulkAnimalsCreateDto {
+  @IsNotEmpty()
+  @IsNumber()
+  number: number;
+
+  @IsOptional()
+  @IsString()
+  codeFather: string;
+
+  @IsOptional()
+  @IsString()
+  codeMother: string;
+
+  @IsOptional()
+  @IsNumber()
+  weight: number;
+
+  @IsNotEmpty()
+  @IsString()
+  birthday: Date;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(Gender)
+  gender: Gender;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
 
   @IsOptional()
   @IsString()
@@ -81,6 +116,10 @@ export class UpdateAnimalsDto {
   birthday: Date;
 
   @IsOptional()
+  @IsNumber()
+  quantity: number;
+
+  @IsOptional()
   @IsString()
   @IsEnum(Gender)
   gender: Gender;
@@ -97,10 +136,6 @@ export class UpdateAnimalsDto {
 
   @IsOptional()
   @IsString()
-  electronicCode: string;
-
-  @IsOptional()
-  @IsString()
   locationCode: string;
 
   @IsOptional()
@@ -108,7 +143,7 @@ export class UpdateAnimalsDto {
   breedName: string;
 }
 
-export class CreateOrUpdateAvesDto {
+export class CreateAvesDto {
   @IsOptional()
   @IsString()
   code: string;
@@ -132,10 +167,6 @@ export class CreateOrUpdateAvesDto {
 
   @IsOptional()
   @IsString()
-  electronicCode: string;
-
-  @IsOptional()
-  @IsString()
   locationCode: string;
 
   @IsOptional()
@@ -150,7 +181,6 @@ export class CreateOrUpdateAvesDto {
 export class GetAnimalsQuery {
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 
@@ -158,6 +188,10 @@ export class GetAnimalsQuery {
   @IsString()
   @IsEnum(Gender)
   gender: Gender;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
 
   @IsOptional()
   @IsString()

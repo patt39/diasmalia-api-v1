@@ -97,7 +97,7 @@ export class DeathsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const sumDeadAnimals = Number(male + female);
+    const sumDeadAnimals = male + female;
 
     if (
       findOneAnimal?.quantity < number ||
@@ -110,8 +110,8 @@ export class DeathsController {
 
     const death = await this.deathsService.createOne({
       note,
-      number: number ? number : sumDeadAnimals,
       animalId: findOneAnimal?.id,
+      number: number ? number : sumDeadAnimals,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -122,14 +122,17 @@ export class DeathsController {
       {
         female: findOneAnimal?.female - female,
         male: findOneAnimal?.male - male,
-        quantity: findOneAnimal?.quantity - sumDeadAnimals,
+        quantity: findOneAnimal?.quantity - death?.number,
       },
     );
 
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      { quantity: findOneAnimal?.quantity - number },
-    );
+    if (findOneAnimal?.quantity - death?.number === 0) {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        { status: 'DEAD' },
+      );
+    }
+    console.log('findOneAnimalDead ==>', findOneAnimal?.quantity);
 
     await this.activitylogsService.createOne({
       userId: user.id,
@@ -248,9 +251,9 @@ export class DeathsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a death in ${findOneDeath?.animalType?.name} dead`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user.profile?.lastName} updated a death in ${findOneDeath?.animalType?.name} dead`,
     });
 
     return reply({ res, results: 'Death updated successfully' });

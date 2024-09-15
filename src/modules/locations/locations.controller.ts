@@ -68,7 +68,7 @@ export class LocationsController {
       pagination,
       animalTypeId,
       productionPhase,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: locations });
@@ -84,11 +84,11 @@ export class LocationsController {
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
     const { user } = req;
-    const { code, manger, through, squareMeter, productionPhase } = body;
+    const { code, nest, manger, through, squareMeter, productionPhase } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAssignType)
       throw new HttpException(
@@ -100,6 +100,7 @@ export class LocationsController {
     const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
 
     const location = await this.locationsService.createOne({
+      nest,
       manger,
       through,
       squareMeter,
@@ -138,17 +139,24 @@ export class LocationsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneLocation)
       throw new HttpException(
-        `CurrencyId: ${locationId} doesn't exists, please change`,
+        `LocationId: ${locationId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
+    if (findOneLocation?._count?.animals !== 0) {
+      throw new HttpException(
+        `Impossible to change status location: ${findOneLocation?.code} isn't empty please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     await this.locationsService.updateOne(
-      { locationId: findOneLocation.id },
-      { status: !findOneLocation.status },
+      { locationId: findOneLocation?.id },
+      { status: !findOneLocation?.status },
     );
 
     return reply({ res, results: 'Status changed successfully' });
@@ -164,7 +172,7 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { squareMeter, manger, through, code, productionPhase } = body;
+    const { nest, squareMeter, manger, through, code, productionPhase } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
@@ -179,6 +187,7 @@ export class LocationsController {
     const location = await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       {
+        nest,
         code,
         manger,
         through,
@@ -190,7 +199,7 @@ export class LocationsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a location in ${findOneLocation.animalType.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a location in ${findOneLocation?.animalType?.name}`,
     });
 
     return reply({
@@ -204,7 +213,7 @@ export class LocationsController {
   }
 
   /** Get one location */
-  @Get(`/view/:locationId`)
+  @Get(`/:locationId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdUser(
     @Res() res,
@@ -238,7 +247,7 @@ export class LocationsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneLocation)
       throw new HttpException(
@@ -246,15 +255,25 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    if (
+      findOneLocation?._count?.animals !== 0 ||
+      findOneLocation?.status === false
+    ) {
+      throw new HttpException(
+        `Impossible to delete location: ${findOneLocation?.code} isn't empty please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     await this.locationsService.updateOne(
       { locationId: findOneLocation?.id },
       { deletedAt: new Date() },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
+      userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a location in ${findOneLocation.animalType.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a location in ${findOneLocation?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Location deleted successfully' });

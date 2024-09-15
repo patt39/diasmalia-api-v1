@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -79,7 +78,7 @@ export class GestationsController {
 
     const findOneGestation = await this.gestationsService.findOneBy({
       gestationId,
-      organizationId: user.organization,
+      organizationId: user?.organization,
     });
     if (!findOneGestation) {
       throw new HttpException(
@@ -89,19 +88,19 @@ export class GestationsController {
     }
 
     const gestation = await this.gestationsService.updateOne(
-      { gestationId: findOneGestation.id },
+      { gestationId: findOneGestation?.id },
       {
         note,
         method,
         farrowingDate,
-        userCreatedId: user.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a gestation, in ${findOneGestation.animalType.name} for ${findOneGestation.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a gestation, in ${findOneGestation?.animalType?.name} for ${findOneGestation?.animal?.code}`,
     });
 
     return reply({
@@ -136,40 +135,5 @@ export class GestationsController {
     }
 
     return reply({ res, results: findOneGestation });
-  }
-
-  /** Delete one gestation */
-  @Delete(`/delete/:gestationId`)
-  @UseGuards(UserAuthGuard)
-  async deleteOne(
-    @Res() res,
-    @Req() req,
-    @Param('gestationId', ParseUUIDPipe) gestationId: string,
-  ) {
-    const { user } = req;
-
-    const findOneGestation = await this.gestationsService.findOneBy({
-      gestationId,
-      organizationId: user.organization,
-    });
-    if (!findOneGestation) {
-      throw new HttpException(
-        `GestationId: ${gestationId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    await this.gestationsService.updateOne(
-      { gestationId: findOneGestation?.id },
-      { deletedAt: new Date() },
-    );
-
-    await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a gestation in ${findOneGestation.animalType.name} for ${findOneGestation.animal.code}`,
-    });
-
-    return reply({ res, results: 'Gestation deleted successfully' });
   }
 }

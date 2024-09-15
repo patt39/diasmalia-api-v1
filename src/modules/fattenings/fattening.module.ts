@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
+import { LocationsService } from '../locations/locations.service';
 import { FatteningsController } from './fattening.controller';
 import { FatteningsService } from './fattening.service';
 
@@ -12,6 +13,7 @@ import { FatteningsService } from './fattening.service';
     FatteningsService,
     ActivityLogsService,
     AssignTypesService,
+    LocationsService,
   ],
 })
 export class FatteningsModule {}

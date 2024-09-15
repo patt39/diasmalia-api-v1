@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Finance, Prisma } from '@prisma/client';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
 import { Slug, generateNumber } from '../../app/utils/commons/generate-random';
 import {
@@ -23,7 +27,7 @@ export class FinancesService {
     selections: GetFinancesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FinanceWhereInput;
-    const { search, type, organizationId, pagination } = selections;
+    const { search, type, periode, organizationId, pagination } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -37,6 +41,15 @@ export class FinancesService {
 
     if (type) {
       Object.assign(prismaWhere, { type });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
 
     const finances = await this.client.finance.findMany({

@@ -24,6 +24,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateIncubationsDto,
@@ -37,6 +38,7 @@ export class IncubationsController {
   constructor(
     private readonly incubationsService: IncubationsService,
     private readonly animalsService: AnimalsService,
+    private readonly EggHavestingsService: EggHavestingsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -66,7 +68,7 @@ export class IncubationsController {
       pagination,
       animalTypeId,
       periode: Number(periode),
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: incubations });
@@ -79,10 +81,10 @@ export class IncubationsController {
     const { user } = req;
     const { dueDate, quantityStart, code } = body;
 
-    const findOneAnimal = await this.animalsService.findOneByCode({
+    const findOneAnimal = await this.animalsService.findOneBy({
       code,
       productionPhase: 'LAYING',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -90,19 +92,52 @@ export class IncubationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneIncubation = await this.incubationsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneIncubation)
+      throw new HttpException(
+        `Incubation doesn't exists`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneEggHarvested = this.EggHavestingsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneIncubation)
+      throw new HttpException(
+        `EggHarvesting doesn't exists`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const difference = String(
+      (await findOneEggHarvested).quantity - findOneIncubation?.quantityStart,
+    );
+
+    if (
+      findOneIncubation?.quantityStart + quantityStart >
+      (await findOneEggHarvested).quantity
+    )
+      throw new HttpException(
+        `Impossible to create, incubated eggs is greater than total number of eggs harvested the difference is ${difference}`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const incubation = await this.incubationsService.createOne({
       dueDate,
       quantityStart,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAnimal.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      animalId: findOneAnimal?.id,
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created an incubation for ${findOneAnimal.animalType.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an incubation for ${findOneAnimal?.animalType?.name}`,
     });
 
     return reply({ res, results: incubation });
@@ -120,7 +155,7 @@ export class IncubationsController {
     const { user } = req;
     const { quantityEnd, quantityStart, dueDate, code } = body;
 
-    const findOneAnimal = await this.animalsService.findOneByCode({
+    const findOneAnimal = await this.animalsService.findOneBy({
       code,
       productionPhase: 'LAYING',
       organizationId: user.organizationId,
@@ -133,7 +168,7 @@ export class IncubationsController {
 
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneIncubation)
       throw new HttpException(
@@ -153,15 +188,15 @@ export class IncubationsController {
         dueDate,
         quantityEnd,
         quantityStart,
-        animalId: findOneAnimal.id,
-        userCreatedId: user.id,
+        animalId: findOneAnimal?.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an incubation in ${findOneIncubation.animalType.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated an incubation in ${findOneIncubation?.animalType?.name}`,
     });
 
     return reply({ res, results: incubation });
@@ -217,9 +252,9 @@ export class IncubationsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an incubation in ${findOneIncubation.animalType.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted an incubation in ${findOneIncubation?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Incubation deleted successfully' });

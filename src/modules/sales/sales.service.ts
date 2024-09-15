@@ -103,7 +103,7 @@ export class SalesService {
   /** Find one sale in database. */
   async findOneBy(selections: GetOneSaleSelections) {
     const prismaWhere = {} as Prisma.SaleWhereInput;
-    const { saleId, organizationId } = selections;
+    const { saleId, animalTypeId, organizationId } = selections;
 
     if (saleId) {
       Object.assign(prismaWhere, { id: saleId });
@@ -111,6 +111,10 @@ export class SalesService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     const sale = await this.client.sale.findFirst({
@@ -180,10 +184,12 @@ export class SalesService {
       note,
       price,
       phone,
+      detail,
       number,
       soldTo,
       method,
       address,
+      salePdf,
       userCreatedId,
       deletedAt,
     } = options;
@@ -194,10 +200,12 @@ export class SalesService {
         note,
         price,
         phone,
+        detail,
         soldTo,
         method,
         number,
         address,
+        salePdf,
         userCreatedId,
         deletedAt,
       },
@@ -382,42 +390,5 @@ export class SalesService {
         visibility: 'visible',
       },
     ];
-  }
-
-  /** Get sale transactiions. */
-  async getSaleTransactions() {
-    const [totalSaleChicks, totalSaleEggs, totalSaleChickens] =
-      await this.client.$transaction([
-        this.client.sale.findMany({
-          where: { detail: 'CHICKS', deletedAt: null },
-        }),
-        this.client.sale.findMany({
-          where: { detail: 'EGGS', deletedAt: null },
-        }),
-        this.client.sale.findMany({
-          where: { detail: 'CHICKENS', deletedAt: null },
-        }),
-      ]);
-
-    const initialValue = 0;
-    const sumSaleChicks = totalSaleChicks.reduce(
-      (accumulator: any, currentValue: any) =>
-        accumulator + currentValue.number,
-      initialValue,
-    );
-
-    const sumSaleEggs = totalSaleEggs.reduce(
-      (accumulator: any, currentValue: any) =>
-        accumulator + currentValue.number,
-      initialValue,
-    );
-
-    const sumSaleChickens = totalSaleChickens.reduce(
-      (accumulator: any, currentValue: any) =>
-        accumulator + currentValue.number,
-      initialValue,
-    );
-
-    return { sumSaleChicks, sumSaleEggs, sumSaleChickens };
   }
 }

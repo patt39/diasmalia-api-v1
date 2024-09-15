@@ -86,6 +86,7 @@ export class EggHavestingsController {
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       status: 'ACTIVE',
+      productionPhase: 'LAYING',
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -93,7 +94,7 @@ export class EggHavestingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneAnimal.quantity <= 0)
+    if (findOneAnimal?.quantity === 0)
       throw new HttpException(
         `Unable to collect eggs, animals doesn't exists please change`,
         HttpStatus.NOT_FOUND,

@@ -13,13 +13,17 @@ export class CreateOrUpdateLocationsDto {
   @IsInt()
   squareMeter: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   manger: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   through: number;
+
+  @IsOptional()
+  @IsInt()
+  nest: number;
 
   @IsOptional()
   @IsString()

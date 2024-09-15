@@ -18,7 +18,8 @@ export type GetOneGestationSelections = {
 };
 
 export type UpdateGestationsSelections = {
-  gestationId: Gestation['id'];
+  animalId?: Gestation['animalId'];
+  gestationId?: Gestation['id'];
 };
 
 export type CreateGestationsOptions = Partial<Gestation>;
@@ -32,6 +33,7 @@ export const GestationSelect = {
   method: true,
   checkPregnancyId: true,
   farrowingDate: true,
+  animalId: true,
   animal: {
     select: {
       code: true,

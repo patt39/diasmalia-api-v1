@@ -10,12 +10,12 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateOrUpdateSalesDto {
+export class CreateSalesDto {
   @IsOptional()
   @IsString()
   note: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(sellingDetail)
   detail: sellingDetail;
@@ -23,6 +23,54 @@ export class CreateOrUpdateSalesDto {
   @IsNotEmpty()
   @IsString()
   code: string;
+
+  @IsOptional()
+  @IsString()
+  soldTo: string;
+
+  @IsOptional()
+  @IsString()
+  phone: string;
+
+  @IsOptional()
+  @IsString()
+  email: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  price: number;
+
+  @IsOptional()
+  @IsNumber()
+  number: number;
+
+  @IsOptional()
+  @IsNumber()
+  male: number;
+
+  @IsOptional()
+  @IsNumber()
+  female: number;
+
+  @IsOptional()
+  @IsString()
+  address: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(sellingMethod)
+  method: sellingMethod;
+}
+
+export class UpdateSalesDto {
+  @IsOptional()
+  @IsString()
+  note: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(sellingDetail)
+  detail: sellingDetail;
 
   @IsOptional()
   @IsString()
@@ -119,14 +167,4 @@ export class SalesDto {
   @IsOptional()
   @IsString()
   periode: string;
-}
-
-export class GetOneUploadsDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  @IsNotEmpty()
-  @IsString()
-  folder: string;
 }

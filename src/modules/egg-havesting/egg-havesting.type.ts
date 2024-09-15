@@ -4,6 +4,9 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetEggHavestingsSelections = {
   search?: string;
   periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -11,6 +14,7 @@ export type GetEggHavestingsSelections = {
 
 export type GetOneEggHavestingSelections = {
   eggHarvestingId?: EggHavesting['id'];
+  animalId?: EggHavesting['animalId'];
   organizationId?: EggHavesting['organizationId'];
   animalTypeId?: EggHavesting['animalTypeId'];
 };

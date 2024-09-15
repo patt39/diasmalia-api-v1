@@ -4,6 +4,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetFinancesSelections = {
   search?: string;
   type?: financeType;
+  periode?: number;
   organizationId?: string;
   pagination?: PaginationType;
 };
