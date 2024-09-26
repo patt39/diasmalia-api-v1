@@ -4,6 +4,9 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type IncubationsSelections = {
   search?: string;
   periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;

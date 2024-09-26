@@ -34,6 +34,34 @@ export class CreateOrUpdateLocationsDto {
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
 }
+
+export class CreateBulkLocationsDto {
+  @IsNotEmpty()
+  @IsInt()
+  squareMeter: number;
+
+  @IsOptional()
+  @IsInt()
+  manger: number;
+
+  @IsOptional()
+  @IsInt()
+  through: number;
+
+  @IsOptional()
+  @IsInt()
+  nest: number;
+
+  @IsOptional()
+  @IsInt()
+  number: number;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(ProductionPhase)
+  productionPhase: ProductionPhase;
+}
+
 export class GetLocationsQueryDto {
   @IsOptional()
   @IsString()

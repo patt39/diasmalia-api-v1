@@ -1,7 +1,5 @@
-import { FeedType } from '@prisma/client';
 import {
   IsArray,
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -20,8 +18,8 @@ export class UpdateFeedingsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(FeedType)
-  feedType: FeedType;
+  @IsUUID()
+  feedStockId: string;
 }
 
 export class CreateFeedingsDto {
@@ -33,10 +31,10 @@ export class CreateFeedingsDto {
   @IsString()
   code: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsEnum(FeedType)
-  feedType: FeedType;
+  @IsUUID()
+  feedStockId: string;
 }
 
 export class BulkFeedingsDto {
@@ -48,10 +46,10 @@ export class BulkFeedingsDto {
   @IsNumber()
   quantity: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsEnum(FeedType)
-  feedType: FeedType;
+  @IsUUID()
+  feedStockId: string;
 }
 
 export class GetFeedQueryDto {

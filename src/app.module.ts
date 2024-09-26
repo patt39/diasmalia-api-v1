@@ -19,6 +19,7 @@ import { DeathsModule } from './modules/death/deaths.module';
 import { EggHavestingsModule } from './modules/egg-havesting/egg-havesting.module';
 import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 import { FatteningsModule } from './modules/fattenings/fattening.module';
+import { FeedStockModule } from './modules/feed-stock/feed-stock.module';
 import { FeedingsModule } from './modules/feeding/feedings.module';
 import { FinanceModule } from './modules/finances/finances.module';
 import { GestationsModule } from './modules/gestation/gestations.module';
@@ -53,6 +54,7 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     LocationsModule,
     SalesModule,
     BlogsModule,
+    FeedStockModule,
     AnalyticsModule,
     EggHavestingsModule,
     AnimalTypesModule,

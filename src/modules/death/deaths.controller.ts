@@ -23,6 +23,7 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkDeathsDto,
@@ -37,6 +38,7 @@ export class DeathsController {
   constructor(
     private readonly deathsService: DeathsService,
     private readonly animalsService: AnimalsService,
+    private readonly locationsService: LocationsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -97,21 +99,24 @@ export class DeathsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const sumDeadAnimals = male + female;
-
     if (
       findOneAnimal?.quantity < number ||
-      findOneAnimal?.quantity < sumDeadAnimals
+      findOneAnimal?.female < female ||
+      findOneAnimal?.male < male
     )
       throw new HttpException(
         `Impossible to create insuficient animals available`,
         HttpStatus.NOT_FOUND,
       );
 
+    const sumDeaths = Number(female + male);
+
     const death = await this.deathsService.createOne({
       note,
+      male: male,
+      female: female,
       animalId: findOneAnimal?.id,
-      number: number ? number : sumDeadAnimals,
+      number: number ? number : sumDeaths,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -120,19 +125,25 @@ export class DeathsController {
     await this.animalsService.updateOne(
       { animalId: findOneAnimal?.id },
       {
-        female: findOneAnimal?.female - female,
         male: findOneAnimal?.male - male,
+        female: findOneAnimal?.female - female,
         quantity: findOneAnimal?.quantity - death?.number,
       },
     );
 
-    if (findOneAnimal?.quantity - death?.number === 0) {
+    if (
+      findOneAnimal?.quantity - death?.number === 0 &&
+      findOneAnimal?._count?.sales === 0
+    ) {
       await this.animalsService.updateOne(
         { animalId: findOneAnimal?.id },
         { status: 'DEAD' },
       );
+      await this.locationsService.updateOne(
+        { locationId: findOneAnimal?.locationId },
+        { status: true },
+      );
     }
-    console.log('findOneAnimalDead ==>', findOneAnimal?.quantity);
 
     await this.activitylogsService.createOne({
       userId: user.id,
@@ -186,6 +197,29 @@ export class DeathsController {
   }
 
   /** Get one Death */
+  @Get(`/:animalId/show`)
+  @UseGuards(UserAuthGuard)
+  async getOneDeathByAnimalId(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const findOneDeadAnimal = await this.deathsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneDeadAnimal)
+      throw new HttpException(
+        `DeathId: ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneDeadAnimal });
+  }
+
+  /** Get one Death */
   @Get(`/:deathId/view`)
   @UseGuards(UserAuthGuard)
   async getOneByIdDeath(
@@ -230,13 +264,23 @@ export class DeathsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const sumAnimals = Number(male + female);
+    if (
+      findOneDeath?.animal?.quantity < number ||
+      findOneDeath?.female < female ||
+      findOneDeath?.male < male
+    )
+      throw new HttpException(
+        `Impossible to update insuficient animals available`,
+        HttpStatus.NOT_FOUND,
+      );
 
     await this.deathsService.updateOne(
       { deathId: findOneDeath?.id },
       {
         note,
-        number: number ? number : sumAnimals,
+        male: male,
+        female: female,
+        number: number,
         userCreatedId: user?.id,
       },
     );
@@ -284,15 +328,10 @@ export class DeathsController {
       { deletedAt: new Date() },
     );
 
-    await this.animalsService.updateOne(
-      { animalId: findOneDead?.animalId },
-      { quantity: findOneDead?.animal?.quantity + findOneDead?.number },
-    );
-
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted ${findOneDead.animal.code} in ${findOneDead.animalType.name} dead`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted ${findOneDead?.animal?.code} in ${findOneDead?.animalType?.name} dead`,
     });
 
     return reply({ res, results: death });

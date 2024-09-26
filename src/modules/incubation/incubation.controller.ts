@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { formatDDMMYYDate } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -81,7 +82,7 @@ export class IncubationsController {
     const { user } = req;
     const { dueDate, quantityStart, code } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
+    const findOneAnimal = await this.animalsService.findOneAnimalDetails({
       code,
       productionPhase: 'LAYING',
       organizationId: user?.organizationId,
@@ -92,36 +93,11 @@ export class IncubationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const findOneIncubation = await this.incubationsService.findOneBy({
-      animalId: findOneAnimal?.id,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneIncubation)
-      throw new HttpException(
-        `Incubation doesn't exists`,
-        HttpStatus.NOT_FOUND,
-      );
+    const difference = Number(quantityStart - findOneAnimal?.eggHarvestedCount);
 
-    const findOneEggHarvested = this.EggHavestingsService.findOneBy({
-      animalId: findOneAnimal?.id,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneIncubation)
+    if (quantityStart > findOneAnimal?.eggHarvestedCount)
       throw new HttpException(
-        `EggHarvesting doesn't exists`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const difference = String(
-      (await findOneEggHarvested).quantity - findOneIncubation?.quantityStart,
-    );
-
-    if (
-      findOneIncubation?.quantityStart + quantityStart >
-      (await findOneEggHarvested).quantity
-    )
-      throw new HttpException(
-        `Impossible to create, incubated eggs is greater than total number of eggs harvested the difference is ${difference}`,
+        `Impossible to create, eggs to incubate are greater than total number of eggs harvested the difference is ${difference}`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -133,6 +109,14 @@ export class IncubationsController {
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      {
+        eggHarvestedCount:
+          findOneAnimal?.eggHarvestedCount - incubation?.quantityStart,
+      },
+    );
 
     await this.activitylogsService.createOne({
       userId: user?.id,
@@ -153,17 +137,12 @@ export class IncubationsController {
     @Param('incubationId', ParseUUIDPipe) incubationId: string,
   ) {
     const { user } = req;
-    const { quantityEnd, quantityStart, dueDate, code } = body;
+    const { quantityEnd, quantityStart, dueDate } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-      productionPhase: 'LAYING',
-      organizationId: user.organizationId,
-    });
-    if (!findOneAnimal)
+    if (quantityEnd > quantityStart)
       throw new HttpException(
-        `Band: ${code} doesn't exists`,
-        HttpStatus.NOT_FOUND,
+        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
+        HttpStatus.AMBIGUOUS,
       );
 
     const findOneIncubation = await this.incubationsService.findOneBy({
@@ -176,10 +155,10 @@ export class IncubationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (quantityEnd > quantityStart)
+    if (formatDDMMYYDate(dueDate) !== formatDDMMYYDate(new Date()))
       throw new HttpException(
-        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
-        HttpStatus.AMBIGUOUS,
+        `Impossible to create, hatching date: ${formatDDMMYYDate(dueDate)} not reached yet please update`,
+        HttpStatus.NOT_FOUND,
       );
 
     const incubation = await this.incubationsService.updateOne(
@@ -188,7 +167,6 @@ export class IncubationsController {
         dueDate,
         quantityEnd,
         quantityStart,
-        animalId: findOneAnimal?.id,
         userCreatedId: user?.id,
       },
     );

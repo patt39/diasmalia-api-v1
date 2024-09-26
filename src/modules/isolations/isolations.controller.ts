@@ -63,7 +63,7 @@ export class IsolationsController {
       sortBy,
     });
 
-    const castrations = await this.isolationsService.findAll({
+    const isolations = await this.isolationsService.findAll({
       search,
       pagination,
       animalTypeId,
@@ -71,7 +71,7 @@ export class IsolationsController {
       organizationId: user.organizationId,
     });
 
-    return reply({ res, results: castrations });
+    return reply({ res, results: isolations });
   }
 
   /** Post one aves isolation */
@@ -79,7 +79,7 @@ export class IsolationsController {
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Req() req, @Body() body: CreateIsolationsDto) {
     const { user } = req;
-    const { code, number, note } = body;
+    const { code, number, female, male, note } = body;
 
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
@@ -92,16 +92,30 @@ export class IsolationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneAnimal.quantity <= 0)
+    if (findOneAnimal?.quantity <= 0)
       throw new HttpException(
         `Unable to isolate, animals doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
+    if (
+      findOneAnimal?.quantity < number ||
+      findOneAnimal?.female < female ||
+      findOneAnimal?.male < male
+    )
+      throw new HttpException(
+        `Impossible to create insuficient animals available`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const sumIsolated = Number(male + female);
+
     const isolation = await this.isolationsService.createOne({
       note,
-      number,
+      male: male,
+      female: female,
       animalId: findOneAnimal?.id,
+      number: number ? number : sumIsolated,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -109,13 +123,26 @@ export class IsolationsController {
 
     await this.animalsService.updateOne(
       { animalId: findOneAnimal?.id },
-      { quantity: findOneAnimal?.quantity - isolation?.number },
+      {
+        male: findOneAnimal?.male - isolation?.male,
+        female: findOneAnimal?.female - isolation?.female,
+        quantity: findOneAnimal?.quantity - isolation?.number,
+      },
+    );
+
+    const sumIsolatedAnimalsCreate = Number(
+      isolation?.male + isolation?.female,
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      { quantity: findOneAnimal?.quantity - sumIsolatedAnimalsCreate },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} put ${number} ${findOneAnimal?.animalType?.name} in ${findOneAnimal?.code} in isolation`,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} put ${number} ${findOneAnimal?.animalType?.name} in ${findOneAnimal?.code} in isolation`,
+      organizationId: user?.organizationId,
     });
 
     return reply({
@@ -161,9 +188,9 @@ export class IsolationsController {
       );
 
       await this.activitylogsService.createOne({
-        userId: user.id,
-        organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} isolation ${animals?.lenght} ${findOneAnimal?.animalType?.name}`,
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} isolation ${animals?.lenght} ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -180,11 +207,11 @@ export class IsolationsController {
     @Param('isolationId', ParseUUIDPipe) isolationId: string,
   ) {
     const { user } = req;
-    const { note, number } = body;
+    const { note, number, male, female } = body;
 
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneIsolation)
       throw new HttpException(
@@ -196,15 +223,17 @@ export class IsolationsController {
       { isolationId: findOneIsolation?.id },
       {
         note,
+        male,
+        female,
         number,
         userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an isolation in ${findOneIsolation?.animalType?.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated an isolation in ${findOneIsolation?.animalType?.name}`,
     });
 
     return reply({ res, results: isolation });
@@ -222,7 +251,7 @@ export class IsolationsController {
 
     const findOneIsolation = await this.isolationsService.findOneBy({
       isolationId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneIsolation)
       throw new HttpException(
@@ -266,7 +295,20 @@ export class IsolationsController {
     await this.animalsService.updateOne(
       { animalId: findOneIsolation?.animal?.id },
       {
+        male: findOneIsolation?.animal?.male + findOneIsolation?.male,
+        female: findOneIsolation?.animal?.female + findOneIsolation?.female,
         quantity: findOneIsolation?.animal?.quantity + findOneIsolation?.number,
+      },
+    );
+
+    const sumIsolatedAnimalsCreate = Number(
+      findOneIsolation?.male + findOneIsolation?.female,
+    );
+
+    await this.animalsService.updateOne(
+      { animalId: findOneIsolation?.animal?.id },
+      {
+        quantity: findOneIsolation?.animal?.quantity + sumIsolatedAnimalsCreate,
       },
     );
 

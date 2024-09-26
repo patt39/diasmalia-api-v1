@@ -73,6 +73,7 @@ export class EggHavestingsService {
     });
   }
 
+  /** Get egg-havesting analytics. */
   async findAllEggHarvestingsAnimalAnalytics(
     selections: GetEggHavestingsSelections,
   ) {

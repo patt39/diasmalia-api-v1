@@ -4,6 +4,9 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetWeaningsSelections = {
   search?: string;
   periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -11,6 +14,7 @@ export type GetWeaningsSelections = {
 
 export type GetOneWeaningSelections = {
   weaningId?: Weaning['id'];
+  animalId?: Weaning['animalId'];
   organizationId?: Weaning['id'];
   animalTypeId?: Weaning['animalTypeId'];
 };
@@ -40,7 +44,9 @@ export const WeaningSelect = {
   farrowingId: true,
   farrowing: {
     select: {
+      createdAt: true,
       litter: true,
+      note: true,
     },
   },
   organizationId: true,

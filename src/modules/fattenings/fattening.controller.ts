@@ -143,6 +143,29 @@ export class FatteningsController {
     return reply({ res, results: 'Saved' });
   }
 
+  /** Get one fattening */
+  @Get(`/:animalId/view`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdFarrowing(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const farrowing = await this.fatteningsService.findOneBy({
+      animalId,
+      organizationId: user.organizationId,
+    });
+    if (!animalId)
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: farrowing });
+  }
+
   /** Update one fattening */
   @Put(`/:fatteningId/edit`)
   @UseGuards(UserAuthGuard)

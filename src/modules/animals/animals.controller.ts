@@ -60,8 +60,14 @@ export class AnimalsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { status, animalTypeId, gender, productionPhase, isIsolated } =
-      queryAnimal;
+    const {
+      status,
+      gender,
+      isIsolated,
+      locationId,
+      animalTypeId,
+      productionPhase,
+    } = queryAnimal;
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination = addPagination({ page, take, sort, sortBy });
 
@@ -69,10 +75,35 @@ export class AnimalsController {
       gender,
       status,
       search,
+      locationId,
       isIsolated,
       pagination,
       animalTypeId,
       productionPhase,
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: animals });
+  }
+
+  /** Get all animals */
+  @Get(`/archives`)
+  @UseGuards(UserAuthGuard)
+  async findArchives(
+    @Res() res,
+    @Req() req,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+  ) {
+    const { user } = req;
+    const { search } = query;
+
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination = addPagination({ page, take, sort, sortBy });
+
+    const animals = await this.animalsService.findArchives({
+      search,
+      pagination,
       organizationId: user?.organizationId,
     });
 
@@ -225,7 +256,7 @@ export class AnimalsController {
     });
     if (findOneAnimal)
       throw new HttpException(
-        `Animal code: ${code} already exists in your organization please change`,
+        `Animal code: ${findOneAnimal?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -297,11 +328,6 @@ export class AnimalsController {
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
-    } else {
-      throw new HttpException(
-        `Animal ${animal?.code} isn't a FEMALE please change`,
-        HttpStatus.NOT_FOUND,
-      );
     }
 
     await this.activitylogsService.createOne({
@@ -411,7 +437,7 @@ export class AnimalsController {
         });
       } else {
         throw new HttpException(
-          `Animal ${animal?.code} isn't a FEMALE please change`,
+          `Animal ${animal?.code} please change`,
           HttpStatus.NOT_FOUND,
         );
       }
@@ -444,14 +470,16 @@ export class AnimalsController {
     const { user } = req;
     const {
       code,
+      male,
+      female,
       weight,
       gender,
+      birthday,
       quantity,
       breedName,
-      birthday,
-      isCastrated,
       codeFather,
       codeMother,
+      isCastrated,
       locationCode,
       productionPhase,
     } = body;
@@ -471,7 +499,7 @@ export class AnimalsController {
       (productionPhase === 'LACTATION' || productionPhase === 'GESTATION')
     )
       throw new HttpException(
-        `Male animalId: ${code} can't be in this phase please change`,
+        `Male code: ${code} can't be in this phase please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -496,11 +524,20 @@ export class AnimalsController {
       );
 
     if (
-      locationCode &&
-      findOneLocation?.productionPhase !== findOneAnimal?.productionPhase
+      productionPhase === 'LAYING' &&
+      findOneAnimal?.productionPhase !== 'LAYING'
     )
       throw new HttpException(
-        `Animal can't be placed in this location code: ${findOneLocation?.code} please change`,
+        `Band can't be placed in this location code: ${findOneLocation?.code} please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (
+      productionPhase === 'GROWTH' &&
+      findOneAnimal?._count?.eggHavestings !== 0
+    )
+      throw new HttpException(
+        `Band: ${findOneAnimal?.code} can't be placed in GROWTH phase please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -508,6 +545,8 @@ export class AnimalsController {
       { animalId: findOneAnimal?.id },
       {
         code,
+        male,
+        female,
         weight,
         gender,
         quantity,
@@ -561,6 +600,52 @@ export class AnimalsController {
     return reply({ res, results: findOneAnimal });
   }
 
+  /** Get one animal */
+  @Get(`/:animalId/view/archived`)
+  @UseGuards(UserAuthGuard)
+  async getOneArchivedAnimal(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+    const findOneAnimal = await this.animalsService.findOneArchiveAnimalDetails(
+      {
+        animalId,
+        organizationId: user?.organizationId,
+      },
+    );
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneAnimal });
+  }
+
+  /** Get one animal by animalType */
+  @Get(`/:animalTypeId/view/animal`)
+  @UseGuards(UserAuthGuard)
+  async getOneByAnimalTypeId(
+    @Res() res,
+    @Req() req,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
+  ) {
+    const { user } = req;
+    const findOneAnimal = await this.animalsService.findOneAnimalDetails({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `${animalTypeId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneAnimal });
+  }
+
   /** Delete one animal */
   @Delete(`/:animalId/delete`)
   @UseGuards(UserAuthGuard)
@@ -571,9 +656,51 @@ export class AnimalsController {
   ) {
     const { user } = req;
 
+    const findOneAnimal = await this.animalsService.findOneDeleted({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.animalsService.deleteOne({ animalId: findOneAnimal?.id });
+
+    if (
+      !['Porciculture', 'Bovins', 'Cuniculture', 'Ovins', 'Caprins'].includes(
+        findOneAnimal?.animalType?.name,
+      )
+    ) {
+      await this.locationsService.updateOne(
+        { locationId: findOneAnimal?.locationId },
+        { status: true },
+      );
+    }
+
+    await this.activitylogsService.createOne({
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted an animal with code ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
+    });
+
+    return reply({ res, results: { message: 'Animal deleted successfully' } });
+  }
+
+  /** Delete one animal */
+  @Delete(`/:animalId/archive/aves`)
+  @UseGuards(UserAuthGuard)
+  async archive(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -582,16 +709,16 @@ export class AnimalsController {
       );
 
     await this.animalsService.updateOne(
-      { animalId: findOneAnimal.id },
+      { animalId: findOneAnimal?.id },
       { deletedAt: new Date() },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an animal with code ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} archived an ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
     });
 
-    return reply({ res, results: { message: 'Animal deleted successfully' } });
+    return reply({ res, results: { message: 'Animal archived successfully' } });
   }
 }

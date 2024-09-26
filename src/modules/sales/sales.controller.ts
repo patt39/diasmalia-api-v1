@@ -29,9 +29,10 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { FinancesService } from '../finances/finances.service';
 import { awsS3ServiceAdapter } from '../integrations/aws/aws-s3-service-adapter';
-import { UploadsUtil } from '../integrations/integration.utils';
+import { LocationsService } from '../locations/locations.service';
 import { emailPDFAttachment } from '../users/mails/email-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
@@ -50,10 +51,11 @@ import { SalesService } from './sales.service';
 @Controller('sales')
 export class SalesController {
   constructor(
-    private readonly uploadsUtil: UploadsUtil,
     private readonly salesService: SalesService,
     private readonly animalsService: AnimalsService,
     private readonly usersService: UsersService,
+    private readonly assignTypesService: AssignTypesService,
+    private readonly locationsService: LocationsService,
     private readonly financesService: FinancesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
@@ -169,27 +171,22 @@ export class SalesController {
         `Animal ${findOneAnimal?.code} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
-    const totalEggHarvested = findOneAnimal?.eggHavestedCount;
-    const totalIncubations = findOneAnimal?.incubationCount;
-    const totalEggsHatched = findOneAnimal?.eggHatchedCount;
+    const totalEggHarvested = findOneAnimal?.eggHarvestedCount;
     const totalSaleChicks = findOneAnimal?.chickSaleCount;
 
-    const eggDifference = Number(totalEggHarvested - totalIncubations);
-    const chicksDifference = Number(totalEggsHatched - totalSaleChicks);
-
-    if (detail === 'EGGS' && eggDifference < number)
+    if (detail === 'EGGS' && totalEggHarvested < number)
       throw new HttpException(
-        `Impossible to sell in this band code: ${findOneAnimal?.code} no egg or insufficient availability: ${eggDifference}`,
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no egg or insufficient availability: ${totalEggHarvested}`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (detail === 'CHICKS' && chicksDifference < number)
+    if (detail === 'CHICKS' && totalSaleChicks < number)
       throw new HttpException(
-        `Impossible to sell in this band code: ${findOneAnimal?.code} no chicks or insufficient availability: ${chicksDifference}`,
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no chicks or insufficient availability: ${totalSaleChicks}`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (detail === 'EGGS' && findOneAnimal?._count?.eggHavestings === 0)
+    if (detail === 'EGGS' && findOneAnimal?.eggHarvested === 0)
       throw new HttpException(
         `Impossible to sell in this band code: ${findOneAnimal?.code} no egg harvested yet please change`,
         HttpStatus.NOT_FOUND,
@@ -263,6 +260,10 @@ export class SalesController {
       await this.animalsService.updateOne(
         { animalId: findOneAnimal?.id },
         { status: 'SOLD' },
+      );
+      await this.locationsService.updateOne(
+        { locationId: findOneAnimal?.locationId },
+        { status: true },
       );
     }
 
@@ -501,7 +502,7 @@ export class SalesController {
         );
 
       newAnimalArrayPdf.push({
-        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animals/${findOneAnimal?.id}/view`,
+        qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animal/${findOneAnimal?.id}`,
         fit: 80,
         margin: [0, 0, 0, 20],
         display: 'flex',
@@ -859,6 +860,31 @@ export class SalesController {
       console.error(error);
       res.status(500).send('Error during file recovering.');
     }
+  }
+
+  /** Get best sale channel */
+  @Get(`/:animalTypeId/best-channel`)
+  @UseGuards(UserAuthGuard)
+  async getAnimalStatistics(
+    @Res() res,
+    @Req() req,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
+  ) {
+    const { user } = req;
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const bestSalechannel = await this.salesService.getBestSaleChannel({
+      animalTypeId,
+    });
+    return reply({ res, results: bestSalechannel });
   }
 
   /** Delete one Sale */

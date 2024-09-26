@@ -5,6 +5,7 @@ import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedingsService } from '../breedings/breedings.service';
 import { GestationsService } from '../gestation/gestations.service';
 import { LocationsService } from '../locations/locations.service';
+import { WeaningsService } from '../weaning/weaning.service';
 import { CheckPregnanciesController } from './check-pregnancies.controller';
 import { CheckPregnanciesService } from './check-pregnancies.service';
 
@@ -18,6 +19,7 @@ import { CheckPregnanciesService } from './check-pregnancies.service';
     ActivityLogsService,
     CheckPregnanciesService,
     LocationsService,
+    WeaningsService,
   ],
 })
 export class CheckPregnanciesModule {}

@@ -83,5 +83,10 @@ export class TreatmentDto {
 
   @IsOptional()
   @IsString()
+  @IsUUID()
+  animalId: string;
+
+  @IsOptional()
+  @IsString()
   periode: string;
 }

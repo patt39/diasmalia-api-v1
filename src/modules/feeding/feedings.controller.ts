@@ -23,6 +23,7 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { FeedStocksService } from '../feed-stock/feed-stock.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkFeedingsDto,
@@ -37,6 +38,7 @@ export class FeedingsController {
   constructor(
     private readonly feedingsService: FeedingsService,
     private readonly animalsService: AnimalsService,
+    private readonly feedStocksService: FeedStocksService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -78,7 +80,7 @@ export class FeedingsController {
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Req() req, @Body() body: CreateFeedingsDto) {
     const { user } = req;
-    const { code, quantity, feedType } = body;
+    const { code, quantity, feedStockId } = body;
 
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
@@ -99,7 +101,7 @@ export class FeedingsController {
 
     const feeding = await this.feedingsService.createOne({
       quantity,
-      feedType,
+      feedStockId,
       animalId: findOneAnimal?.id,
       productionPhase: findOneAnimal?.productionPhase,
       animalTypeId: findOneAnimal?.animalTypeId,
@@ -128,7 +130,7 @@ export class FeedingsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkFeedingsDto) {
     const { user } = req;
-    const { quantity, animals, feedType } = body;
+    const { quantity, animals, feedStockId } = body;
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
@@ -141,20 +143,38 @@ export class FeedingsController {
           HttpStatus.NOT_FOUND,
         );
 
+      const findFeedStock = await this.feedStocksService.findOneBy({
+        feedStockId,
+        organizationId: user?.organizationId,
+        animalTypeId: findOneAnimal?.animalTypeId,
+      });
+      if (!findFeedStock)
+        throw new HttpException(
+          `FeedStockId: ${feedStockId} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      const animalFed = Number(quantity / animals?.length);
+
       await this.feedingsService.createOne({
-        quantity,
-        feedType,
+        quantity: animalFed,
         animalId: findOneAnimal?.id,
+        feedStockId: findFeedStock?.id,
         productionPhase: findOneAnimal?.productionPhase,
         animalTypeId: findOneAnimal?.animalTypeId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
 
+      await this.feedStocksService.updateOne(
+        { feedStockId: findFeedStock?.id },
+        { weight: findFeedStock?.weight - quantity },
+      );
+
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} ${findOneAnimal?.animalType?.name} with ${feedType}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} ${findOneAnimal?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
       });
     }
 
@@ -171,7 +191,7 @@ export class FeedingsController {
     @Param('feedingId', ParseUUIDPipe) feedingId: string,
   ) {
     const { user } = req;
-    const { quantity, feedType, code } = body;
+    const { quantity, feedStockId, code } = body;
 
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
@@ -193,11 +213,20 @@ export class FeedingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findFeedStock = await this.feedStocksService.findOneBy({
+      feedStockId,
+    });
+    if (!findFeedStock)
+      throw new HttpException(
+        `FeedStockId: ${feedStockId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     await this.feedingsService.updateOne(
       { feedingId: findOneFeeding?.id },
       {
         quantity,
-        feedType,
+        feedStockId: findFeedStock?.id,
         animalId: findOneAnimal?.id,
         userCreatedId: user?.id,
       },

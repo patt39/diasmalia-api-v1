@@ -4,6 +4,9 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetSalesSelections = {
   search?: string;
   periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
   organizationId: string;
   pagination?: PaginationType;
   method?: Sale['method'];

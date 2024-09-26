@@ -28,6 +28,7 @@ import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
+  CreateBulkLocationsDto,
   CreateOrUpdateLocationsDto,
   GetLocationsQueryDto,
 } from './locations.dto';
@@ -99,7 +100,7 @@ export class LocationsController {
     const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
     const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
 
-    const location = await this.locationsService.createOne({
+    await this.locationsService.createOne({
       nest,
       manger,
       through,
@@ -120,9 +121,63 @@ export class LocationsController {
     return reply({
       res,
       results: {
-        status: HttpStatus.CREATED,
-        data: location,
         message: `Location Created Successfully`,
+      },
+    });
+  }
+
+  /** Create bulk locations */
+  @Post(`/:animalTypeId/bulk`)
+  @UseGuards(UserAuthGuard)
+  async createMany(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateBulkLocationsDto,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
+  ) {
+    const { user } = req;
+    const { number, manger, through, squareMeter, productionPhase } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+    const newAnimalArray: any = [];
+
+    for (let i = 0; i < number; i++) {
+      const animal = await this.locationsService.createOne({
+        manger,
+        through,
+        squareMeter,
+        productionPhase,
+        code: `${orgInitials}${generateNumber(4)}${appInitials}`,
+        animalTypeId: findOneAssignType?.animalTypeId,
+        organizationId: user.organizationId,
+        userCreatedId: user.id,
+      });
+
+      newAnimalArray.push(animal);
+
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created ${number} in ${findOneAssignType?.animalType?.name}`,
+        organizationId: user.organizationId,
+      });
+    }
+
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        message: `Animals Created Successfully`,
       },
     });
   }

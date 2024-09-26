@@ -4,6 +4,7 @@ import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { FinancesService } from '../finances/finances.service';
 import { UploadsUtil } from '../integrations/integration.utils';
+import { LocationsService } from '../locations/locations.service';
 import { UsersService } from '../users/users.service';
 import { SalesController } from './sales.controller';
 import { SalesService } from './sales.service';
@@ -15,6 +16,7 @@ import { SalesService } from './sales.service';
     SalesService,
     AnimalsService,
     UsersService,
+    LocationsService,
     ActivityLogsService,
     AssignTypesService,
     FinancesService,

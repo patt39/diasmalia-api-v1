@@ -10,6 +10,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { AnimalsService } from '../animals/animals.service';
+import { WeaningsService } from '../weaning/weaning.service';
 import {
   BreedingSelect,
   CreateBreedingsOptions,
@@ -24,6 +25,7 @@ export class BreedingsService {
   constructor(
     private readonly client: DatabaseService,
     private readonly animalsService: AnimalsService,
+    private readonly weaningsService: WeaningsService,
   ) {}
 
   async findAll(
@@ -109,6 +111,55 @@ export class BreedingsService {
       newBreedingArray.push({
         ...breeding,
         animal: findOneAnimal,
+      });
+    }
+
+    return withPagination({
+      pagination,
+      rowCount,
+      value: newBreedingArray,
+    });
+  }
+
+  async findBreedingHistory(
+    selections: GetBreedingsSelections,
+  ): Promise<WithPaginationResponse | null> {
+    const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
+    const { gender, animalId, pagination, animalTypeId, organizationId } =
+      selections;
+
+    if (organizationId) {
+      Object.assign(prismaWhereBreeding, { organizationId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhereBreeding, { animalTypeId });
+    }
+
+    if (animalId && gender === 'FEMALE') {
+      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
+    }
+
+    const breedings = await this.client.breeding.findMany({
+      take: pagination.take,
+      skip: pagination.skip,
+      select: BreedingSelect,
+      orderBy: pagination.orderBy,
+      where: { ...prismaWhereBreeding, deletedAt: null },
+    });
+
+    const rowCount = await this.client.breeding.count({
+      where: { ...prismaWhereBreeding, deletedAt: null, checkStatus: true },
+    });
+
+    const newBreedingArray: any = [];
+    for (const breeding of breedings) {
+      const findOneAnimalWeaning = await this.weaningsService.findOneBy({
+        animalId: breeding?.animalFemaleId,
+      });
+      newBreedingArray.push({
+        ...breeding,
+        weaning: findOneAnimalWeaning,
       });
     }
 
