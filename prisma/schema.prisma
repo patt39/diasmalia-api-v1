@@ -136,6 +136,7 @@ model Organization {
   subscriptions    Subscription[]
   Fattenings       Fattening[]
   activityLogs     ActivityLog[]
+  FeedStock        FeedStock[]
 }
 
 model Contact {
@@ -267,46 +268,47 @@ model Breed {
 }
 
 model Animal {
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  deletedAt        DateTime?
-  id               String           @id @default(uuid())
-  code             String
-  codeFather       String?
-  codeMother       String?
-  birthday         DateTime?
-  weight           Int?
-  isCastrated      CastratedStatus? @default(NO)
-  isIsolated       IsolatedStatus   @default(NO)
-  quantity         Int?
-  photo            String?
-  gender           Gender?
-  male             Int?             @default(0)
-  female           Int?             @default(0)
-  animalTypeId     String
-  animalType       AnimalType       @relation(fields: [animalTypeId], references: [id])
-  productionPhase  ProductionPhase  @default(GROWTH)
-  status           AnimalStatus     @default(ACTIVE)
-  locationId       String?
-  location         Location?        @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  breedId          String?
-  breed            Breed?           @relation(fields: [breedId], references: [id], onDelete: Cascade)
-  organizationId   String
-  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId    String
-  death            Death[]
-  milkings         Milking[]
-  treatments       Treatment[]
-  farrowings       Farrowing[]
-  weanings         Weaning[]
-  gestations       Gestation[]
-  feedings         Feeding[]
-  isolations       Isolation[]
-  eggHavestings    EggHavesting[]
-  checkPregnancies CheckPregnancy[]
-  fattenings       Fattening[]
-  sales            Sale[]
-  incubations      Incubation[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+  id                String           @id @default(uuid())
+  code              String
+  codeFather        String?
+  codeMother        String?
+  birthday          DateTime?
+  weight            Int?
+  isCastrated       CastratedStatus? @default(NO)
+  isIsolated        IsolatedStatus   @default(NO)
+  quantity          Int?
+  photo             String?
+  gender            Gender?
+  male              Int?             @default(0)
+  female            Int?             @default(0)
+  eggHarvestedCount Int?             @default(0)
+  animalTypeId      String
+  animalType        AnimalType       @relation(fields: [animalTypeId], references: [id])
+  productionPhase   ProductionPhase  @default(GROWTH)
+  status            AnimalStatus     @default(ACTIVE)
+  locationId        String?
+  location          Location?        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  breedId           String?
+  breed             Breed?           @relation(fields: [breedId], references: [id], onDelete: Cascade)
+  organizationId    String
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId     String
+  death             Death[]
+  milkings          Milking[]
+  treatments        Treatment[]
+  farrowings        Farrowing[]
+  weanings          Weaning[]
+  gestations        Gestation[]
+  feedings          Feeding[]
+  isolations        Isolation[]
+  eggHavestings     EggHavesting[]
+  checkPregnancies  CheckPregnancy[]
+  fattenings        Fattening[]
+  sales             Sale[]
+  incubations       Incubation[]
 }
 
 model AnimalType {
@@ -318,6 +320,7 @@ model AnimalType {
   photo            String?
   slug             String?
   habitat          String?
+  tab              String?
   status           AnimalTypeStatus @default(ACTIVE)
   description      String           @db.Text
   locations        Location[]
@@ -336,8 +339,9 @@ model AnimalType {
   checkPregnancies CheckPregnancy[]
   breedings        Breeding[]
   treatments       Treatment[]
-  fattening        Fattening[]
-  sale             Sale[]
+  fattenings       Fattening[]
+  sales            Sale[]
+  feedStocks       FeedStock[]
 }
 
 enum Gender {
@@ -538,6 +542,8 @@ model Death {
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   number         Int?
+  male           Int?         @default(0)
+  female         Int?         @default(0)
   note           String?      @db.Text
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -570,7 +576,8 @@ model Feeding {
   deletedAt       DateTime?
   id              String           @id @default(uuid())
   quantity        Int?
-  feedType        FeedType
+  feedStockId     String
+  feedStock       FeedStock        @relation(fields: [feedStockId], references: [id], onDelete: Cascade)
   animalTypeId    String
   animalType      AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animalId        String
@@ -581,19 +588,39 @@ model Feeding {
   userCreatedId   String
 }
 
-enum FeedType {
-  FIBERS
+model FeedStock {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  number         Int
+  weight         Int
+  bagWeight      Int
+  feedCategory   FeedCategory
+  animalTypeName String
+  animalTypeId   String
+  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  Feeding        Feeding[]
+}
+
+enum FeedCategory {
+  PRESTARTER
+  STARTER
+  GROWER
+  FATTENER
+  FINISHER
   FORAGES
-  PROTEINS
-  VITAMINS
-  ROUGHAGES
+  SILAGES
   BYPRODUCTS
   COMPLETEFEED
   CONCENTRATES
-  MINERALSALTS
-  ENERGYSUPPLIMENTS
-  SYNTHETICADICTIVES
-  OTHERS
+  LAYERS_FEED
+  LACTATING_FEMALES
+  GESTATION_FEMALES
+  OTHER
 }
 
 model Sale {
@@ -666,6 +693,8 @@ model Isolation {
   id             String       @id @default(uuid())
   note           String?      @db.Text
   number         Int?
+  male           Int?         @default(0)
+  female         Int?         @default(0)
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animalId       String

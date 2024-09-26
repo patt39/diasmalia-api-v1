@@ -70,10 +70,10 @@ export class BreedingsController {
     return reply({ res, results: breedings });
   }
 
-  /** Get all breedings */
-  @Get(`/animals`)
+  /** Get  breeding history */
+  @Get(`/animal/history`)
   @UseGuards(UserAuthGuard)
-  async findAllAnimal(
+  async getBreedingHistory(
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
@@ -93,7 +93,7 @@ export class BreedingsController {
 
     const findOneAnimal = await this.animalsService.findOneBy({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -101,11 +101,12 @@ export class BreedingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const animals = await this.breedingsService.findAll({
+    const animals = await this.breedingsService.findBreedingHistory({
       search,
       pagination,
       gender: findOneAnimal?.gender,
       animalId: findOneAnimal?.id,
+      animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
     });
 

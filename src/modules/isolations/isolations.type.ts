@@ -29,11 +29,15 @@ export const IsolationsSelect = {
   createdAt: true,
   id: true,
   note: true,
+  male: true,
+  female: true,
   number: true,
   animal: {
     select: {
       id: true,
       code: true,
+      male: true,
+      female: true,
       quantity: true,
     },
   },

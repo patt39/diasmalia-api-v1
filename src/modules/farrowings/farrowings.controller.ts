@@ -96,7 +96,7 @@ export class FarrowingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneFemale?.location?.animals.length > 1)
+    if (findOneFemale?.location?._count.animals > 1)
       throw new HttpException(
         `Animal ${codeFemale} should be isolated before farrowing please change`,
         HttpStatus.NOT_FOUND,
@@ -217,6 +217,29 @@ export class FarrowingsController {
     if (!farrowingId)
       throw new HttpException(
         `FarrowingId: ${farrowingId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: farrowing });
+  }
+
+  /** Get one farrowing */
+  @Get(`/view/:animalId`)
+  @UseGuards(UserAuthGuard)
+  async getOneFarrowingByAnimalId(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const farrowing = await this.farrowingsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!animalId)
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 

@@ -34,6 +34,7 @@ export class AnimalsService {
       search,
       status,
       gender,
+      locationId,
       isIsolated,
       animalTypeId,
       productionPhase,
@@ -62,6 +63,10 @@ export class AnimalsService {
 
     if (isIsolated) {
       Object.assign(prismaWhere, { isIsolated });
+    }
+
+    if (locationId) {
+      Object.assign(prismaWhere, { locationId });
     }
 
     if (animalTypeId) {
@@ -95,6 +100,41 @@ export class AnimalsService {
     });
   }
 
+  async findArchives(
+    selections: GetAnimalsSelections,
+  ): Promise<WithPaginationResponse | null> {
+    const prismaWhere = {} as Prisma.AnimalWhereInput;
+    const { search, status, pagination } = selections;
+
+    if (search) {
+      Object.assign(prismaWhere, {
+        OR: [{ code: { contains: search, mode: 'insensitive' } }],
+      });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    const animals = await this.client.animal.findMany({
+      where: { ...prismaWhere, deletedAt: { not: null }, status: 'SOLD' },
+      take: pagination.take,
+      skip: pagination.skip,
+      select: AnimalSelect,
+      orderBy: pagination.orderBy,
+    });
+
+    const rowCount = await this.client.animal.count({
+      where: { ...prismaWhere, deletedAt: null },
+    });
+
+    return withPagination({
+      pagination,
+      rowCount,
+      value: animals,
+    });
+  }
+
   /** Find one Animal in database. */
   async findOneBy(selections: GetOneAnimalsSelections) {
     const prismaWhere = {} as Prisma.AnimalWhereInput;
@@ -104,6 +144,7 @@ export class AnimalsService {
       status,
       quantity,
       animalId,
+      deletedAt,
       isIsolated,
       isCastrated,
       animalTypeId,
@@ -139,6 +180,10 @@ export class AnimalsService {
       Object.assign(prismaWhere, { status });
     }
 
+    if (deletedAt) {
+      Object.assign(prismaWhere, { deletedAt });
+    }
+
     if (quantity) {
       Object.assign(prismaWhere, { quantity });
     }
@@ -159,13 +204,47 @@ export class AnimalsService {
     return animal;
   }
 
-  /** Find one breeding in database. */
+  /** Find one Animal deledtedAt not in database. */
+  async findOneDeleted(selections: GetOneAnimalsSelections) {
+    const prismaWhere = {} as Prisma.AnimalWhereInput;
+    const { status, animalId, deletedAt, animalTypeId, organizationId } =
+      selections;
+
+    if (animalId) {
+      Object.assign(prismaWhere, { id: animalId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    if (deletedAt) {
+      Object.assign(prismaWhere, { deletedAt });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const animal = await this.client.animal.findFirst({
+      where: { ...prismaWhere, deletedAt: { not: null } },
+      select: AnimalSelect,
+    });
+
+    return animal;
+  }
+
+  /** Get animal details. */
   async findOneAnimalDetails(
     selections: GetOneAnimalsSelections,
   ): Promise<any> {
     const prismaWhereAnimal = {} as Prisma.AnimalWhereInput;
 
-    const { animalId, code, status, organizationId } = selections;
+    const { animalId, animalTypeId, code, status, organizationId } = selections;
 
     if (animalId) {
       Object.assign(prismaWhereAnimal, { id: animalId });
@@ -173,6 +252,10 @@ export class AnimalsService {
 
     if (code) {
       Object.assign(prismaWhereAnimal, { code });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhereAnimal, { animalTypeId });
     }
 
     if (status) {
@@ -188,8 +271,16 @@ export class AnimalsService {
       select: AnimalSelect,
     });
 
-    const breedingCount = await this.client.breeding.count({
+    const breedingMaleCount = await this.client.breeding.count({
       where: { animalMaleId: animal?.id, deletedAt: null, organizationId },
+    });
+
+    const breedingFemaleCount = await this.client.breeding.count({
+      where: { animalFemaleId: animal?.id, deletedAt: null, organizationId },
+    });
+
+    const farrowingCount = await this.client.farrowing.count({
+      where: { animalId: animal?.id, deletedAt: null, organizationId },
     });
 
     const saleChicken = await this.client.sale.findMany({
@@ -255,14 +346,6 @@ export class AnimalsService {
         animalTypeId: animal?.animalTypeId,
       },
     });
-    const sumEggHarvestings = await this.client.eggHavesting.findMany({
-      where: {
-        deletedAt: null,
-        organizationId,
-        animalId: animal?.id,
-        animalTypeId: animal?.animalTypeId,
-      },
-    });
     const sumFarrowings = await this.client.farrowing.findMany({
       where: {
         deletedAt: null,
@@ -299,12 +382,6 @@ export class AnimalsService {
       initialValue,
     );
 
-    const eggHavestedCount = sumEggHarvestings.reduce(
-      (accumulator: any, currentValue: any) =>
-        accumulator + currentValue.quantity,
-      initialValue,
-    );
-
     const incubationCount = sumEggIncubated.reduce(
       (accumulator: any, currentValue: any) =>
         accumulator + currentValue.quantityStart,
@@ -324,6 +401,16 @@ export class AnimalsService {
     );
 
     const chickenSaleAmount = saleChicken.reduce(
+      (accumulator: any, currentValue: any) => accumulator + currentValue.price,
+      initialValue,
+    );
+
+    const chickSaleAmount = saleChick.reduce(
+      (accumulator: any, currentValue: any) => accumulator + currentValue.price,
+      initialValue,
+    );
+
+    const eggSaleAmount = saleEgg.reduce(
       (accumulator: any, currentValue: any) => accumulator + currentValue.price,
       initialValue,
     );
@@ -354,19 +441,105 @@ export class AnimalsService {
 
     return {
       ...animal,
-      breedingCount,
       feedingsCount,
+      farrowingCount,
       deathsCount,
       isolatedCount,
-      eggHavestedCount,
       incubationCount,
       eggHatchedCount,
       chickenSaleCount,
       chickSaleCount,
       eggSaleCount,
+      breedingMaleCount,
+      breedingFemaleCount,
       chickenSaleAmount,
+      chickSaleAmount,
+      eggSaleAmount,
       farrowinglitterCount,
       weaninglitterCount,
+    };
+  }
+
+  /** Get archive details. */
+  async findOneArchiveAnimalDetails(
+    selections: GetOneAnimalsSelections,
+  ): Promise<any> {
+    const prismaWhereAnimal = {} as Prisma.AnimalWhereInput;
+
+    const { organizationId } = selections;
+
+    const animal = await this.client.animal.findFirst({
+      where: {
+        ...prismaWhereAnimal,
+        deletedAt: { not: null },
+        organizationId,
+      },
+      select: AnimalSelect,
+    });
+
+    const saleChicken = await this.client.sale.aggregate({
+      where: {
+        organizationId,
+        detail: 'CHICKENS',
+        animalId: animal?.id,
+        deletedAt: { not: null },
+        animalTypeId: animal?.animalTypeId,
+      },
+      _sum: { price: true, number: true },
+    });
+
+    const saleEgg = await this.client.sale.aggregate({
+      where: {
+        detail: 'EGGS',
+        organizationId,
+        animalId: animal?.id,
+        deletedAt: { not: null },
+        animalTypeId: animal?.animalTypeId,
+      },
+      _sum: { price: true, number: true },
+    });
+
+    const saleChick = await this.client.sale.aggregate({
+      where: {
+        organizationId,
+        detail: 'CHICKS',
+        animalId: animal?.id,
+        deletedAt: { not: null },
+        animalTypeId: animal?.animalTypeId,
+      },
+      _sum: { price: true, number: true },
+    });
+
+    const sumDeaths = await this.client.death.aggregate({
+      where: {
+        organizationId,
+        animalId: animal?.id,
+        deletedAt: { not: null },
+        animalTypeId: animal?.animalTypeId,
+      },
+      _sum: { number: true },
+    });
+
+    const sumFeedings = await this.client.feeding.aggregate({
+      where: {
+        deletedAt: { not: null },
+        organizationId,
+        animalId: animal?.id,
+        animalTypeId: animal?.animalTypeId,
+      },
+      _sum: { quantity: true },
+    });
+
+    return {
+      ...animal,
+      feedingsCount: sumFeedings?._sum.quantity,
+      deathsCount: sumDeaths?._sum.number,
+      chickenSaleCount: saleChicken?._sum.number,
+      chickSaleCount: saleChick?._sum.number,
+      eggSaleCount: saleEgg?._sum.number,
+      chickenSaleAmount: saleChicken?._sum.price,
+      chickSaleAmount: saleChick?._sum.price,
+      eggSaleAmount: saleEgg?._sum.price,
     };
   }
 
@@ -455,6 +628,7 @@ export class AnimalsService {
       codeMother,
       isIsolated,
       isCastrated,
+      eggHarvestedCount,
       productionPhase,
       locationId,
       deletedAt,
@@ -478,6 +652,7 @@ export class AnimalsService {
         isIsolated,
         isCastrated,
         productionPhase,
+        eggHarvestedCount,
         locationId,
         deletedAt,
       },
@@ -486,7 +661,18 @@ export class AnimalsService {
     return animal;
   }
 
-  /** Load data to database. */
+  /** Delete one Animal in database. */
+  async deleteOne(selections: UpdateAnimalsSelections): Promise<Animal> {
+    const { animalId } = selections;
+
+    const animal = this.client.animal.delete({
+      where: { id: animalId },
+    });
+
+    return animal;
+  }
+
+  /** Get all animals transactions. */
   async getAnimalTransactions({
     periode,
     animalTypeId,
@@ -569,6 +755,7 @@ export class AnimalsService {
       totalSaleChickens,
       totalSaleAnimals,
       totalIsolations,
+      totalStocks,
       sumAnimalGrowthSale,
       sumFemaleGestationSold,
       sumAnimalFatteningSold,
@@ -797,6 +984,15 @@ export class AnimalsService {
           number: true,
         },
       }),
+      this.client.feedStock.aggregate({
+        where: {
+          deletedAt: null,
+        },
+        _sum: {
+          number: true,
+          weight: true,
+        },
+      }),
       this.client.animal.count({
         where: {
           status: 'SOLD',
@@ -925,6 +1121,7 @@ export class AnimalsService {
       sumSaleChickens: totalSaleChickens._sum,
       sumSaleAnimals: totalSaleAnimals._sum?.price,
       sumIsolations: totalIsolations._sum.number,
+      sumStocks: totalStocks._sum,
       sumAnimalGrowthSale,
       sumFemaleGestationSold,
       sumAnimalFatteningSold,

@@ -8,17 +8,25 @@ import {
 } from 'class-validator';
 
 export class UpdateIsolationsDto {
-  @IsNotEmpty()
-  @IsString()
-  note: string;
-
   @IsOptional()
   @IsNumber()
   number: number;
 
   @IsOptional()
+  @IsNumber()
+  female: number;
+
+  @IsOptional()
+  @IsNumber()
+  male: number;
+
+  @IsOptional()
   @IsString()
   code: string;
+
+  @IsNotEmpty()
+  @IsString()
+  note: string;
 }
 
 export class CreateIsolationsDto extends UpdateIsolationsDto {

@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Death, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   dateTimeNowUtc,
+  lastDayMonth,
   substrateDaysToTimeNowUtcDate,
-} from 'src/app/utils/commons';
-import { DatabaseService } from '../../app/database/database.service';
+} from '../../app/utils/commons';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountDeathAnalysisByDateAndReturnArray } from './deaths.analytics.utils';
 import {
   CreateDeathsOptions,
   DeathSelect,
@@ -71,10 +73,70 @@ export class DeathsService {
     });
   }
 
+  /** Get deaths analytics. */
+  async getAnimalDeathAnalytics(selections: GetDeathsSelections) {
+    const prismaWhere = {} as Prisma.DeathWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupDeathsAnalytics = await this.client.death.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId'],
+      where: { ...prismaWhere, deletedAt: null },
+      _sum: {
+        number: true,
+      },
+      _count: true,
+    });
+
+    const deathsAnalytics = groupCountDeathAnalysisByDateAndReturnArray({
+      data: groupDeathsAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return deathsAnalytics;
+  }
+
   /** Find one death in database. */
   async findOneBy(selections: GetOneDeathSelections) {
     const prismaWhere = {} as Prisma.DeathWhereInput;
-    const { deathId, animalTypeId, organizationId } = selections;
+    const { deathId, animalTypeId, organizationId, animalId } = selections;
 
     if (deathId) {
       Object.assign(prismaWhere, { id: deathId });
@@ -82,6 +144,10 @@ export class DeathsService {
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
     }
 
     if (animalTypeId) {
@@ -100,7 +166,9 @@ export class DeathsService {
   async createOne(options: CreateDeathsOptions): Promise<Death> {
     const {
       note,
+      male,
       number,
+      female,
       animalId,
       animalTypeId,
       organizationId,
@@ -110,7 +178,9 @@ export class DeathsService {
     const death = this.client.death.create({
       data: {
         note,
+        male,
         number,
+        female,
         animalId,
         animalTypeId,
         organizationId,
@@ -127,13 +197,15 @@ export class DeathsService {
     options: UpdateDeathsOptions,
   ): Promise<Death> {
     const { deathId } = selections;
-    const { note, number, userCreatedId, deletedAt } = options;
+    const { note, male, number, female, userCreatedId, deletedAt } = options;
 
     const death = this.client.death.update({
       where: { id: deathId },
       data: {
         note,
+        male,
         number,
+        female,
         userCreatedId,
         deletedAt,
       },

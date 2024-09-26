@@ -4,6 +4,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 export type GetTreatmentsSelections = {
   search?: string;
   periode?: number;
+  animalId?: string;
   organizationId?: string;
   animalTypeId?: string;
   pagination?: PaginationType;
@@ -35,9 +36,12 @@ export const TreatmentSelect = {
   animal: {
     select: {
       code: true,
+      status: true,
       productionPhase: true,
     },
   },
+  animalId: true,
+  animalTypeId: true,
   animalType: {
     select: {
       name: true,

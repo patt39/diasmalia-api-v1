@@ -105,7 +105,9 @@ export class IsolationsService {
   async createOne(options: CreateIsolationsOptions): Promise<Isolation> {
     const {
       note,
+      male,
       number,
+      female,
       animalId,
       animalTypeId,
       organizationId,
@@ -115,7 +117,9 @@ export class IsolationsService {
     const isolation = this.client.isolation.create({
       data: {
         note,
+        male,
         number,
+        female,
         animalId,
         animalTypeId,
         organizationId,
@@ -132,11 +136,11 @@ export class IsolationsService {
     options: UpdateIsolationsOptions,
   ): Promise<Isolation> {
     const { isolationId } = selections;
-    const { note, number, animalId, deletedAt } = options;
+    const { note, male, number, female, animalId, deletedAt } = options;
 
     const isolation = this.client.isolation.update({
       where: { id: isolationId },
-      data: { note, animalId, number, deletedAt },
+      data: { note, animalId, male, number, female, deletedAt },
     });
 
     return isolation;

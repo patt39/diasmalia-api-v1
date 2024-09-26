@@ -2,18 +2,16 @@ import { Module } from '@nestjs/common';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
-import { LocationsService } from '../locations/locations.service';
-import { DeathsController } from './deaths.controller';
-import { DeathsService } from './deaths.service';
+import { FeedStocksController } from './feed-stock.controller';
+import { FeedStocksService } from './feed-stock.service';
 
 @Module({
-  controllers: [DeathsController],
+  controllers: [FeedStocksController],
   providers: [
-    DeathsService,
+    FeedStocksService,
     AnimalsService,
-    LocationsService,
     ActivityLogsService,
     AssignTypesService,
   ],
 })
-export class DeathsModule {}
+export class FeedStockModule {}

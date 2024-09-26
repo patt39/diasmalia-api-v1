@@ -100,6 +100,14 @@ export class UpdateAnimalsDto {
   code: string;
 
   @IsOptional()
+  @IsNumber()
+  female: number;
+
+  @IsOptional()
+  @IsNumber()
+  male: number;
+
+  @IsOptional()
   @IsString()
   codeFather: string;
 
@@ -207,4 +215,9 @@ export class GetAnimalsQuery {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  locationId: string;
 }

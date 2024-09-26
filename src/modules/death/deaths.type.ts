@@ -3,6 +3,9 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetDeathsSelections = {
   search?: string;
+  months?: string;
+  year?: string;
+  days?: string;
   organizationId?: string;
   animalTypeId?: string;
   periode?: number;
@@ -11,6 +14,7 @@ export type GetDeathsSelections = {
 
 export type GetOneDeathSelections = {
   deathId?: Death['id'];
+  animalId?: Death['animalId'];
   animalTypeId?: Death['animalTypeId'];
   organizationId?: Death['organizationId'];
 };
@@ -27,6 +31,8 @@ export const DeathSelect = {
   createdAt: true,
   id: true,
   note: true,
+  male: true,
+  female: true,
   number: true,
   animalId: true,
   animal: {
@@ -50,4 +56,5 @@ export const DeathSelect = {
     },
   },
   userCreatedId: true,
+  deletedAt: true,
 };

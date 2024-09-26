@@ -103,11 +103,30 @@ export class EggHavestingsController {
     const eggHarvesting = await this.eggHavestingsService.createOne({
       size,
       quantity,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAnimal.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      animalId: findOneAnimal?.id,
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
+
+    if (
+      [
+        'Dinde',
+        'Canard',
+        'Pintarde',
+        'Pondeuses',
+        'Poulets Brahma',
+        'Poulets Goliaths',
+      ].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        {
+          eggHarvestedCount:
+            findOneAnimal?.eggHarvestedCount + eggHarvesting?.quantity,
+        },
+      );
+    }
 
     await this.animalsService.updateOne(
       { animalId: findOneAnimal.id },
@@ -115,9 +134,9 @@ export class EggHavestingsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created an egg-havesting in ${findOneAnimal.animalType.name} for ${findOneAnimal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an egg-havesting in ${findOneAnimal?.animalType?.name} for ${findOneAnimal?.code}`,
     });
 
     return reply({ res, results: eggHarvesting });
@@ -146,7 +165,7 @@ export class EggHavestingsController {
 
     const findOneEggHavesting = await this.eggHavestingsService.findOneBy({
       eggHarvestingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneEggHavesting)
       throw new HttpException(
@@ -159,15 +178,15 @@ export class EggHavestingsController {
       {
         size,
         quantity,
-        animalId: findOneAnimal.id,
-        userCreatedId: user.id,
+        animalId: findOneAnimal?.id,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated an egg-havesting in ${findOneEggHavesting.animalType.name} for ${findOneEggHavesting.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated an egg-havesting in ${findOneEggHavesting?.animalType?.name} for ${findOneEggHavesting?.animal?.code}`,
     });
 
     return reply({ res, results: eggHavesting });
@@ -185,7 +204,7 @@ export class EggHavestingsController {
 
     const findOneEggHarvesting = await this.eggHavestingsService.findOneBy({
       eggHarvestingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneEggHarvesting)
       throw new HttpException(
@@ -199,9 +218,9 @@ export class EggHavestingsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an egg-havesting ${findOneEggHarvesting.animalType.name} `,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted an egg-havesting ${findOneEggHarvesting?.animalType?.name} `,
     });
 
     return reply({ res, results: 'EggHarvesting deleted successfully' });

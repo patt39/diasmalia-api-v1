@@ -52,7 +52,7 @@ export class TreatmentsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { animalTypeId, periode } = queryTreatment;
+    const { animalTypeId, periode, animalId } = queryTreatment;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -64,6 +64,7 @@ export class TreatmentsController {
 
     const treatments = await this.treatmentsService.findAll({
       search,
+      animalId,
       pagination,
       animalTypeId,
       periode: Number(periode),

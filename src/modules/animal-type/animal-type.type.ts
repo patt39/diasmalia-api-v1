@@ -23,6 +23,7 @@ export type UpdateAnimalTypesOptions = Partial<AnimalType>;
 export const AnimalTypesSelect = {
   createdAt: true,
   id: true,
+  tab: true,
   name: true,
   photo: true,
   status: true,
@@ -31,11 +32,11 @@ export const AnimalTypesSelect = {
   description: true,
   _count: {
     select: {
-      locations: true,
-      weanings: true,
-      gestations: true,
-      farrowings: true,
-      treatments: true,
+      eggHavestings: true,
+      incubations: true,
+      feedings: true,
+      deaths: true,
+      sales: true,
     },
   },
 };

@@ -75,10 +75,11 @@ export class AnimalTypesService {
 
   /** Create one animalType in database. */
   async createOne(options: CreateAnimalTypesOptions): Promise<AnimalType> {
-    const { name, slug, habitat, photo, description } = options;
+    const { tab, name, slug, habitat, photo, description } = options;
 
     const animalType = this.client.animalType.create({
       data: {
+        tab,
         name,
         slug,
         photo,

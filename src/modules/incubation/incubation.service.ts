@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Incubation, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   dateTimeNowUtc,
+  lastDayMonth,
   substrateDaysToTimeNowUtcDate,
-} from 'src/app/utils/commons';
-import { DatabaseService } from '../../app/database/database.service';
+} from '../../app/utils/commons';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountIncubationAnalyticsByDateAndReturnArray } from './incubation.analytics.utils';
 import {
   CreateIncubationsOptions,
   GetOneIncubationSelections,
@@ -70,6 +72,7 @@ export class IncubationsService {
       value: incubations,
     });
   }
+
   /** Find one incubation in database. */
   async findOneBy(selections: GetOneIncubationSelections) {
     const prismaWhere = {} as Prisma.IncubationWhereInput;
@@ -97,6 +100,68 @@ export class IncubationsService {
     });
 
     return incubation;
+  }
+
+  /** Get incubation analytics. */
+  async getAnimalIncubationsAnalytics(selections: IncubationsSelections) {
+    const prismaWhere = {} as Prisma.IncubationWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupIncubationsAnalytics = await this.client.incubation.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId'],
+      where: { ...prismaWhere, deletedAt: null },
+      _sum: {
+        quantityEnd: true,
+        quantityStart: true,
+      },
+      _count: true,
+    });
+
+    const incubationAnalytics =
+      groupCountIncubationAnalyticsByDateAndReturnArray({
+        data: groupIncubationsAnalytics,
+        year: year,
+        month: months,
+      });
+
+    return incubationAnalytics;
   }
 
   /** Create one incubation in database. */

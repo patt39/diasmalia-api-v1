@@ -1,4 +1,4 @@
-import { Animal } from '@prisma/client';
+import { Animal, AnimalStatus } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetAnimalsSelections = {
@@ -10,6 +10,8 @@ export type GetAnimalsSelections = {
   status?: Animal['status'];
   gender?: Animal['gender'];
   isIsolated?: Animal['isIsolated'];
+  locationId?: Animal['locationId'];
+  deletedAt?: Animal['deletedAt'];
   animalTypeId?: Animal['animalTypeId'];
   productionPhase?: Animal['productionPhase'];
 };
@@ -41,6 +43,7 @@ export type UpdateAnimalsOptions = Partial<Animal>;
 
 export const AnimalSelect = {
   createdAt: true,
+  deletedAt: true,
   id: true,
   code: true,
   gender: true,
@@ -54,6 +57,7 @@ export const AnimalSelect = {
   codeMother: true,
   isIsolated: true,
   isCastrated: true,
+  eggHarvestedCount: true,
   productionPhase: true,
   organizationId: true,
   organization: {
@@ -68,7 +72,16 @@ export const AnimalSelect = {
     select: {
       code: true,
       productionPhase: true,
-      animals: true,
+      _count: {
+        select: {
+          animals: {
+            where: {
+              deletedAt: null,
+              status: 'ACTIVE' as AnimalStatus,
+            },
+          },
+        },
+      },
     },
   },
   breedId: true,
@@ -91,6 +104,8 @@ export const AnimalSelect = {
       eggHavestings: true,
       incubations: true,
       treatments: true,
+      feedings: true,
+      sales: true,
     },
   },
 };

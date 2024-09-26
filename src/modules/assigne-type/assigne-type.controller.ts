@@ -70,7 +70,7 @@ export class AssignTypesController {
     return reply({ res, results: assignTypes });
   }
 
-  /** Post one multiple select assigne type */
+  /** Post multiple assigne types */
   @Post(`/multiple/create`)
   @UseGuards(UserAuthGuard)
   async createOneBulk(

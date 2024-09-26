@@ -33,6 +33,7 @@ export const FarrowingSelect = {
   animal: {
     select: {
       code: true,
+      status: true,
     },
   },
   animalTypeId: true,

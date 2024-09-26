@@ -28,8 +28,14 @@ export class TreatmentsService {
     selections: GetTreatmentsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTreatment = {} as Prisma.TreatmentWhereInput;
-    const { search, periode, animalTypeId, organizationId, pagination } =
-      selections;
+    const {
+      search,
+      periode,
+      animalId,
+      animalTypeId,
+      organizationId,
+      pagination,
+    } = selections;
 
     if (search) {
       Object.assign(prismaWhereTreatment, {
@@ -39,6 +45,10 @@ export class TreatmentsService {
 
     if (animalTypeId) {
       Object.assign(prismaWhereTreatment, { animalTypeId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhereTreatment, { animalId });
     }
 
     if (organizationId) {

@@ -74,7 +74,7 @@ export class FeedingsService {
   }
 
   /** Get animal feeding analytics. */
-  async getanimalFeedingAnalytics(selections: GetFeedingsSelections) {
+  async getAnimalFeedingAnalytics(selections: GetFeedingsSelections) {
     const prismaWhere = {} as Prisma.FeedingWhereInput;
     const { animalTypeId, periode, months, year, organizationId } = selections;
 
@@ -162,8 +162,8 @@ export class FeedingsService {
   async createOne(options: CreateFeedingsOptions): Promise<Feeding> {
     const {
       quantity,
-      feedType,
       animalId,
+      feedStockId,
       animalTypeId,
       productionPhase,
       organizationId,
@@ -173,8 +173,8 @@ export class FeedingsService {
     const feeding = this.client.feeding.create({
       data: {
         quantity,
-        feedType,
         animalId,
+        feedStockId,
         animalTypeId,
         productionPhase,
         organizationId,
@@ -191,13 +191,14 @@ export class FeedingsService {
     options: UpdateFeedingsOptions,
   ): Promise<Feeding> {
     const { feedingId } = selections;
-    const { quantity, feedType, animalId, userCreatedId, deletedAt } = options;
+    const { quantity, feedStockId, animalId, userCreatedId, deletedAt } =
+      options;
 
     const feeding = this.client.feeding.update({
       where: { id: feedingId },
       data: {
         quantity,
-        feedType,
+        feedStockId,
         animalId,
         userCreatedId,
         deletedAt,
