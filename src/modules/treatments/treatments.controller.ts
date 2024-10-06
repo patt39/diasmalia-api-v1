@@ -24,6 +24,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { HealthsService } from '../health/health.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkTreatmentsDto,
@@ -37,6 +38,7 @@ export class TreatmentsController {
   constructor(
     private readonly treatmentsService: TreatmentsService,
     private readonly animalsService: AnimalsService,
+    private readonly healthsService: HealthsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -83,16 +85,28 @@ export class TreatmentsController {
     @Body() body: CreateOrUpdateTreatmentsDto,
   ) {
     const { user } = req;
-    const { code, note, name, dose, method, diagnosis, medication } = body;
+    const { code, note, name, dose, method, diagnosis, healthId } = body;
 
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
         `Animal ${findOneAnimal?.code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findMedication = await this.healthsService.findOneBy({
+      healthId,
+      status: 'true',
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findMedication)
+      throw new HttpException(
+        `Medication: ${findMedication?.name} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -102,31 +116,31 @@ export class TreatmentsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const feeding = await this.treatmentsService.createOne({
+    const treatment = await this.treatmentsService.createOne({
       note,
       name,
       dose,
       method,
       diagnosis,
-      medication,
-      animalId: findOneAnimal.id,
-      animalTypeId: findOneAnimal.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      animalId: findOneAnimal?.id,
+      healthId: findMedication?.id,
+      animalTypeId: findOneAnimal?.animalTypeId,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a treatment ${findOneAnimal.animalType.name} with code ${findOneAnimal?.code} `,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a treatment ${findOneAnimal?.animalType?.name} with code ${findOneAnimal?.code} `,
+      organizationId: user?.organizationId,
     });
 
     return reply({
       res,
       results: {
         status: HttpStatus.CREATED,
-        data: feeding,
-        message: `Feeding Created Successfully`,
+        data: treatment,
+        message: `Treatment Created Successfully`,
       },
     });
   }
@@ -136,16 +150,28 @@ export class TreatmentsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkTreatmentsDto) {
     const { user } = req;
-    const { note, name, dose, animals, diagnosis, medication, method } = body;
+    const { note, name, dose, animals, diagnosis, healthId, method } = body;
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         code: animal,
-        organizationId: user.organizationId,
+        organizationId: user?.organizationId,
       });
       if (!findOneAnimal)
         throw new HttpException(
           `Animal ${findOneAnimal?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      const findMedication = await this.healthsService.findOneBy({
+        healthId,
+        status: 'true',
+        animalTypeId: findOneAnimal?.animalTypeId,
+        organizationId: user?.organizationId,
+      });
+      if (!findMedication)
+        throw new HttpException(
+          `Medication: ${findMedication?.name} doesn't exists please change`,
           HttpStatus.NOT_FOUND,
         );
 
@@ -155,17 +181,17 @@ export class TreatmentsController {
         dose,
         method,
         diagnosis,
-        medication,
-        animalId: findOneAnimal.id,
-        animalTypeId: findOneAnimal.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
+        animalId: findOneAnimal?.id,
+        healthId: findMedication?.id,
+        animalTypeId: findOneAnimal?.animalTypeId,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
       });
 
       await this.activitylogsService.createOne({
-        userId: user.id,
-        organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} treated ${animals.length} ${findOneAnimal.animalType.name}`,
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} treated ${animals.length} ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -182,11 +208,11 @@ export class TreatmentsController {
     @Param('treatmentId', ParseUUIDPipe) treatmentId: string,
   ) {
     const { user } = req;
-    const { code, note, name, dose, diagnosis, medication, method } = body;
+    const { code, note, name, dose, diagnosis, healthId, method } = body;
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTreatement)
       throw new HttpException(
@@ -197,7 +223,7 @@ export class TreatmentsController {
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -205,25 +231,36 @@ export class TreatmentsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findMedication = await this.healthsService.findOneBy({
+      healthId,
+      animalTypeId: findOneTreatement?.animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findMedication)
+      throw new HttpException(
+        `Medication: ${findMedication?.name} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const treatment = await this.treatmentsService.updateOne(
-      { treatmentId: findOneTreatement.id },
+      { treatmentId: findOneTreatement?.id },
       {
         note,
         name,
         dose,
         method,
         diagnosis,
-        medication,
-        animalId: findOneAnimal.id,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
+        animalId: code ? findOneAnimal?.id : code,
+        healthId: findMedication?.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a treatment for animal ${findOneTreatement.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a treatment for animal ${findOneTreatement?.animal?.code}`,
     });
 
     return reply({ res, results: treatment });
@@ -241,7 +278,8 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      //organizationId: user.organizationId,
+      animalTypeId: user?.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTreatement)
       throw new HttpException(
@@ -264,7 +302,8 @@ export class TreatmentsController {
 
     const findOneTreatement = await this.treatmentsService.findOneBy({
       treatmentId,
-      organizationId: user.organizationId,
+      animalTypeId: user?.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTreatement)
       throw new HttpException(
@@ -273,13 +312,13 @@ export class TreatmentsController {
       );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a treatment for animal ${findOneTreatement.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a treatment for animal ${findOneTreatement?.animal?.code}`,
     });
 
     await this.treatmentsService.updateOne(
-      { treatmentId: findOneTreatement.id },
+      { treatmentId: findOneTreatement?.id },
       { deletedAt: new Date() },
     );
 

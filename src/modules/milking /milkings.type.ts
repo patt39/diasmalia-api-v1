@@ -3,6 +3,10 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetMilkingsSelections = {
   search?: string;
+  periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
   animalTypeId?: string;
   organizationId?: string;
   pagination?: PaginationType;
@@ -25,6 +29,7 @@ export type UpdateMilkingsOptions = Partial<Milking>;
 export const MilkingSelect = {
   createdAt: true,
   id: true,
+  note: true,
   quantity: true,
   animalId: true,
   animal: {

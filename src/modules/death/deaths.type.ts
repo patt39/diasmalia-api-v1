@@ -41,6 +41,12 @@ export const DeathSelect = {
       male: true,
       female: true,
       quantity: true,
+      productionPhase: true,
+      location: {
+        select: {
+          code: true,
+        },
+      },
     },
   },
   animalTypeId: true,

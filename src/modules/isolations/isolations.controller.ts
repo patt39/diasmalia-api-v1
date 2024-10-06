@@ -120,23 +120,15 @@ export class IsolationsController {
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+    console.log('isolation==>', isolation);
 
     await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
+      { animalId: isolation?.animalId },
       {
         male: findOneAnimal?.male - isolation?.male,
         female: findOneAnimal?.female - isolation?.female,
         quantity: findOneAnimal?.quantity - isolation?.number,
       },
-    );
-
-    const sumIsolatedAnimalsCreate = Number(
-      isolation?.male + isolation?.female,
-    );
-
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      { quantity: findOneAnimal?.quantity - sumIsolatedAnimalsCreate },
     );
 
     await this.activitylogsService.createOne({
@@ -298,17 +290,6 @@ export class IsolationsController {
         male: findOneIsolation?.animal?.male + findOneIsolation?.male,
         female: findOneIsolation?.animal?.female + findOneIsolation?.female,
         quantity: findOneIsolation?.animal?.quantity + findOneIsolation?.number,
-      },
-    );
-
-    const sumIsolatedAnimalsCreate = Number(
-      findOneIsolation?.male + findOneIsolation?.female,
-    );
-
-    await this.animalsService.updateOne(
-      { animalId: findOneIsolation?.animal?.id },
-      {
-        quantity: findOneIsolation?.animal?.quantity + sumIsolatedAnimalsCreate,
       },
     );
 

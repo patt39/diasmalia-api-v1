@@ -135,7 +135,7 @@ export class AnimalTypesController {
   /** Get one animalType */
   @Get(`/view/:animalTypeId`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdWeaning(
+  async getOneAnimalTypeId(
     @Res() res,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
@@ -144,7 +144,7 @@ export class AnimalTypesController {
     });
     if (!findOneType)
       throw new HttpException(
-        `AimalTypeId: ${animalTypeId} doesn't exists, please change`,
+        `AnimalTypeId: ${animalTypeId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 

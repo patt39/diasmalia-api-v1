@@ -44,10 +44,12 @@ export const SalesSelect = {
   number: true,
   method: true,
   address: true,
+  animalId: true,
   animal: {
     select: {
       code: true,
       status: true,
+      productionPhase: true,
     },
   },
   salePdf: true,

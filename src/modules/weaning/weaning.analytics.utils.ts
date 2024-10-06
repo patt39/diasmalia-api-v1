@@ -6,8 +6,9 @@ import {
   formateYYYYDate,
 } from '../../app/utils/commons/formate-date';
 type valueType = {
-  sum: number;
+  litter: number;
   count: number;
+  farrowingLitter: number;
 };
 
 export const groupCountWeaningAnalyticsByDateAndReturnArray = ({
@@ -27,7 +28,7 @@ export const groupCountWeaningAnalyticsByDateAndReturnArray = ({
       item: {
         createdAt: Date;
         _count: number;
-        _sum: { price: number };
+        _sum: { litter: number; farrowingLitter: number };
       },
     ) => {
       const dateItem = item?.createdAt ?? new Date();
@@ -41,11 +42,14 @@ export const groupCountWeaningAnalyticsByDateAndReturnArray = ({
 
       if (existingData) {
         existingData.count += Number(item?._count ?? 0);
-        existingData.sum += Number(item?._sum?.price) ?? 0;
+        existingData.litter += Number(item?._sum?.litter) ?? 0;
+        existingData.farrowingLitter +=
+          Number(item?._sum?.farrowingLitter) ?? 0;
       } else {
         acc.set(date, {
           count: item?._count ?? 0,
-          sum: Number(item?._sum?.price) ?? 0,
+          litter: Number(item?._sum?.litter) ?? 0,
+          farrowingLitter: Number(item?._sum?.farrowingLitter),
         });
       }
 
@@ -65,131 +69,8 @@ export const groupCountWeaningAnalyticsByDateAndReturnArray = ({
       date,
       dateNumeric: key,
       count: value?.count,
-      sum: value?.sum,
-    });
-  });
-
-  return returnData;
-};
-
-export const groupCountChicksAnalyticsByDateAndReturnArray = ({
-  data,
-  year,
-  month,
-  lang = 'en',
-}: {
-  lang?: string;
-  data: any;
-  year?: string;
-  month?: string;
-}) => {
-  const groupedData = data.reduce(
-    (
-      acc: any,
-      item: {
-        createdAt: Date;
-        _count: number;
-        _sum: { price: number };
-      },
-    ) => {
-      const dateItem = item?.createdAt ?? new Date();
-      const date: string = year
-        ? month
-          ? formateDDNumericDate(dateItem)
-          : formateMMNumericDate(dateItem)
-        : formateYYYYDate(dateItem);
-
-      const existingData = acc.get(date);
-
-      if (existingData) {
-        existingData.count += Number(item?._count ?? 0);
-        existingData.sum += Number(item?._sum?.price) ?? 0;
-      } else {
-        acc.set(date, {
-          count: item?._count ?? 0,
-          sum: Number(item?._sum?.price) ?? 0,
-        });
-      }
-
-      return acc;
-    },
-    new Map<string, { value: any }>(),
-  );
-
-  const returnData = [] as any[];
-  groupedData.forEach((value: valueType, key) => {
-    const date = year
-      ? month
-        ? formateDDDate(new Date(`${year}-${month}-${Number(key)}`), lang)
-        : formateMMDate(new Date(Number(year), Number(key), 0), lang)
-      : key;
-    returnData.push({
-      date,
-      dateNumeric: key,
-      count: value?.count,
-      sum: value?.sum,
-    });
-  });
-
-  return returnData;
-};
-
-export const groupCountEggsAnalyticsByDateAndReturnArray = ({
-  data,
-  year,
-  month,
-  lang = 'en',
-}: {
-  lang?: string;
-  data: any;
-  year?: string;
-  month?: string;
-}) => {
-  const groupedData = data.reduce(
-    (
-      acc: any,
-      item: {
-        createdAt: Date;
-        _count: number;
-        _sum: { price: number };
-      },
-    ) => {
-      const dateItem = item?.createdAt ?? new Date();
-      const date: string = year
-        ? month
-          ? formateDDNumericDate(dateItem)
-          : formateMMNumericDate(dateItem)
-        : formateYYYYDate(dateItem);
-
-      const existingData = acc.get(date);
-
-      if (existingData) {
-        existingData.count += Number(item?._count ?? 0);
-        existingData.sum += Number(item?._sum?.price) ?? 0;
-      } else {
-        acc.set(date, {
-          count: item?._count ?? 0,
-          sum: Number(item?._sum?.price) ?? 0,
-        });
-      }
-
-      return acc;
-    },
-    new Map<string, { value: any }>(),
-  );
-
-  const returnData = [] as any[];
-  groupedData.forEach((value: valueType, key) => {
-    const date = year
-      ? month
-        ? formateDDDate(new Date(`${year}-${month}-${Number(key)}`), lang)
-        : formateMMDate(new Date(Number(year), Number(key), 0), lang)
-      : key;
-    returnData.push({
-      date,
-      dateNumeric: key,
-      count: value?.count,
-      sum: value?.sum,
+      litter: value?.litter,
+      farrowingLitter: value?.farrowingLitter,
     });
   });
 

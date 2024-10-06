@@ -1,6 +1,7 @@
-import { ProductionPhase } from '@prisma/client';
+import { LocationType, ProductionPhase } from '@prisma/client';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -33,6 +34,11 @@ export class CreateOrUpdateLocationsDto {
   @IsString()
   @IsEnum(ProductionPhase)
   productionPhase: ProductionPhase;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(LocationType)
+  type: LocationType;
 }
 
 export class CreateBulkLocationsDto {
@@ -72,4 +78,14 @@ export class GetLocationsQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['true', 'false'])
+  status: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(LocationType)
+  type: LocationType;
 }

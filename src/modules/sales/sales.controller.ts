@@ -172,17 +172,23 @@ export class SalesController {
         HttpStatus.NOT_FOUND,
       );
     const totalEggHarvested = findOneAnimal?.eggHarvestedCount;
+    const totalEggSold = findOneAnimal?.eggSaleCount;
+    const totalEggIncubated = findOneAnimal?.incubationCount;
+    const totalEggHatched = findOneAnimal?.eggHatchedCount;
     const totalSaleChicks = findOneAnimal?.chickSaleCount;
+    const EggsAvailable =
+      totalEggHarvested - (totalEggSold + totalEggIncubated);
+    const chicksAvailable = totalEggHatched - totalSaleChicks;
 
-    if (detail === 'EGGS' && totalEggHarvested < number)
+    if (detail === 'EGGS' && EggsAvailable < number)
       throw new HttpException(
-        `Impossible to sell in this band code: ${findOneAnimal?.code} no egg or insufficient availability: ${totalEggHarvested}`,
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no egg or insufficiency, availability: ${EggsAvailable}`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (detail === 'CHICKS' && totalSaleChicks < number)
+    if (detail === 'CHICKS' && chicksAvailable < number)
       throw new HttpException(
-        `Impossible to sell in this band code: ${findOneAnimal?.code} no chicks or insufficient availability: ${totalSaleChicks}`,
+        `Impossible to sell in this band code: ${findOneAnimal?.code} no chicks or insufficiency, availability: ${chicksAvailable}`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -247,14 +253,16 @@ export class SalesController {
       userCreatedId: user?.id,
     });
 
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      {
-        female: findOneAnimal?.female - female,
-        male: findOneAnimal?.male - male,
-        quantity: findOneAnimal?.quantity - sale?.number,
-      },
-    );
+    if (detail === 'CHICKENS') {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        {
+          female: findOneAnimal?.female - female,
+          male: findOneAnimal?.male - male,
+          quantity: findOneAnimal?.quantity - sale?.number,
+        },
+      );
+    }
 
     if (findOneAnimal?.quantity - sale?.number === 0) {
       await this.animalsService.updateOne(

@@ -120,7 +120,11 @@ export class EggHavestingsService {
     const groupEggHarvestingsAnalytics = await this.client.eggHavesting.groupBy(
       {
         by: ['createdAt', 'organizationId', 'animalTypeId'],
-        where: { ...prismaWhere, deletedAt: null },
+        where: {
+          ...prismaWhere,
+          deletedAt: null,
+          animal: { status: 'ACTIVE', deletedAt: null },
+        },
         _sum: {
           quantity: true,
         },

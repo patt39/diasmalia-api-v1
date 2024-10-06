@@ -79,7 +79,7 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, code } = body;
+    const { litter, code, weight } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: code,
@@ -111,8 +111,10 @@ export class WeaningsController {
 
     const weaning = await this.weaningsService.createOne({
       litter,
+      weight,
       animalId: findOneFemale?.id,
       farrowingId: findOneFarrowing?.id,
+      farrowingLitter: findOneFarrowing?.litter,
       animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -142,7 +144,7 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const { litter } = body;
+    const { litter, weight } = body;
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
@@ -158,13 +160,14 @@ export class WeaningsController {
       { weaningId: findOneWeaning?.id },
       {
         litter,
+        weight,
         userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      organizationId: user?.organizationId,
       message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a weaning in ${findOneWeaning?.animalType?.name} for animal ${findOneWeaning?.animal?.code}`,
     });
 
@@ -183,7 +186,7 @@ export class WeaningsController {
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(

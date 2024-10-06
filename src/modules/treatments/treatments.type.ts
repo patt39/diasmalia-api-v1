@@ -31,8 +31,8 @@ export const TreatmentSelect = {
   dose: true,
   name: true,
   method: true,
-  medication: true,
   diagnosis: true,
+  animalId: true,
   animal: {
     select: {
       code: true,
@@ -40,9 +40,14 @@ export const TreatmentSelect = {
       productionPhase: true,
     },
   },
-  animalId: true,
   animalTypeId: true,
   animalType: {
+    select: {
+      name: true,
+    },
+  },
+  healthId: true,
+  health: {
     select: {
       name: true,
     },

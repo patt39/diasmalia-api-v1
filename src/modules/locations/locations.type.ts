@@ -3,17 +3,20 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetLocationsSelections = {
   search?: string;
-  locationId?: Location['id'];
+  status?: string;
   pagination?: PaginationType;
+  type?: Location['type'];
+  locationId?: Location['id'];
   animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
 };
 
 export type GetOneLocationsSelections = {
+  status?: string;
   locationId?: Location['id'];
   code?: Location['code'];
-  status?: Location['status'];
+  type?: Location['type'];
   animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
@@ -32,6 +35,7 @@ export const LocationsSelect = {
   id: true,
   code: true,
   nest: true,
+  type: true,
   status: true,
   squareMeter: true,
   through: true,
