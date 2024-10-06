@@ -116,18 +116,16 @@ export class WeaningsService {
     }
 
     const groupWeaningsAnalytics = await this.client.weaning.groupBy({
-      // farrowing: {
-      //   _sum: {
-      //     litter: true,
-      //   }
-      // },
-
       by: ['createdAt', 'organizationId', 'animalTypeId'],
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
       _sum: {
         litter: true,
+        farrowingLitter: true,
       },
-
       _count: true,
     });
 
@@ -169,8 +167,10 @@ export class WeaningsService {
   async createOne(options: CreateWeaningsOptions): Promise<Weaning> {
     const {
       litter,
+      weight,
       animalId,
       farrowingId,
+      farrowingLitter,
       animalTypeId,
       organizationId,
       userCreatedId,
@@ -179,8 +179,10 @@ export class WeaningsService {
     const weaning = this.client.weaning.create({
       data: {
         litter,
+        weight,
         animalId,
         farrowingId,
+        farrowingLitter,
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -196,12 +198,13 @@ export class WeaningsService {
     options: UpdateWeaningsOptions,
   ): Promise<Weaning> {
     const { weaningId } = selections;
-    const { litter, deletedAt } = options;
+    const { litter, weight, deletedAt } = options;
 
     const weaning = this.client.weaning.update({
       where: { id: weaningId },
       data: {
         litter,
+        weight,
         deletedAt,
       },
     });

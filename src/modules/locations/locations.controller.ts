@@ -54,7 +54,7 @@ export class LocationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { productionPhase, animalTypeId } = queryLocations;
+    const { productionPhase, animalTypeId, status, type } = queryLocations;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -65,6 +65,8 @@ export class LocationsController {
     });
 
     const locations = await this.locationsService.findAll({
+      type,
+      status,
       search,
       pagination,
       animalTypeId,
@@ -85,7 +87,8 @@ export class LocationsController {
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
     const { user } = req;
-    const { code, nest, manger, through, squareMeter, productionPhase } = body;
+    const { code, nest, type, manger, through, squareMeter, productionPhase } =
+      body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -97,16 +100,30 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const findOneLocation = await this.locationsService.findOneBy({
+      code: code.toLowerCase(),
+      organizationId: user?.organizationId,
+      animalTypeId: findOneAssignType?.animalTypeId,
+    });
+    if (code?.toLowerCase() == findOneLocation?.code)
+      throw new HttpException(
+        `Location code: ${findOneLocation?.code} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const appInitials = config.datasite.name.substring(0, 1);
     const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
 
     await this.locationsService.createOne({
       nest,
+      type,
       manger,
       through,
       squareMeter,
       productionPhase,
-      code: code ? code : `${orgInitials}${generateNumber(4)}${appInitials}`,
+      code: code
+        ? code.toLowerCase()
+        : `${orgInitials}${generateNumber(4)}${appInitials}`,
       animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user.organizationId,
       userCreatedId: user.id,
@@ -136,7 +153,8 @@ export class LocationsController {
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
     const { user } = req;
-    const { number, manger, through, squareMeter, productionPhase } = body;
+    const { number, manger, through, squareMeter, productionPhase, nest } =
+      body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -154,14 +172,15 @@ export class LocationsController {
 
     for (let i = 0; i < number; i++) {
       const animal = await this.locationsService.createOne({
+        nest,
         manger,
         through,
         squareMeter,
         productionPhase,
-        code: `${orgInitials}${generateNumber(4)}${appInitials}`,
+        code: `${orgInitials}${generateNumber(2)}${appInitials}`,
         animalTypeId: findOneAssignType?.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
       });
 
       newAnimalArray.push(animal);

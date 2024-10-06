@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { formatDDMMYYDate } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -152,12 +151,6 @@ export class IncubationsController {
     if (!findOneIncubation)
       throw new HttpException(
         `IncubationId: ${incubationId} doesn't exists, please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (formatDDMMYYDate(dueDate) !== formatDDMMYYDate(new Date()))
-      throw new HttpException(
-        `Impossible to create, hatching date: ${formatDDMMYYDate(dueDate)} not reached yet please update`,
         HttpStatus.NOT_FOUND,
       );
 

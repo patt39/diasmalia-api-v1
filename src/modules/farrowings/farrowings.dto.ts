@@ -16,6 +16,10 @@ export class CreateFarrowingsDto {
   note: string;
 
   @IsNotEmpty()
+  @IsNumber()
+  weight: number;
+
+  @IsNotEmpty()
   @IsString()
   codeFemale: string;
 }
@@ -24,6 +28,10 @@ export class UpdateFarrowingsDto {
   @IsOptional()
   @IsNumber()
   litter: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  weight: number;
 
   @IsNotEmpty()
   @IsString()

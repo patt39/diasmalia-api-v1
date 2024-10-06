@@ -154,6 +154,12 @@ export class FeedingsController {
           HttpStatus.NOT_FOUND,
         );
 
+      if (findFeedStock?.weight < quantity)
+        throw new HttpException(
+          `Insuficient amount of feed available please update feed stock`,
+          HttpStatus.NOT_FOUND,
+        );
+
       const animalFed = Number(quantity / animals?.length);
 
       await this.feedingsService.createOne({

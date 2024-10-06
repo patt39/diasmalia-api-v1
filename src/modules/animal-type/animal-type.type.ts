@@ -1,4 +1,4 @@
-import { AnimalType, AnimalTypeStatus } from '@prisma/client';
+import { AnimalStatus, AnimalType, AnimalTypeStatus } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type AnimalTypesSelections = {
@@ -32,11 +32,46 @@ export const AnimalTypesSelect = {
   description: true,
   _count: {
     select: {
-      eggHavestings: true,
-      incubations: true,
-      feedings: true,
-      deaths: true,
-      sales: true,
+      eggHavestings: {
+        where: {
+          animal: {
+            deletedAt: null,
+            status: 'ACTIVE' as AnimalStatus,
+          },
+        },
+      },
+      incubations: {
+        where: {
+          animal: {
+            deletedAt: null,
+            status: 'ACTIVE' as AnimalStatus,
+          },
+        },
+      },
+      feedings: {
+        where: {
+          animal: {
+            deletedAt: null,
+            status: 'ACTIVE' as AnimalStatus,
+          },
+        },
+      },
+      deaths: {
+        where: {
+          animal: {
+            deletedAt: null,
+            status: 'ACTIVE' as AnimalStatus,
+          },
+        },
+      },
+      sales: {
+        where: {
+          animal: {
+            deletedAt: null,
+            status: 'ACTIVE' as AnimalStatus,
+          },
+        },
+      },
     },
   },
 };

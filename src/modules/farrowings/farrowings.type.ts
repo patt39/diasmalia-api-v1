@@ -27,6 +27,7 @@ export type UpdateFarrowingsOptions = Partial<Farrowing>;
 export const FarrowingSelect = {
   createdAt: true,
   id: true,
+  weight: true,
   litter: true,
   note: true,
   animalId: true,

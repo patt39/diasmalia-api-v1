@@ -84,7 +84,7 @@ export class AnimalsService {
     const animals = await this.client.animal.findMany({
       where: { ...prismaWhere, deletedAt: null },
       take: pagination.take,
-      skip: pagination.skip,
+      skip: pagination?.skip,
       select: AnimalSelect,
       orderBy: pagination.orderBy,
     });
@@ -190,6 +190,40 @@ export class AnimalsService {
 
     if (productionPhase) {
       Object.assign(prismaWhere, { productionPhase });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const animal = await this.client.animal.findFirst({
+      where: { ...prismaWhere, deletedAt: null },
+      select: AnimalSelect,
+    });
+
+    return animal;
+  }
+
+  /** Delete one animal in database. */
+  async findDeleteOne(selections: GetOneAnimalsSelections) {
+    const prismaWhere = {} as Prisma.AnimalWhereInput;
+    const { status, animalId, deletedAt, animalTypeId, organizationId } =
+      selections;
+
+    if (animalId) {
+      Object.assign(prismaWhere, { id: animalId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    if (deletedAt) {
+      Object.assign(prismaWhere, { deletedAt });
     }
 
     if (organizationId) {
@@ -691,6 +725,8 @@ export class AnimalsService {
     const prismaWhereTreatments = {} as Prisma.TreatmentWhereInput;
     const prismaWhereIsolations = {} as Prisma.IsolationWhereInput;
     const prismaWhereBreedings = {} as Prisma.BreedingWhereInput;
+    const prismaWhereMilkings = {} as Prisma.MilkingWhereInput;
+    const prismaWhereHealths = {} as Prisma.HealthWhereInput;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -732,6 +768,12 @@ export class AnimalsService {
           lte: dateTimeNowUtc(),
         },
       });
+      Object.assign(prismaWhereMilkings, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
     }
     const [
       sumMales,
@@ -756,6 +798,7 @@ export class AnimalsService {
       totalSaleAnimals,
       totalIsolations,
       totalStocks,
+      totalMilkings,
       sumAnimalGrowthSale,
       sumFemaleGestationSold,
       sumAnimalFatteningSold,
@@ -766,6 +809,7 @@ export class AnimalsService {
       sumVaccins,
       sumBreedings,
       sumTreatments,
+      sumMedications,
       totalBreedings,
       totalPositiveBreedings,
     ] = await this.client.$transaction([
@@ -851,16 +895,21 @@ export class AnimalsService {
         where: {
           deletedAt: null,
           ...prismaWhereFarrowings,
+          animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
         },
         _sum: {
           litter: true,
+        },
+        _count: {
+          id: true,
         },
       }),
       this.client.weaning.aggregate({
         where: {
           deletedAt: null,
           ...prismaWhereWeanings,
+          animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
         },
         _sum: {
@@ -871,6 +920,7 @@ export class AnimalsService {
         where: {
           quantity: { not: 0 },
           deletedAt: null,
+          status: 'ACTIVE',
           ...prismaWhereAnimals,
           animalTypeId: animalTypeId,
         },
@@ -889,6 +939,7 @@ export class AnimalsService {
           deletedAt: null,
           animalTypeId: animalTypeId,
           ...prismaWhereEggsHarvestings,
+          animal: { status: 'ACTIVE', deletedAt: null },
         },
         _sum: {
           quantity: true,
@@ -899,6 +950,7 @@ export class AnimalsService {
           deletedAt: null,
           ...prismaWhereDeaths,
           animalTypeId: animalTypeId,
+          animal: { status: 'ACTIVE', deletedAt: null },
         },
         _sum: {
           number: true,
@@ -909,6 +961,7 @@ export class AnimalsService {
           deletedAt: null,
           ...prismaWhereFeedings,
           animalTypeId: animalTypeId,
+          animal: { status: 'ACTIVE', deletedAt: null },
         },
         _sum: {
           quantity: true,
@@ -919,6 +972,7 @@ export class AnimalsService {
           deletedAt: null,
           ...prismaWhereIncubations,
           animalTypeId: animalTypeId,
+          animal: { status: 'ACTIVE', deletedAt: null },
         },
         _sum: {
           quantityEnd: true,
@@ -930,7 +984,7 @@ export class AnimalsService {
           ...prismaWhereSales,
           detail: 'CHICKS',
           deletedAt: null,
-          animal: { status: 'ACTIVE' },
+          animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
         },
         _sum: {
@@ -942,7 +996,7 @@ export class AnimalsService {
         where: {
           ...prismaWhereSales,
           detail: 'EGGS',
-          animal: { status: 'ACTIVE' },
+          animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
           deletedAt: null,
         },
@@ -955,7 +1009,7 @@ export class AnimalsService {
         where: {
           ...prismaWhereSales,
           detail: 'CHICKENS',
-          animal: { status: 'ACTIVE' },
+          animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
           deletedAt: null,
         },
@@ -966,6 +1020,8 @@ export class AnimalsService {
       }),
       this.client.sale.aggregate({
         where: {
+          detail: null,
+          animals: { not: null },
           ...prismaWhereSales,
           animalTypeId: animalTypeId,
           deletedAt: null,
@@ -976,6 +1032,7 @@ export class AnimalsService {
       }),
       this.client.isolation.aggregate({
         where: {
+          animal: { status: 'ACTIVE', deletedAt: null },
           ...prismaWhereIsolations,
           animalTypeId: animalTypeId,
           deletedAt: null,
@@ -991,6 +1048,17 @@ export class AnimalsService {
         _sum: {
           number: true,
           weight: true,
+        },
+      }),
+      this.client.milking.aggregate({
+        where: {
+          ...prismaWhereMilkings,
+          animal: { status: 'ACTIVE', deletedAt: null },
+          animalTypeId: animalTypeId,
+          deletedAt: null,
+        },
+        _sum: {
+          quantity: true,
         },
       }),
       this.client.animal.count({
@@ -1077,6 +1145,14 @@ export class AnimalsService {
           deletedAt: null,
         },
       }),
+      this.client.health.count({
+        where: {
+          status: true,
+          category: 'MEDICATION',
+          ...prismaWhereHealths,
+          deletedAt: null,
+        },
+      }),
       this.client.breeding.count({
         where: {
           ...prismaWhereBreedings,
@@ -1097,6 +1173,9 @@ export class AnimalsService {
     const averageWeight =
       totalSumAnimals?._sum?.weight / Number(totalSumAnimals?._count?.id);
 
+    const prolificity =
+      totalFarrowings?._sum?.litter / Number(totalFarrowings?._count?.id);
+
     return {
       sumMales,
       sumFemales,
@@ -1111,6 +1190,7 @@ export class AnimalsService {
       sumWeanings: totalWeanings?._sum?.litter,
       sumAnimalsQuantity: totalSumAnimals?._sum,
       averageWeight: averageWeight,
+      prolificity: prolificity,
       sumEggHarvested: totalEggHarvested._sum?.quantity,
       sumDeaths: totalDeaths?._sum?.number,
       sumFeedings: totalFeedings?._sum?.quantity,
@@ -1122,6 +1202,7 @@ export class AnimalsService {
       sumSaleAnimals: totalSaleAnimals._sum?.price,
       sumIsolations: totalIsolations._sum.number,
       sumStocks: totalStocks._sum,
+      sumMilkings: totalMilkings._sum?.quantity,
       sumAnimalGrowthSale,
       sumFemaleGestationSold,
       sumAnimalFatteningSold,
@@ -1130,6 +1211,7 @@ export class AnimalsService {
       sumAnimalGrowthDead,
       sumAnimalFatteningDead,
       sumTreatments,
+      sumMedications,
       totalBreedings,
       totalPositiveBreedings,
     };

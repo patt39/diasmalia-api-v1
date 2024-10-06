@@ -30,6 +30,7 @@ export type UpdateWeaningsOptions = Partial<Weaning>;
 export const WeaningSelect = {
   createdAt: true,
   id: true,
+  weight: true,
   litter: true,
   animalId: true,
   animal: {

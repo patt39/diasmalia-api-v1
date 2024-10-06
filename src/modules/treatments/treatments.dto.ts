@@ -1,4 +1,4 @@
-import { MedicationTypes, MethodTreatment } from '@prisma/client';
+import { MethodTreatment } from '@prisma/client';
 
 import {
   IsArray,
@@ -39,8 +39,8 @@ export class CreateOrUpdateTreatmentsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(MedicationTypes)
-  medication: MedicationTypes;
+  @IsUUID()
+  healthId: string;
 }
 
 export class BulkTreatmentsDto {
@@ -71,8 +71,8 @@ export class BulkTreatmentsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(MedicationTypes)
-  medication: MedicationTypes;
+  @IsUUID()
+  healthId: string;
 }
 
 export class TreatmentDto {

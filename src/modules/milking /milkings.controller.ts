@@ -66,7 +66,7 @@ export class MilkingsController {
       search,
       pagination,
       animalTypeId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: milkings });
@@ -96,16 +96,16 @@ export class MilkingsController {
       await this.milkingsService.createOne({
         note,
         quantity,
-        animalId: findOneFemale.id,
-        animalTypeId: findOneFemale.animalTypeId,
-        organizationId: user.organizationId,
-        userCreatedId: user.id,
+        animalId: findOneFemale?.id,
+        animalTypeId: findOneFemale?.animalTypeId,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
       });
 
       await this.activitylogsService.createOne({
-        userId: user.id,
-        organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} milked ${animals.lenght} in ${findOneFemale.animalType.name}`,
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} milked ${animals?.lenght} in ${findOneFemale?.animalType?.name}`,
       });
     }
 
@@ -151,18 +151,18 @@ export class MilkingsController {
       { milkingId: findOneMilking?.id },
       {
         quantity,
-        animalId: findOneFemale.id,
+        animalId: findOneFemale?.id,
         userCreatedId: user?.id,
       },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a feeding in ${findOneMilking.animalType.name} for ${findOneMilking.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a feeding in ${findOneMilking?.animalType?.name} for ${findOneMilking?.animal?.code}`,
     });
 
-    return reply({ res, results: 'Feeding Created Successfully' });
+    return reply({ res, results: 'Milking Created Successfully' });
   }
 
   /** Delete one milking */
@@ -177,7 +177,7 @@ export class MilkingsController {
 
     const findOneMilking = await this.milkingsService.findOneBy({
       milkingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneMilking)
       throw new HttpException(
@@ -191,9 +191,9 @@ export class MilkingsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a milking in ${findOneMilking.animalType.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a milking in ${findOneMilking?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Milking deleted successfully' });

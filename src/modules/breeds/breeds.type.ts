@@ -11,6 +11,7 @@ export type GetBreedsSelections = {
 export type GetOneBreedsSelections = {
   breedId?: Breed['id'];
   name?: Breed['name'];
+  animalTypeId?: Breed['animalTypeId'];
   pagination?: PaginationType;
 };
 

@@ -22,12 +22,23 @@ export class LocationsService {
     selections: GetLocationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.LocationWhereInput;
-    const { search, animalTypeId, productionPhase, pagination } = selections;
+    const { type, search, status, animalTypeId, productionPhase, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [{ code: { contains: search, mode: 'insensitive' } }],
       });
+    }
+
+    if (status) {
+      status === 'true'
+        ? Object.assign(prismaWhere, { status: true })
+        : Object.assign(prismaWhere, { status: false });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
     }
 
     if (animalTypeId) {
@@ -77,6 +88,7 @@ export class LocationsService {
 
     const {
       code,
+      type,
       status,
       locationId,
       animalTypeId,
@@ -93,7 +105,13 @@ export class LocationsService {
     }
 
     if (status) {
-      Object.assign(prismaWhere, { status });
+      status === 'true'
+        ? Object.assign(prismaWhere, { status: true })
+        : Object.assign(prismaWhere, { status: false });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
     }
 
     if (animalTypeId) {
@@ -121,6 +139,7 @@ export class LocationsService {
     const {
       code,
       nest,
+      type,
       manger,
       through,
       squareMeter,
@@ -134,6 +153,7 @@ export class LocationsService {
       data: {
         code,
         nest,
+        type,
         manger,
         through,
         squareMeter,
@@ -156,6 +176,7 @@ export class LocationsService {
     const {
       code,
       nest,
+      type,
       manger,
       status,
       through,
@@ -169,6 +190,7 @@ export class LocationsService {
       data: {
         code,
         nest,
+        type,
         manger,
         status,
         through,

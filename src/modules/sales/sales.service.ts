@@ -18,11 +18,7 @@ import {
   withPagination,
 } from '../../app/utils/pagination';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
-import {
-  groupCountChickenAnalyticsByDateAndReturnArray,
-  groupCountChicksAnalyticsByDateAndReturnArray,
-  groupCountEggsAnalyticsByDateAndReturnArray,
-} from './sales.analytics.utils';
+import { groupCountSalesAnalyticsByDateAndReturnArray } from './sales.analytics.utils';
 import {
   CreateSalesOptions,
   GetOneSaleSelections,
@@ -154,14 +150,19 @@ export class SalesService {
 
     const groupChickensAnalytics = await this.client.sale.groupBy({
       by: ['createdAt', 'organizationId', 'animalTypeId'],
-      where: { ...prismaWhere, deletedAt: null, detail: 'CHICKENS' },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        detail: 'CHICKENS',
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
       _sum: {
         price: true,
       },
       _count: true,
     });
 
-    const chickensAnalytics = groupCountChickenAnalyticsByDateAndReturnArray({
+    const chickensAnalytics = groupCountSalesAnalyticsByDateAndReturnArray({
       data: groupChickensAnalytics,
       year: year,
       month: months,
@@ -214,14 +215,19 @@ export class SalesService {
 
     const groupChicksAnalytics = await this.client.sale.groupBy({
       by: ['createdAt', 'organizationId', 'animalTypeId'],
-      where: { ...prismaWhere, deletedAt: null, detail: 'CHICKS' },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        detail: 'CHICKS',
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
       _sum: {
         price: true,
       },
       _count: true,
     });
 
-    const chicksAnalytics = groupCountChicksAnalyticsByDateAndReturnArray({
+    const chicksAnalytics = groupCountSalesAnalyticsByDateAndReturnArray({
       data: groupChicksAnalytics,
       year: year,
       month: months,
@@ -274,20 +280,90 @@ export class SalesService {
 
     const groupEggsAnalytics = await this.client.sale.groupBy({
       by: ['createdAt', 'organizationId', 'animalTypeId'],
-      where: { ...prismaWhere, deletedAt: null, detail: 'EGGS' },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        detail: 'EGGS',
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
       _sum: {
         price: true,
       },
       _count: true,
     });
 
-    const eggsAnalytics = groupCountEggsAnalyticsByDateAndReturnArray({
+    const eggsAnalytics = groupCountSalesAnalyticsByDateAndReturnArray({
       data: groupEggsAnalytics,
       year: year,
       month: months,
     });
 
     return eggsAnalytics;
+  }
+
+  /** Get sales analytics. */
+  async getAnimalSalesAnalytics(selections: GetSalesSelections) {
+    const prismaWhere = {} as Prisma.SaleWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupSalesAnalytics = await this.client.sale.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId'],
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        detail: null,
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
+      _sum: {
+        price: true,
+      },
+      _count: true,
+    });
+
+    const salesAnalytics = groupCountSalesAnalyticsByDateAndReturnArray({
+      data: groupSalesAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return salesAnalytics;
   }
 
   /** Find one sale in database. */

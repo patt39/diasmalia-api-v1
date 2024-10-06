@@ -6,6 +6,7 @@ import {
   ProductionPhase,
 } from '@prisma/client';
 import {
+  IsArray,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -92,6 +93,24 @@ export class BulkAnimalsCreateDto {
   @IsNotEmpty()
   @IsString()
   breedName: string;
+}
+
+export class BulkAvesCreateDto {
+  @IsNotEmpty()
+  @IsArray()
+  locations: any;
+
+  @IsOptional()
+  @IsNumber()
+  weight: number;
+
+  @IsNotEmpty()
+  @IsString()
+  birthday: Date;
+
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
 }
 
 export class UpdateAnimalsDto {

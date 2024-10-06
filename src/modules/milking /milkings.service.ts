@@ -2,9 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Milking, Prisma } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
 import {
+  dateTimeNowUtc,
+  lastDayMonth,
+  substrateDaysToTimeNowUtcDate,
+} from '../../app/utils/commons';
+import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountByDateAndReturnArray } from '../analytics/analytics.utils';
 import {
   CreateMilkingsOptions,
   GetMilkingsSelections,
@@ -22,11 +28,21 @@ export class MilkingsService {
     selections: GetMilkingsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.MilkingWhereInput;
-    const { search, animalTypeId, organizationId, pagination } = selections;
+    const { search, animalTypeId, periode, organizationId, pagination } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
+      });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
       });
     }
 
@@ -55,6 +71,70 @@ export class MilkingsService {
       rowCount,
       value: milkings,
     });
+  }
+
+  /** Get animal milking analytics. */
+  async getAnimalMilkingAnalytics(selections: GetMilkingsSelections) {
+    const prismaWhere = {} as Prisma.MilkingWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupMilkingsAnalytics = await this.client.milking.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId'],
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
+      _sum: {
+        quantity: true,
+      },
+      _count: true,
+    });
+
+    const milkingAnalytics = groupCountByDateAndReturnArray({
+      data: groupMilkingsAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return milkingAnalytics;
   }
 
   /** Find one milking in database. */

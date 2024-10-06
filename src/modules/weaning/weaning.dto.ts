@@ -11,6 +11,10 @@ export class CreateOrUpdateWeaningsDto {
   @IsNumber()
   litter: number;
 
+  @IsNotEmpty()
+  @IsNumber()
+  weight: number;
+
   @IsOptional()
   @IsString()
   code: string;

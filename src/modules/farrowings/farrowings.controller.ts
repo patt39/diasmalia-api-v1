@@ -81,7 +81,7 @@ export class FarrowingsController {
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Req() req, @Body() body: CreateFarrowingsDto) {
     const { user } = req;
-    const { litter, note, codeFemale } = body;
+    const { litter, note, codeFemale, weight } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -125,6 +125,7 @@ export class FarrowingsController {
     const farrowing = await this.farrowingsService.createOne({
       note,
       litter,
+      weight,
       animalId: findOneFemale?.id,
       animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,
@@ -168,11 +169,11 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note } = body;
+    const { litter, note, weight } = body;
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFarrowing)
       throw new HttpException(
@@ -181,14 +182,14 @@ export class FarrowingsController {
       );
 
     const farrowing = await this.farrowingsService.updateOne(
-      { farrowingId: findOneFarrowing.id },
-      { note, litter, userCreatedId: user.id },
+      { farrowingId: findOneFarrowing?.id },
+      { note, litter, weight, userCreatedId: user?.id },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated a farrowing in ${findOneFarrowing.animalType.name} for ${findOneFarrowing.animal.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a farrowing in ${findOneFarrowing?.animalType?.name} for ${findOneFarrowing?.animal?.code}`,
     });
 
     return reply({
@@ -212,7 +213,7 @@ export class FarrowingsController {
 
     const farrowing = await this.farrowingsService.findOneBy({
       farrowingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!farrowingId)
       throw new HttpException(
@@ -267,7 +268,7 @@ export class FarrowingsController {
       );
 
     await this.farrowingsService.updateOne(
-      { farrowingId: findOneFarrowing.id },
+      { farrowingId: findOneFarrowing?.id },
       { deletedAt: new Date() },
     );
 
@@ -277,9 +278,9 @@ export class FarrowingsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a farrowing in ${findOneFarrowing.animalType.name}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a farrowing in ${findOneFarrowing?.animalType.name}`,
     });
 
     return reply({ res, results: 'Farrowing deleted successfully' });

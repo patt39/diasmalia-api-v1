@@ -5,6 +5,7 @@ import { DeathsService } from '../death/deaths.service';
 import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { FeedingsService } from '../feeding/feedings.service';
 import { IncubationsService } from '../incubation/incubation.service';
+import { MilkingsService } from '../milking /milkings.service';
 import { SalesService } from '../sales/sales.service';
 import { UserAuthGuard } from '../users/middleware';
 import { WeaningsService } from '../weaning/weaning.service';
@@ -18,6 +19,7 @@ export class AnalyticsController {
     private readonly deathsService: DeathsService,
     private readonly salesService: SalesService,
     private readonly weaningsService: WeaningsService,
+    private readonly milkingsService: MilkingsService,
   ) {}
 
   /** Get egg-harvestings analytics. */
@@ -187,7 +189,30 @@ export class AnalyticsController {
     return reply({ res, results: eggSalesAnalytics });
   }
 
-  /** Get eggs sales analytics. */
+  /** Get animals sales analytics. */
+  @Get(`/sales/animals`)
+  @UseGuards(UserAuthGuard)
+  async getAnimalSalesAnalysis(
+    @Res() res,
+    @Req() req,
+    @Query() queryAnalytics: GetAnalyticsQuery,
+  ) {
+    const { days, months, year, animalTypeId, periode } = queryAnalytics;
+    const { user } = req;
+
+    const animalsAnalytics = await this.salesService.getAnimalSalesAnalytics({
+      days,
+      year,
+      months,
+      animalTypeId,
+      periode: Number(periode),
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: animalsAnalytics });
+  }
+
+  /** Get weanings analytics. */
   @Get(`/weanings`)
   @UseGuards(UserAuthGuard)
   async getWeaningsAnalysis(
@@ -208,5 +233,29 @@ export class AnalyticsController {
     });
 
     return reply({ res, results: weaningsAnalytics });
+  }
+
+  /** Get milkings analytics. */
+  @Get(`/milkings`)
+  @UseGuards(UserAuthGuard)
+  async getMilkingsAnalysis(
+    @Res() res,
+    @Req() req,
+    @Query() queryAnalytics: GetAnalyticsQuery,
+  ) {
+    const { days, months, year, animalTypeId, periode } = queryAnalytics;
+    const { user } = req;
+
+    const milkingsAnalytics =
+      await this.milkingsService.getAnimalMilkingAnalytics({
+        days,
+        year,
+        months,
+        animalTypeId,
+        periode: Number(periode),
+        organizationId: user?.organizationId,
+      });
+
+    return reply({ res, results: milkingsAnalytics });
   }
 }

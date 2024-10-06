@@ -146,7 +146,11 @@ export class IncubationsService {
 
     const groupIncubationsAnalytics = await this.client.incubation.groupBy({
       by: ['createdAt', 'organizationId', 'animalTypeId'],
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: { status: 'ACTIVE', deletedAt: null },
+      },
       _sum: {
         quantityEnd: true,
         quantityStart: true,

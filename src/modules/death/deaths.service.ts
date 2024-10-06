@@ -117,7 +117,7 @@ export class DeathsService {
 
     const groupDeathsAnalytics = await this.client.death.groupBy({
       by: ['createdAt', 'organizationId', 'animalTypeId'],
-      where: { ...prismaWhere, deletedAt: null },
+      where: { ...prismaWhere, deletedAt: null, animal: { status: 'ACTIVE' } },
       _sum: {
         number: true,
       },

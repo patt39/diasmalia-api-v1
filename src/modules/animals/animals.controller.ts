@@ -29,6 +29,7 @@ import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkAnimalsCreateDto,
+  BulkAvesCreateDto,
   CreateAnimalsDto,
   CreateAvesDto,
   GetAnimalsQuery,
@@ -39,9 +40,9 @@ import { AnimalsService } from './animals.service';
 @Controller('animals')
 export class AnimalsController {
   constructor(
+    private readonly breedsService: BreedsService,
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
-    private readonly breedsService: BreedsService,
     private readonly fatteningsService: FatteningsService,
     private readonly gestationsService: GestationsService,
     private readonly assignTypesService: AssignTypesService,
@@ -169,6 +170,18 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code,
+      status: 'ACTIVE',
+      organizationId: user?.organizationId,
+      animalTypeId: findOneAssignType?.animalTypeId,
+    });
+    if (code.toLowerCase() == findOneAnimal?.code)
+      throw new HttpException(
+        `Animal code: ${findOneAnimal?.code} already exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneLocation = await this.locationsService.findOneBy({
       code: locationCode,
       organizationId: user?.organizationId,
@@ -250,16 +263,6 @@ export class AnimalsController {
       productionPhase,
     } = body;
 
-    const findOneAnimal = await this.animalsService.findOneBy({
-      code,
-      organizationId: user?.organizationId,
-    });
-    if (findOneAnimal)
-      throw new HttpException(
-        `Animal code: ${findOneAnimal?.code} already exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const findOneLocation = await this.locationsService.findOneBy({
       code: locationCode,
       organizationId: user?.organizationId,
@@ -270,14 +273,20 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneLocation?.status === false)
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code: code.toLowerCase(),
+      organizationId: user?.organizationId,
+      animalTypeId: findOneLocation?.animalTypeId,
+    });
+    if (code.toLowerCase() == findOneAnimal?.code)
       throw new HttpException(
-        `Location: ${locationCode} OUT OF SERVICE please change`,
+        `Animal code: ${findOneAnimal?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const findOneBreed = await this.breedsService.findOneBy({
       name: breedName,
+      animalTypeId: findOneAnimal?.animalType?.id,
     });
     if (!findOneBreed)
       throw new HttpException(
@@ -303,7 +312,9 @@ export class AnimalsController {
       breedId: findOneBreed?.id,
       birthday: new Date(birthday),
       locationId: findOneLocation?.id,
-      code: code ? code : `${orgInitials}${generateNumber(4)}${appInitials}`,
+      code: code
+        ? code.toLowerCase()
+        : `${orgInitials}${generateNumber(4)}${appInitials}`,
       animalTypeId: findOneBreed?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -458,6 +469,79 @@ export class AnimalsController {
     });
   }
 
+  /** Create bulk aves animals */
+  @Post(`/create/:animalTypeId/bulk/aves`)
+  @UseGuards(UserAuthGuard)
+  async createAveMany(
+    @Res() res,
+    @Req() req,
+    @Body() body: BulkAvesCreateDto,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
+  ) {
+    const { user } = req;
+    const { locations, weight, birthday, quantity } = body;
+
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
+      throw new HttpException(
+        `AnimalType not assigned please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+
+    for (const location of locations) {
+      const findOneLocation = await this.locationsService.findOneBy({
+        type: 'CAGES',
+        status: 'true',
+        code: location,
+        organizationId: user?.organizationId,
+        animalTypeId: findOneAssignType?.animalTypeId,
+      });
+      if (!findOneLocation)
+        throw new HttpException(
+          `Location ${findOneLocation?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      await this.animalsService.createOne({
+        weight,
+        quantity,
+        birthday: new Date(birthday),
+        locationId: findOneLocation?.id,
+        code: `${orgInitials}${generateNumber(4)}${appInitials}`,
+        animalTypeId: findOneAssignType?.animalTypeId,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+
+      if (findOneLocation?.status === true) {
+        await this.locationsService.updateOne(
+          { locationId: findOneLocation?.id },
+          { status: false },
+        );
+      }
+
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${quantity} animals in ${locations?.length} cages in ${findOneAssignType?.animalType?.name}`,
+      });
+    }
+
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        message: `Animals Created Successfully`,
+      },
+    });
+  }
+
   /** Update one animal */
   @Put(`/:animalId/edit`)
   @UseGuards(UserAuthGuard)
@@ -505,7 +589,7 @@ export class AnimalsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       code: locationCode,
-      animalTypeId: findOneAnimal?.animalType?.id,
+      animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findOneLocation)
@@ -525,7 +609,7 @@ export class AnimalsController {
 
     if (
       productionPhase === 'LAYING' &&
-      findOneAnimal?.productionPhase !== 'LAYING'
+      findOneLocation?.productionPhase !== 'LAYING'
     )
       throw new HttpException(
         `Band can't be placed in this location code: ${findOneLocation?.code} please change`,
@@ -538,6 +622,15 @@ export class AnimalsController {
     )
       throw new HttpException(
         `Band: ${findOneAnimal?.code} can't be placed in GROWTH phase please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (
+      productionPhase === 'REPRODUCTION' &&
+      findOneAnimal?.location?.productionPhase !== 'REPRODUCTION'
+    )
+      throw new HttpException(
+        `Animal: ${findOneAnimal?.code} isn't in reproduction phase please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -556,7 +649,9 @@ export class AnimalsController {
         productionPhase,
         birthday: new Date(birthday),
         breedId: findOneBreed?.id,
-        locationId: findOneLocation?.id,
+        locationId: locationCode
+          ? findOneLocation?.id
+          : findOneAnimal?.locationId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
@@ -571,8 +666,8 @@ export class AnimalsController {
     return reply({
       res,
       results: {
-        status: HttpStatus.CREATED,
         data: animal,
+        status: HttpStatus.CREATED,
         message: `Animal Updated Successfully`,
       },
     });
@@ -589,7 +684,7 @@ export class AnimalsController {
     const { user } = req;
     const findOneAnimal = await this.animalsService.findOneAnimalDetails({
       animalId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -656,7 +751,7 @@ export class AnimalsController {
   ) {
     const { user } = req;
 
-    const findOneAnimal = await this.animalsService.findOneDeleted({
+    const findOneAnimal = await this.animalsService.findDeleteOne({
       animalId,
       organizationId: user?.organizationId,
     });

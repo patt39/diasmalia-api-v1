@@ -137,6 +137,7 @@ model Organization {
   Fattenings       Fattening[]
   activityLogs     ActivityLog[]
   FeedStock        FeedStock[]
+  healths          Health[]
 }
 
 model Contact {
@@ -245,15 +246,21 @@ model Location {
   manger          Int?
   through         Int?
   nest            Int?
+  type            LocationType?    @default(CAGES)
   status          Boolean          @default(true)
   animalTypeId    String
   animalType      AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   squareMeter     Int
-  productionPhase ProductionPhase? @default(GROWTH)
+  productionPhase ProductionPhase? @default(LAYING)
   organizationId  String
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   animals         Animal[]
+}
+
+enum LocationType {
+  CAGES
+  BUILDING
 }
 
 model Breed {
@@ -287,7 +294,7 @@ model Animal {
   eggHarvestedCount Int?             @default(0)
   animalTypeId      String
   animalType        AnimalType       @relation(fields: [animalTypeId], references: [id])
-  productionPhase   ProductionPhase  @default(GROWTH)
+  productionPhase   ProductionPhase  @default(LAYING)
   status            AnimalStatus     @default(ACTIVE)
   locationId        String?
   location          Location?        @relation(fields: [locationId], references: [id], onDelete: Cascade)
@@ -342,6 +349,7 @@ model AnimalType {
   fattenings       Fattening[]
   sales            Sale[]
   feedStocks       FeedStock[]
+  healths          Health[]
 }
 
 enum Gender {
@@ -380,24 +388,41 @@ enum ProductionPhase {
 }
 
 model Treatment {
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   deletedAt      DateTime?
-  id             String           @id @default(uuid())
+  id             String          @id @default(uuid())
   name           String?
-  note           String?          @db.Text
+  note           String?         @db.Text
   slug           String?
   dose           Int?
-  diagnosis      String?          @db.Text
-  medication     MedicationTypes
-  method         MethodTreatment?
+  diagnosis      String?         @db.Text
+  method         MethodTreatment
+  healthId       String
+  health         Health          @relation(fields: [healthId], references: [id], onDelete: Cascade)
   animalTypeId   String
-  animalType     AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType     AnimalType      @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animalId       String
-  animal         Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animal         Animal          @relation(fields: [animalId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
+}
+
+model Health {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  name           String
+  category       HealthMethod @default(MEDICATION)
+  status         Boolean      @default(false)
+  animalTypeId   String?
+  animalType     AnimalType?  @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  Treatment      Treatment[]
 }
 
 enum MethodTreatment {
@@ -405,25 +430,14 @@ enum MethodTreatment {
   ORAL
   NASAL
   INJECTION
+  ASPERTION
   FEEDANDWATER
 }
 
-enum MedicationTypes {
-  VACCINS
-  ANTIVIRALS
-  ANALGESICS
-  PROBIOTICS
-  ANTIBIOTICS
-  ANTIFUNGALS
-  ANTHALMITICS
-  COCCIDIOSTATS
-  BRONCODILATORS
-  GROWTHPROMOTER
-  ANTIPARASITICS
-  MINERALVITAMINS
-  CORTICOSTEROIDS
-  TROPICALTREATMENTS
-  OTHERS
+enum HealthMethod {
+  MEDICATION
+  EQUIPMENT
+  HYGIENE
 }
 
 model Breeding {
@@ -488,6 +502,7 @@ model Farrowing {
   id             String       @id @default(uuid())
   note           String?      @db.Text
   litter         Int?
+  weight         Int?
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
@@ -499,20 +514,22 @@ model Farrowing {
 }
 
 model Weaning {
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  id             String       @id @default(uuid())
-  litter         Int?
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userCreatedId  String
-  animalTypeId   String
-  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
-  animalId       String
-  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  farrowingId    String
-  farrowing      Farrowing    @relation(fields: [farrowingId], references: [id], onDelete: Cascade)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  id              String       @id @default(uuid())
+  litter          Int?
+  farrowingLitter Int?
+  weight          Int?
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId   String
+  animalTypeId    String
+  animalType      AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalId        String
+  animal          Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farrowingId     String
+  farrowing       Farrowing    @relation(fields: [farrowingId], references: [id], onDelete: Cascade)
 }
 
 model Gestation {
