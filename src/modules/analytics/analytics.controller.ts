@@ -4,12 +4,13 @@ import { reply } from '../../app/utils/reply';
 import { DeathsService } from '../death/deaths.service';
 import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { FeedingsService } from '../feeding/feedings.service';
+import { FinancesService } from '../finances/finances.service';
 import { IncubationsService } from '../incubation/incubation.service';
 import { MilkingsService } from '../milking /milkings.service';
 import { SalesService } from '../sales/sales.service';
 import { UserAuthGuard } from '../users/middleware';
 import { WeaningsService } from '../weaning/weaning.service';
-import { GetAnalyticsQuery } from './analytics.dto';
+import { GetAnalyticsQuery, GetFinanceAnalyticsQuery } from './analytics.dto';
 @Controller('analytics')
 export class AnalyticsController {
   constructor(
@@ -20,6 +21,7 @@ export class AnalyticsController {
     private readonly salesService: SalesService,
     private readonly weaningsService: WeaningsService,
     private readonly milkingsService: MilkingsService,
+    private readonly financesService: FinancesService,
   ) {}
 
   /** Get egg-harvestings analytics. */
@@ -257,5 +259,27 @@ export class AnalyticsController {
       });
 
     return reply({ res, results: milkingsAnalytics });
+  }
+
+  /** Get revenue analytics. */
+  @Get(`/revenue`)
+  @UseGuards(UserAuthGuard)
+  async getRevenueAnalysis(
+    @Res() res,
+    @Req() req,
+    @Query() queryAnalytics: GetFinanceAnalyticsQuery,
+  ) {
+    const { days, months, year, periode } = queryAnalytics;
+    const { user } = req;
+
+    const financesAnalytics = await this.financesService.getFinanceAnalytics({
+      days,
+      year,
+      months,
+      periode: Number(periode),
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: financesAnalytics });
   }
 }

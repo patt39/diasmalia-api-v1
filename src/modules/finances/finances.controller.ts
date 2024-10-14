@@ -89,15 +89,15 @@ export class FinanceController {
     const finance = await this.financeService.createOne({
       type,
       detail,
-      amount,
+      amount: type === 'EXPENSE' ? Number(-amount) : Number(amount),
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a transaction in your organization`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a transaction in your organization`,
     });
 
     return reply({ res, results: finance });

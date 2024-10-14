@@ -349,7 +349,6 @@ export class SalesService {
         ...prismaWhere,
         deletedAt: null,
         detail: null,
-        animal: { status: 'ACTIVE', deletedAt: null },
       },
       _sum: {
         price: true,

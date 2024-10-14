@@ -5,6 +5,9 @@ export type GetFinancesSelections = {
   search?: string;
   type?: financeType;
   periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
   organizationId?: string;
   pagination?: PaginationType;
 };

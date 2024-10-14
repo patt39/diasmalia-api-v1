@@ -290,6 +290,30 @@ export class TreatmentsController {
     return reply({ res, results: findOneTreatement });
   }
 
+  /** Get one treatment by animalId */
+  @Get(`/:animalId/view/treatment`)
+  @UseGuards(UserAuthGuard)
+  async getOneByAnimalId(
+    @Res() res,
+    @Res() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const findOneTreatement = await this.treatmentsService.findOneBy({
+      animalId,
+      animalTypeId: user?.animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneTreatement)
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneTreatement });
+  }
+
   /** Delete one treatment */
   @Delete(`/:treatmentId/delete`)
   @UseGuards(UserAuthGuard)

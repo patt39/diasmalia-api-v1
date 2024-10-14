@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Finance, Prisma } from '@prisma/client';
+import { DatabaseService } from '../../app/database/database.service';
 import {
   dateTimeNowUtc,
+  lastDayMonth,
   substrateDaysToTimeNowUtcDate,
-} from 'src/app/utils/commons';
-import { DatabaseService } from '../../app/database/database.service';
+} from '../../app/utils/commons';
 import { Slug, generateNumber } from '../../app/utils/commons/generate-random';
 import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountRevenueByDateAndReturnArray } from './finance.utils';
 import {
   CreateFinanceOptions,
   FinancesSelect,
@@ -69,6 +71,65 @@ export class FinancesService {
       rowCount,
       value: finances,
     });
+  }
+
+  /** Get financial analytics. */
+  async getFinanceAnalytics(selections: GetFinancesSelections) {
+    const prismaWhere = {} as Prisma.FinanceWhereInput;
+    const { periode, months, year, organizationId } = selections;
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupFinanceAnalytics = await this.client.finance.groupBy({
+      by: ['createdAt', 'organizationId'],
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+      },
+      _sum: {
+        amount: true,
+      },
+      _count: true,
+    });
+
+    const financeAnalytics = groupCountRevenueByDateAndReturnArray({
+      data: groupFinanceAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return financeAnalytics;
   }
 
   /** Find one finance from database. */

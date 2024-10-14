@@ -22,8 +22,14 @@ export class LocationsService {
     selections: GetLocationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.LocationWhereInput;
-    const { type, search, status, animalTypeId, productionPhase, pagination } =
-      selections;
+    const {
+      search,
+      status,
+      addCages,
+      animalTypeId,
+      productionPhase,
+      pagination,
+    } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -37,8 +43,8 @@ export class LocationsService {
         : Object.assign(prismaWhere, { status: false });
     }
 
-    if (type) {
-      Object.assign(prismaWhere, { type });
+    if (addCages) {
+      Object.assign(prismaWhere, { addCages });
     }
 
     if (animalTypeId) {
@@ -88,8 +94,8 @@ export class LocationsService {
 
     const {
       code,
-      type,
       status,
+      addCages,
       locationId,
       animalTypeId,
       productionPhase,
@@ -110,8 +116,8 @@ export class LocationsService {
         : Object.assign(prismaWhere, { status: false });
     }
 
-    if (type) {
-      Object.assign(prismaWhere, { type });
+    if (addCages) {
+      Object.assign(prismaWhere, { addCages });
     }
 
     if (animalTypeId) {
@@ -139,9 +145,10 @@ export class LocationsService {
     const {
       code,
       nest,
-      type,
+      cages,
       manger,
       through,
+      addCages,
       squareMeter,
       animalTypeId,
       productionPhase,
@@ -153,9 +160,10 @@ export class LocationsService {
       data: {
         code,
         nest,
-        type,
+        cages,
         manger,
         through,
+        addCages,
         squareMeter,
         animalTypeId,
         productionPhase,
@@ -176,10 +184,11 @@ export class LocationsService {
     const {
       code,
       nest,
-      type,
+      cages,
       manger,
       status,
       through,
+      addCages,
       squareMeter,
       productionPhase,
       deletedAt,
@@ -190,10 +199,11 @@ export class LocationsService {
       data: {
         code,
         nest,
-        type,
+        cages,
         manger,
         status,
         through,
+        addCages,
         squareMeter,
         productionPhase,
         deletedAt,

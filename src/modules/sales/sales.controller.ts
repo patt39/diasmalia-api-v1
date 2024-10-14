@@ -227,7 +227,7 @@ export class SalesController {
       throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
 
     if (
-      findOneAnimal?.quantity < number ||
+      (detail === 'CHICKENS' && findOneAnimal?.quantity < number) ||
       findOneAnimal?.quantity < sumAnimals
     )
       throw new HttpException(

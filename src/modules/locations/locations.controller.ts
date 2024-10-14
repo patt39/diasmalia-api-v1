@@ -54,7 +54,7 @@ export class LocationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { productionPhase, animalTypeId, status, type } = queryLocations;
+    const { productionPhase, animalTypeId, status, addCages } = queryLocations;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -65,9 +65,9 @@ export class LocationsController {
     });
 
     const locations = await this.locationsService.findAll({
-      type,
       status,
       search,
+      addCages,
       pagination,
       animalTypeId,
       productionPhase,
@@ -87,8 +87,16 @@ export class LocationsController {
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
     const { user } = req;
-    const { code, nest, type, manger, through, squareMeter, productionPhase } =
-      body;
+    const {
+      code,
+      nest,
+      cages,
+      manger,
+      through,
+      addCages,
+      squareMeter,
+      productionPhase,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -100,33 +108,36 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const appInitials = config.datasite.name.substring(0, 1);
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+    const codeGenerated = `${orgInitials}${generateNumber(2)}${appInitials}`;
+
     const findOneLocation = await this.locationsService.findOneBy({
-      code: code.toLowerCase(),
+      code: code,
       organizationId: user?.organizationId,
       animalTypeId: findOneAssignType?.animalTypeId,
     });
-    if (code?.toLowerCase() == findOneLocation?.code)
+    if (
+      code?.toLowerCase() == findOneLocation?.code ||
+      codeGenerated.toLowerCase() == findOneLocation?.code
+    )
       throw new HttpException(
         `Location code: ${findOneLocation?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    const appInitials = config.datasite.name.substring(0, 1);
-    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
-
     await this.locationsService.createOne({
       nest,
-      type,
+      cages,
       manger,
       through,
+      addCages,
       squareMeter,
       productionPhase,
-      code: code
-        ? code.toLowerCase()
-        : `${orgInitials}${generateNumber(4)}${appInitials}`,
+      code: code ? code.toLowerCase() : codeGenerated.toLowerCase(),
       animalTypeId: findOneAssignType?.animalTypeId,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
@@ -246,7 +257,16 @@ export class LocationsController {
     @Param('locationId', ParseUUIDPipe) locationId: string,
   ) {
     const { user } = req;
-    const { nest, squareMeter, manger, through, code, productionPhase } = body;
+    const {
+      code,
+      nest,
+      cages,
+      manger,
+      through,
+      addCages,
+      squareMeter,
+      productionPhase,
+    } = body;
 
     const findOneLocation = await this.locationsService.findOneBy({
       locationId,
@@ -263,8 +283,10 @@ export class LocationsController {
       {
         nest,
         code,
+        cages,
         manger,
         through,
+        addCages,
         squareMeter,
         productionPhase,
       },

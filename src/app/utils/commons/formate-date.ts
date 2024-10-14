@@ -175,3 +175,16 @@ export const formateMMDate = (date: Date, lang: string) => {
     .setLocale(lang)
     .toLocaleString({ month: 'long' });
 };
+export const formatWeight = (weight: number) => {
+  if (weight < 1000) {
+    return `${weight}g`;
+  }
+  if (weight >= 1000) {
+    return `${(weight / 1000).toFixed(1)}kg`;
+  }
+};
+
+export const formatPrice = (price: number, req: any) => {
+  const { user } = req;
+  return `${price.toFixed(1)}${user?.currency?.symbol}`;
+};

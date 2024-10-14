@@ -17,7 +17,7 @@ export class CreateOrUpdateCheckPregnanciesDto {
   @IsEnum(MethodCheckPregnancy)
   method: MethodCheckPregnancy;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   locationCode: string;
 

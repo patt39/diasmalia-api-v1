@@ -82,12 +82,13 @@ export class WeaningsController {
     const { litter, code, weight } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
-      code: code,
+      code,
       gender: 'FEMALE',
       status: 'ACTIVE',
       productionPhase: 'LACTATION',
       organizationId: user?.organizationId,
     });
+    console.log('findOneFemale =>', findOneFemale);
     if (!findOneFemale)
       throw new HttpException(
         `Female animal ${code} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
@@ -97,15 +98,22 @@ export class WeaningsController {
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       animalId: findOneFemale?.id,
     });
+    console.log('findOneFarrowing =>', findOneFarrowing);
     if (!findOneFarrowing)
       throw new HttpException(
         `Farrowing doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    if (litter > findOneFarrowing.litter)
+    if (litter > Number(findOneFarrowing?.litter - findOneFarrowing?.dead))
       throw new HttpException(
-        `Weaning litter: ${litter} can't be greater than farrowing litter: ${findOneFarrowing?.litter}`,
+        `Weaning litter: ${litter} can't be greater than farrowing litter: ${Number(findOneFarrowing?.litter - findOneFarrowing?.dead)}`,
+        HttpStatus.AMBIGUOUS,
+      );
+
+    if (weight < findOneFarrowing?.weight)
+      throw new HttpException(
+        `Weaning weight: ${weight} can't be less than farrowing weight: ${findOneFarrowing?.weight}`,
         HttpStatus.AMBIGUOUS,
       );
 
@@ -120,16 +128,16 @@ export class WeaningsController {
       userCreatedId: user?.id,
     });
 
+    await this.animalsService.updateOne(
+      { animalId: findOneFemale?.id },
+      { productionPhase: 'REPRODUCTION' },
+    );
+
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
       message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a weaning in ${findOneFemale?.animalType?.name} for animal ${findOneFemale?.code}`,
     });
-
-    await this.animalsService.updateOne(
-      { animalId: findOneFemale?.id },
-      { productionPhase: 'REPRODUCTION' },
-    );
 
     return reply({ res, results: weaning });
   }
@@ -156,6 +164,27 @@ export class WeaningsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneFarrowing = await this.farrowingsService.findOneBy({
+      farrowingId: findOneWeaning?.farrowingId,
+    });
+    if (!findOneFarrowing)
+      throw new HttpException(
+        `Farrowing doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (weight < findOneFarrowing?.weight)
+      throw new HttpException(
+        `Weaning weight: ${weight} can't be less than farrowing weight: ${findOneFarrowing?.weight}`,
+        HttpStatus.AMBIGUOUS,
+      );
+
+    if (litter > findOneFarrowing?.litter)
+      throw new HttpException(
+        `Weaning litter: ${litter} can't be greater than farrowing litter: ${findOneFarrowing?.litter}`,
+        HttpStatus.AMBIGUOUS,
+      );
+
     const weaning = await this.weaningsService.updateOne(
       { weaningId: findOneWeaning?.id },
       {
@@ -174,23 +203,46 @@ export class WeaningsController {
     return reply({ res, results: weaning });
   }
 
-  /** Get one Weaning */
-  @Get(`/:weaningId/view`)
+  /** Get one Weaning with farrowingId */
+  @Get(`/:farrowingId/view`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdWeaning(
+  async getOneByFarrowingId(
     @Res() res,
     @Req() req,
-    @Param('weaningId', ParseUUIDPipe) weaningId: string,
+    @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
 
     const findOneWeaning = await this.weaningsService.findOneBy({
-      weaningId,
+      farrowingId,
       organizationId: user?.organizationId,
     });
     if (!findOneWeaning)
       throw new HttpException(
-        `WeaningId: ${weaningId} doesn't exists, please change`,
+        `FarrowingId: ${farrowingId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneWeaning });
+  }
+
+  /** Get one Weaning with animalId */
+  @Get(`/:animalId/view/weaning`)
+  @UseGuards(UserAuthGuard)
+  async getOneByAnimalId(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const findOneWeaning = await this.weaningsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneWeaning)
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 

@@ -10,7 +10,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { groupCountByDateAndReturnArray } from '../analytics/analytics.utils';
+import { groupCountFeedingByDateAndReturnArray } from './feedings.analytics.utils';
 import {
   CreateFeedingsOptions,
   FeedingSelect,
@@ -55,7 +55,14 @@ export class FeedingsService {
     }
 
     const feeding = await this.client.feeding.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: FeedingSelect,
@@ -128,7 +135,7 @@ export class FeedingsService {
       _count: true,
     });
 
-    const feedingAnalytics = groupCountByDateAndReturnArray({
+    const feedingAnalytics = groupCountFeedingByDateAndReturnArray({
       data: groupFeedingsAnalytics,
       year: year,
       month: months,

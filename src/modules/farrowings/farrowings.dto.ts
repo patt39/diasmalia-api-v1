@@ -12,6 +12,10 @@ export class CreateFarrowingsDto {
   litter: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  dead: number;
+
+  @IsNotEmpty()
   @IsString()
   note: string;
 
@@ -19,7 +23,7 @@ export class CreateFarrowingsDto {
   @IsNumber()
   weight: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   codeFemale: string;
 }
@@ -36,6 +40,10 @@ export class UpdateFarrowingsDto {
   @IsNotEmpty()
   @IsString()
   note: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  dead: number;
 }
 
 export class FarrowingQueryDto {

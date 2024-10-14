@@ -55,7 +55,14 @@ export class MilkingsService {
     }
 
     const milkings = await this.client.milking.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: MilkingSelect,

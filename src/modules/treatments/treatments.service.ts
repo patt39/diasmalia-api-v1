@@ -65,7 +65,14 @@ export class TreatmentsService {
     }
 
     const treatments = await this.client.treatment.findMany({
-      where: { ...prismaWhereTreatment, deletedAt: null },
+      where: {
+        ...prismaWhereTreatment,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: TreatmentSelect,
@@ -86,7 +93,11 @@ export class TreatmentsService {
   /** Find one treatment in database. */
   async findOneBy(selections: GetOneTreatmentsSelections) {
     const prismaWhereTreatment = {} as Prisma.TreatmentWhereInput;
-    const { treatmentId, animalTypeId, organizationId } = selections;
+    const { treatmentId, animalId, animalTypeId, organizationId } = selections;
+
+    if (animalId) {
+      Object.assign(prismaWhereTreatment, { animalId });
+    }
 
     if (treatmentId) {
       Object.assign(prismaWhereTreatment, { id: treatmentId });

@@ -23,6 +23,7 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { IsolationsService } from '../isolations/isolations.service';
 import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
@@ -39,6 +40,7 @@ export class DeathsController {
     private readonly deathsService: DeathsService,
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
+    private readonly isolationsService: IsolationsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -121,6 +123,31 @@ export class DeathsController {
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+
+    const findOneIsolation = await this.isolationsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneIsolation) {
+      await this.isolationsService.updateOne(
+        { isolationId: findOneIsolation?.id },
+        { number: findOneIsolation?.number - death?.number },
+      );
+    }
+    const allDeath = Number(findOneIsolation?.number - death?.number);
+
+    if (allDeath === 0) {
+      await this.isolationsService.updateOne(
+        { isolationId: findOneIsolation?.id },
+        { deletedAt: new Date() },
+      );
+    }
 
     await this.animalsService.updateOne(
       { animalId: findOneAnimal?.id },

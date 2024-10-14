@@ -5,8 +5,8 @@ export type GetLocationsSelections = {
   search?: string;
   status?: string;
   pagination?: PaginationType;
-  type?: Location['type'];
   locationId?: Location['id'];
+  addCages?: Location['addCages'];
   animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
@@ -14,9 +14,9 @@ export type GetLocationsSelections = {
 
 export type GetOneLocationsSelections = {
   status?: string;
-  locationId?: Location['id'];
   code?: Location['code'];
-  type?: Location['type'];
+  locationId?: Location['id'];
+  addCages?: Location['addCages'];
   animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
@@ -35,8 +35,9 @@ export const LocationsSelect = {
   id: true,
   code: true,
   nest: true,
-  type: true,
+  cages: true,
   status: true,
+  addCages: true,
   squareMeter: true,
   through: true,
   manger: true,

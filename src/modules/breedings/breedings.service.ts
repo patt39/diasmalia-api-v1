@@ -9,7 +9,6 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { AnimalsService } from '../animals/animals.service';
 import { WeaningsService } from '../weaning/weaning.service';
 import {
   BreedingSelect,
@@ -24,7 +23,6 @@ import {
 export class BreedingsService {
   constructor(
     private readonly client: DatabaseService,
-    private readonly animalsService: AnimalsService,
     private readonly weaningsService: WeaningsService,
   ) {}
 
@@ -98,26 +96,10 @@ export class BreedingsService {
       where: { ...prismaWhereBreeding, deletedAt: null },
     });
 
-    const newBreedingArray: any = [];
-    for (const breeding of breedings) {
-      const findOneAnimal =
-        gender === 'MALE'
-          ? await this.animalsService.findOneBy({
-              animalId: breeding?.animalFemaleId,
-            })
-          : await this.animalsService.findOneBy({
-              animalId: breeding?.animalMaleId,
-            });
-      newBreedingArray.push({
-        ...breeding,
-        animal: findOneAnimal,
-      });
-    }
-
     return withPagination({
       pagination,
       rowCount,
-      value: newBreedingArray,
+      value: breedings,
     });
   }
 
@@ -193,8 +175,13 @@ export class BreedingsService {
   async findOneBy(selections: GetOneBreedingsSelections) {
     const prismaWhere = {} as Prisma.BreedingWhereInput;
 
-    const { breedingId, animalTypeId, organizationId, checkStatus } =
-      selections;
+    const {
+      breedingId,
+      animalMaleId,
+      animalTypeId,
+      organizationId,
+      checkStatus,
+    } = selections;
 
     if (breedingId) {
       Object.assign(prismaWhere, { id: breedingId });
@@ -206,6 +193,10 @@ export class BreedingsService {
 
     if (checkStatus) {
       Object.assign(prismaWhere, { checkStatus });
+    }
+
+    if (animalMaleId) {
+      Object.assign(prismaWhere, { animalMaleId });
     }
 
     if (animalTypeId) {

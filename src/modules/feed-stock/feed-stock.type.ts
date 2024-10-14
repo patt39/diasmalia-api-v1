@@ -27,10 +27,12 @@ export type UpdateFeedStocksOptions = Partial<FeedStock>;
 
 export const FeedStockSelect = {
   createdAt: true,
+  updatedAt: true,
   id: true,
+  number: true,
   weight: true,
   bagWeight: true,
-  number: true,
+  composition: true,
   feedCategory: true,
   animalTypeName: true,
   animalTypeId: true,

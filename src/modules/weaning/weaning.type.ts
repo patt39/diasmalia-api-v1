@@ -1,4 +1,4 @@
-import { Weaning } from '@prisma/client';
+import { AnimalStatus, Weaning } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetWeaningsSelections = {
@@ -16,6 +16,7 @@ export type GetOneWeaningSelections = {
   weaningId?: Weaning['id'];
   animalId?: Weaning['animalId'];
   organizationId?: Weaning['id'];
+  farrowingId?: Weaning['farrowingId'];
   animalTypeId?: Weaning['animalTypeId'];
 };
 
@@ -40,6 +41,22 @@ export const WeaningSelect = {
       gender: true,
       weight: true,
       productionPhase: true,
+      location: {
+        select: {
+          id: true,
+          code: true,
+          _count: {
+            select: {
+              animals: {
+                where: {
+                  deletedAt: null,
+                  status: 'ACTIVE' as AnimalStatus,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
   farrowingId: true,
@@ -48,6 +65,7 @@ export const WeaningSelect = {
       createdAt: true,
       litter: true,
       note: true,
+      dead: true,
     },
   },
   organizationId: true,

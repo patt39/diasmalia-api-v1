@@ -53,7 +53,14 @@ export class FarrowingsService {
     }
 
     const farrowings = await this.client.farrowing.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: FarrowingSelect,
@@ -74,7 +81,7 @@ export class FarrowingsService {
   /** Find one farrowing in database. */
   async findOneBy(selections: GetOneFarrowingsSelections) {
     const prismaWhere = {} as Prisma.FarrowingWhereInput;
-    const { farrowingId, animalTypeId, animalId } = selections;
+    const { farrowingId, animalTypeId, animalId, createdAt } = selections;
 
     if (farrowingId) {
       Object.assign(prismaWhere, { id: farrowingId });
@@ -84,11 +91,16 @@ export class FarrowingsService {
       Object.assign(prismaWhere, { animalId });
     }
 
+    if (createdAt) {
+      Object.assign(prismaWhere, { createdAt });
+    }
+
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
     }
 
     const farrowing = await this.client.farrowing.findFirst({
+      orderBy: { createdAt: 'desc' },
       where: { ...prismaWhere, deletedAt: null },
       select: FarrowingSelect,
     });
@@ -100,7 +112,9 @@ export class FarrowingsService {
   async createOne(options: CreateFarrowingsOptions): Promise<Farrowing> {
     const {
       note,
+      dead,
       litter,
+      weight,
       animalId,
       animalTypeId,
       userCreatedId,
@@ -110,11 +124,13 @@ export class FarrowingsService {
     const farrowing = this.client.farrowing.create({
       data: {
         note,
+        dead,
         litter,
+        weight,
         animalId,
         animalTypeId,
-        organizationId,
         userCreatedId,
+        organizationId,
       },
     });
 
@@ -127,12 +143,15 @@ export class FarrowingsService {
     options: UpdateFarrowingsOptions,
   ): Promise<Farrowing> {
     const { farrowingId } = selections;
-    const { note, litter, animalId, userCreatedId, deletedAt } = options;
+    const { note, dead, weight, litter, animalId, userCreatedId, deletedAt } =
+      options;
 
     const farrowing = this.client.farrowing.update({
       where: { id: farrowingId },
       data: {
+        dead,
         note,
+        weight,
         litter,
         animalId,
         userCreatedId,
