@@ -85,7 +85,7 @@ export class FeedingsController {
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -93,21 +93,63 @@ export class FeedingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findFeedStock = await this.feedStocksService.findOneBy({
+      feedStockId,
+      organizationId: user?.organizationId,
+      animalTypeId: findOneAnimal?.animalTypeId,
+    });
+    if (!findFeedStock)
+      throw new HttpException(
+        `FeedStockId: ${feedStockId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     if (findOneAnimal?.quantity === 0)
       throw new HttpException(
         `Unable to feed, animals doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.EXPECTATION_FAILED,
+      );
+
+    if (findFeedStock?.weight < quantity)
+      throw new HttpException(
+        `Insuficient amount of feed available please update feed stock`,
+        HttpStatus.EXPECTATION_FAILED,
+      );
+
+    if (
+      findFeedStock?.feedCategory === 'LAYERS_FEED' &&
+      findOneAnimal?.productionPhase === 'GROWTH'
+    )
+      throw new HttpException(
+        `Impossible to create wrong feed type please change`,
+        HttpStatus.EXPECTATION_FAILED,
       );
 
     const feeding = await this.feedingsService.createOne({
       quantity,
-      feedStockId,
       animalId: findOneAnimal?.id,
+      feedStockId: findFeedStock?.id,
       productionPhase: findOneAnimal?.productionPhase,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+
+    await this.feedStocksService.updateOne(
+      { feedStockId: findFeedStock?.id },
+      { weight: findFeedStock?.weight - quantity },
+    );
+
+    const feedDifference = Number(
+      findFeedStock?.weight - (findFeedStock?.weight - quantity),
+    );
+
+    if (feedDifference === findFeedStock?.bagWeight) {
+      await this.feedStocksService.updateOne(
+        { feedStockId: findFeedStock?.id },
+        { number: findFeedStock?.number - 1 },
+      );
+    }
 
     await this.activitylogsService.createOne({
       userId: user?.id,
@@ -157,7 +199,18 @@ export class FeedingsController {
       if (findFeedStock?.weight < quantity)
         throw new HttpException(
           `Insuficient amount of feed available please update feed stock`,
-          HttpStatus.NOT_FOUND,
+          HttpStatus.EXPECTATION_FAILED,
+        );
+
+      if (
+        ['LAYERS_FEED', 'GESTATION_FEMALES', 'LACTATING_FEMALES'].includes(
+          findFeedStock?.feedCategory,
+        ) &&
+        findOneAnimal?.productionPhase === 'GROWTH'
+      )
+        throw new HttpException(
+          `Impossible to create wrong feed type please change`,
+          HttpStatus.EXPECTATION_FAILED,
         );
 
       const animalFed = Number(quantity / animals?.length);
@@ -176,6 +229,17 @@ export class FeedingsController {
         { feedStockId: findFeedStock?.id },
         { weight: findFeedStock?.weight - quantity },
       );
+
+      const feedDifference = Number(
+        findFeedStock?.weight - (findFeedStock?.weight - quantity),
+      );
+
+      if (feedDifference === findFeedStock?.bagWeight) {
+        await this.feedStocksService.updateOne(
+          { feedStockId: findFeedStock?.id },
+          { number: findFeedStock?.number - 1 },
+        );
+      }
 
       await this.activitylogsService.createOne({
         userId: user?.id,

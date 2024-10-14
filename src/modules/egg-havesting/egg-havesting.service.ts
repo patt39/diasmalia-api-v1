@@ -55,7 +55,14 @@ export class EggHavestingsService {
     }
 
     const eggHavestings = await this.client.eggHavesting.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: EggHarvestingsSelect,

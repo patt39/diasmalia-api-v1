@@ -48,7 +48,15 @@ export class FatteningsService {
     }
 
     const fattenings = await this.client.fattening.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          productionPhase: 'FATTENING',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: fatteningsSelect,

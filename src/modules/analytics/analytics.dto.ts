@@ -22,3 +22,21 @@ export class GetAnalyticsQuery {
   @IsUUID()
   animalTypeId: string;
 }
+
+export class GetFinanceAnalyticsQuery {
+  @IsOptional()
+  @IsString()
+  days: string;
+
+  @IsOptional()
+  @IsString()
+  months: string;
+
+  @IsOptional()
+  @IsString()
+  year: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
+}

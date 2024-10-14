@@ -55,7 +55,14 @@ export class WeaningsService {
     }
 
     const weanings = await this.client.weaning.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+        animal: {
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: WeaningSelect,
@@ -141,10 +148,14 @@ export class WeaningsService {
   /** Find one weaning in database. */
   async findOneBy(selections: GetOneWeaningSelections) {
     const prismaWhere = {} as Prisma.WeaningWhereInput;
-    const { weaningId, animalId, organizationId } = selections;
+    const { weaningId, farrowingId, animalId, organizationId } = selections;
 
     if (weaningId) {
       Object.assign(prismaWhere, { id: weaningId });
+    }
+
+    if (farrowingId) {
+      Object.assign(prismaWhere, { farrowingId });
     }
 
     if (animalId) {

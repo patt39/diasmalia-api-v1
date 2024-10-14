@@ -42,6 +42,8 @@ export const fatteningsSelect = {
       id: true,
       code: true,
       weight: true,
+      status: true,
+      productionPhase: true,
     },
   },
 };

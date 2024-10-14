@@ -14,11 +14,12 @@ export type GetBreedingsSelections = {
 };
 
 export type GetOneBreedingsSelections = {
+  animalId?: Animal['id'];
+  gender?: Animal['gender'];
   breedingId?: Breeding['id'];
   checkStatus?: Breeding['checkStatus'];
-  animalId?: Animal['id'];
   animalTypeId?: Animal['animalTypeId'];
-  gender?: Animal['gender'];
+  animalMaleId?: Breeding['animalMaleId'];
   organizationId?: Breeding['organizationId'];
 };
 

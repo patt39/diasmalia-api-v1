@@ -55,8 +55,13 @@ export class BreedingsController {
     const { search } = query;
     const { method, animalTypeId, periode } = queryBreedings;
 
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
 
     const breedings = await this.breedingsService.findAll({
       method,
@@ -306,6 +311,30 @@ export class BreedingsController {
     if (!findOnebreeding) {
       throw new HttpException(
         `AnimalId: ${breedingId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOnebreeding });
+  }
+
+  /** Get one breeding by male animalId */
+  @Get(`/:animalMaleId/view/breeding`)
+  @UseGuards(UserAuthGuard)
+  async getOneMaleBreeding(
+    @Res() res,
+    @Req() req,
+    @Param('animalMaleId', ParseUUIDPipe) animalMaleId: string,
+  ) {
+    const { user } = req;
+
+    const findOnebreeding = await this.breedingsService.findOneBy({
+      animalMaleId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOnebreeding) {
+      throw new HttpException(
+        `AnimalId: ${animalMaleId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

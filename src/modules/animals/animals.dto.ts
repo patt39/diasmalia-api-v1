@@ -135,6 +135,14 @@ export class UpdateAnimalsDto {
   codeMother: string;
 
   @IsOptional()
+  @IsString()
+  strain: string;
+
+  @IsOptional()
+  @IsString()
+  supplier: string;
+
+  @IsOptional()
   @IsNumber()
   weight: number;
 
@@ -186,6 +194,14 @@ export class CreateAvesDto {
   @IsOptional()
   @IsString()
   birthday: Date;
+
+  @IsOptional()
+  @IsString()
+  strain: string;
+
+  @IsOptional()
+  @IsString()
+  supplier: string;
 
   @IsOptional()
   @IsString()

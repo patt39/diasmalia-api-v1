@@ -9,20 +9,23 @@ import {
 } from 'class-validator';
 
 export class UpdateFeedStocksDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(FeedCategory)
   feedCategory: FeedCategory;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   number: number;
 
-  @IsNotEmpty()
+  @IsOptional()
+  composition: any;
+
+  @IsOptional()
   @IsNumber()
   bagWeight: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsUUID()
   animalTypeId: string;

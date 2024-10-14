@@ -53,7 +53,10 @@ export class GestationsService {
     }
 
     const gestations = await this.client.gestation.findMany({
-      where: { ...prismaWhere, deletedAt: null },
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
+      },
       take: pagination.take,
       skip: pagination.skip,
       select: GestationSelect,

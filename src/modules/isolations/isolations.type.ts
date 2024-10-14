@@ -37,6 +37,7 @@ export const IsolationsSelect = {
       id: true,
       code: true,
       male: true,
+      status: true,
       female: true,
       quantity: true,
     },

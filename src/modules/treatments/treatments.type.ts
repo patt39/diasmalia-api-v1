@@ -12,6 +12,7 @@ export type GetTreatmentsSelections = {
 
 export type GetOneTreatmentsSelections = {
   treatmentId?: Treatment['id'];
+  animalId?: Treatment['animalId'];
   animalTypeId?: Treatment['animalTypeId'];
   organizationId?: Treatment['organizationId'];
 };

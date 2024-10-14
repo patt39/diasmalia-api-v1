@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { formatDDMMYYDate } from 'src/app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -81,7 +80,7 @@ export class FarrowingsController {
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Req() req, @Body() body: CreateFarrowingsDto) {
     const { user } = req;
-    const { litter, note, codeFemale, weight } = body;
+    const { dead, litter, note, codeFemale, weight } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -92,13 +91,7 @@ export class FarrowingsController {
     });
     if (!findOneFemale)
       throw new HttpException(
-        `Animal ${codeFemale} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (findOneFemale?.location?._count.animals > 1)
-      throw new HttpException(
-        `Animal ${codeFemale} should be isolated before farrowing please change`,
+        `Animal ${findOneFemale?.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -113,16 +106,8 @@ export class FarrowingsController {
       );
     }
 
-    if (
-      formatDDMMYYDate(findOneGestation?.farrowingDate) !==
-      formatDDMMYYDate(new Date())
-    )
-      throw new HttpException(
-        `Impossible to create, female: ${codeFemale} hasn't reach farrowing date yet please update`,
-        HttpStatus.NOT_FOUND,
-      );
-
     const farrowing = await this.farrowingsService.createOne({
+      dead,
       note,
       litter,
       weight,
@@ -143,9 +128,9 @@ export class FarrowingsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a farrowing in ${findOneFemale.animalType.name} for ${findOneFemale.code}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a farrowing in ${findOneFemale?.animalType?.name} for ${findOneFemale?.code}`,
     });
 
     return reply({
@@ -169,7 +154,7 @@ export class FarrowingsController {
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
-    const { litter, note, weight } = body;
+    const { litter, note, weight, dead } = body;
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       farrowingId,
@@ -183,7 +168,7 @@ export class FarrowingsController {
 
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing?.id },
-      { note, litter, weight, userCreatedId: user?.id },
+      { dead, note, litter, weight, userCreatedId: user?.id },
     );
 
     await this.activitylogsService.createOne({
@@ -224,10 +209,10 @@ export class FarrowingsController {
     return reply({ res, results: farrowing });
   }
 
-  /** Get one farrowing */
-  @Get(`/view/:animalId`)
+  /** Get one farrowing by animal */
+  @Get(`/:animalId/view/animal`)
   @UseGuards(UserAuthGuard)
-  async getOneFarrowingByAnimalId(
+  async getOneByAnimalId(
     @Res() res,
     @Req() req,
     @Param('animalId', ParseUUIDPipe) animalId: string,
@@ -240,7 +225,7 @@ export class FarrowingsController {
     });
     if (!animalId)
       throw new HttpException(
-        `AnimalId: ${animalId} doesn't exists please change`,
+        `FarrowingId: ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 

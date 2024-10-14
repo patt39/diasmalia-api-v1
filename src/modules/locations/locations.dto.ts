@@ -1,4 +1,4 @@
-import { LocationType, ProductionPhase } from '@prisma/client';
+import { AddCages, ProductionPhase } from '@prisma/client';
 import {
   IsEnum,
   IsIn,
@@ -24,6 +24,10 @@ export class CreateOrUpdateLocationsDto {
 
   @IsOptional()
   @IsInt()
+  cages: number;
+
+  @IsOptional()
+  @IsInt()
   nest: number;
 
   @IsOptional()
@@ -37,8 +41,8 @@ export class CreateOrUpdateLocationsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(LocationType)
-  type: LocationType;
+  @IsEnum(AddCages)
+  addCages: AddCages;
 }
 
 export class CreateBulkLocationsDto {
@@ -86,6 +90,6 @@ export class GetLocationsQueryDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(LocationType)
-  type: LocationType;
+  @IsEnum(AddCages)
+  addCages: AddCages;
 }

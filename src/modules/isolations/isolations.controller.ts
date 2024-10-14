@@ -120,7 +120,6 @@ export class IsolationsController {
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
-    console.log('isolation==>', isolation);
 
     await this.animalsService.updateOne(
       { animalId: isolation?.animalId },
