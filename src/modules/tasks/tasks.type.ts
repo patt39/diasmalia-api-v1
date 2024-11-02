@@ -1,15 +1,15 @@
-import { Task, TaskStatus } from '@prisma/client';
+import { Task } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetTasksSelections = {
   search?: string;
-  status?: TaskStatus;
   organizationId: string;
+  contributorId: string;
+  animalTypeId: string;
   pagination?: PaginationType;
 };
 
 export type GetOneTasksSelections = {
-  slug?: string;
   taskId?: Task['id'];
   organizationId?: Task['organizationId'];
 };
@@ -25,10 +25,11 @@ export type UpdateTasksOptions = Partial<Task>;
 export const TaskSelect = {
   createdAt: true,
   id: true,
-  slug: true,
+  type: true,
   title: true,
-  status: true,
   dueDate: true,
+  periode: true,
+  frequency: true,
   description: true,
   contributorId: true,
   contributor: {
@@ -45,6 +46,13 @@ export const TaskSelect = {
       },
     },
   },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      name: true,
+    },
+  },
   organizationId: true,
+  organization: { select: { name: true } },
   userCreatedId: true,
 };

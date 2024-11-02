@@ -93,6 +93,7 @@ export class AssignTypesController {
 
       const findOneAssignedType = await this.assignTypesService.findOneBy({
         animalTypeId,
+        organizationId: user?.organizationId,
       });
       if (!findOneAssignedType) {
         await this.assignTypesService.createOne({
@@ -101,17 +102,17 @@ export class AssignTypesController {
           organizationId: user?.organizationId,
           userCreatedId: user?.id,
         });
-      } else {
+      }
+      if (findOneAssignedType)
         throw new HttpException(
-          ` ${findOneAssignedType.animalType.name} already assigned please change`,
+          `AnimalTypeId: ${animalTypeId} already assigned please change`,
           HttpStatus.NOT_FOUND,
         );
-      }
 
       await this.activitylogsService.createOne({
-        userId: user.id,
-        organizationId: user.organizationId,
-        message: `${user.profile?.firstName} ${user.profile?.lastName} assigned animal type: ${findOneType?.name} in your organization `,
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} assigned animal type: ${findOneType?.name} in your organization `,
       });
     }
 

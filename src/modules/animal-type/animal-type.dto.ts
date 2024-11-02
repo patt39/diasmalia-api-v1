@@ -1,20 +1,20 @@
 import { AnimalTypeStatus } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateAnimalTypesDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   slug: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   habitat: string;
 

@@ -88,7 +88,6 @@ export class WeaningsController {
       productionPhase: 'LACTATION',
       organizationId: user?.organizationId,
     });
-    console.log('findOneFemale =>', findOneFemale);
     if (!findOneFemale)
       throw new HttpException(
         `Female animal ${code} doesn't exists, isn't in LACTATION phase  or isn't ACTIVE please change`,
@@ -98,7 +97,6 @@ export class WeaningsController {
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       animalId: findOneFemale?.id,
     });
-    console.log('findOneFarrowing =>', findOneFarrowing);
     if (!findOneFarrowing)
       throw new HttpException(
         `Farrowing doesn't exists, please change`,

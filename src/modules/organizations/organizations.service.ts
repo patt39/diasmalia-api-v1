@@ -4,14 +4,50 @@ import { DatabaseService } from '../../app/database/database.service';
 import {
   CreateOrganizationsOptions,
   GetOneOrganizationsSelections,
+  GetOrganizationsSelections,
   OrganizationSelect,
   UpdateOrganizationsOptions,
   UpdateOrganizationsSelections,
 } from './organizations.type';
 
+import {
+  WithPaginationResponse,
+  withPagination,
+} from '../../app/utils/pagination';
+
 @Injectable()
 export class OrganizationsService {
   constructor(private readonly client: DatabaseService) {}
+
+  async findAll(
+    selections: GetOrganizationsSelections,
+  ): Promise<WithPaginationResponse | null> {
+    const prismaWhere = {} as Prisma.OrganizationWhereInput;
+    const { search, pagination } = selections;
+
+    if (search) {
+      Object.assign(prismaWhere, {
+        OR: [{ name: { code: { contains: search, mode: 'insensitive' } } }],
+      });
+    }
+
+    const organizations = await this.client.organization.findMany({
+      take: pagination.take,
+      skip: pagination.skip,
+      select: OrganizationSelect,
+      orderBy: pagination.orderBy,
+    });
+
+    const rowCount = await this.client.organization.count({
+      where: { ...prismaWhere, deletedAt: null },
+    });
+
+    return withPagination({
+      pagination,
+      rowCount,
+      value: organizations,
+    });
+  }
 
   /** Find one Organization in database. */
   async findOneBy(selections: GetOneOrganizationsSelections) {

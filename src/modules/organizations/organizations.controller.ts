@@ -8,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Put,
+  Query,
   Req,
   Res,
   UploadedFile,
@@ -15,13 +16,21 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
+import {
+  addPagination,
+  PaginationType,
+} from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
+import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { getFileFromAws } from '../integrations/aws/aws-s3-service-adapter';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
+import { UsersService } from '../users/users.service';
 import {
   CreateOrUpdateOrganizationsDto,
   GetOneUploadsDto,
+  GetOrganizationQueryDto,
 } from './organizations.dto';
 import { OrganizationsService } from './organizations.service';
 
@@ -30,25 +39,85 @@ export class OrganizationsController {
   constructor(
     private readonly organizationsService: OrganizationsService,
     private readonly uploadsUtil: UploadsUtil,
+    private readonly usersService: UsersService,
   ) {}
 
-  /** Get one Organization */
-  @Get(`/show/:organizationId`)
+  /** Get all organizations */
+  @Get(`/`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdUser(
+  async findAll(
     @Res() res,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+    @Query() queryOrganization: GetOrganizationQueryDto,
+  ) {
+    const { search } = query;
+    const { userId } = queryOrganization;
+
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
+
+    const milkings = await this.organizationsService.findAll({
+      search,
+      userId,
+      pagination,
+    });
+
+    return reply({ res, results: milkings });
+  }
+
+  /** Get one Organization */
+  @Put(`/:organizationId/show`)
+  @UseGuards(UserAuthGuard)
+  async changeUserOrganization(
+    @Res() res,
+    @Req() req,
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
   ) {
-    const organization = await this.organizationsService.findOneBy({
+    const { user } = req;
+    const findOneOrganization = await this.organizationsService.findOneBy({
       organizationId,
     });
-    if (!organization)
+    if (!findOneOrganization)
       throw new HttpException(
         `OrganizationId: ${organizationId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
-    return reply({ res, results: organization });
+    const findUser = await this.usersService.updateOne(
+      { userId: user?.id },
+      { organizationId: findOneOrganization?.id },
+    );
+
+    return reply({ res, results: findUser });
+  }
+
+  /** Get one Organization */
+  @Get(`/:organizationId/view`)
+  @UseGuards(UserAuthGuard)
+  async getUserOrganization(
+    @Res() res,
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+  ) {
+    const findOneOrganization = await this.organizationsService.findOneBy({
+      organizationId,
+    });
+    if (!findOneOrganization)
+      throw new HttpException(
+        `OrganizationId: ${organizationId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findUser = await this.usersService.findOneBy({
+      organizationId: findOneOrganization?.id,
+    });
+
+    return reply({ res, results: findUser });
   }
 
   /** Update organization */
@@ -66,7 +135,7 @@ export class OrganizationsController {
 
     const { fileName } = await this.uploadsUtil.uploadOneAWS({
       file,
-      userId: user.id,
+      userId: user?.id,
       folder: 'images',
     });
 
@@ -89,12 +158,11 @@ export class OrganizationsController {
   async updateLogo(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateOrganizationsDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
     const { user } = req;
 
-    const { fileName } = await this.uploadsUtil.uploadOneAWS({
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
       file,
       userId: user?.id,
       folder: 'logos',
@@ -102,7 +170,7 @@ export class OrganizationsController {
 
     await this.organizationsService.updateOne(
       { organizationId: user?.organizationId },
-      { logo: fileName },
+      { logo: urlAWS?.Location },
     );
 
     return reply({ res, results: 'Organization Updated Successfully' });

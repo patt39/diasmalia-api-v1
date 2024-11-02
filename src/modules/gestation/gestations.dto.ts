@@ -1,5 +1,4 @@
-import { MethodCheckPregnancy } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class UpdateGestationsDto {
   @IsOptional()
@@ -8,8 +7,7 @@ export class UpdateGestationsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(MethodCheckPregnancy)
-  method: MethodCheckPregnancy;
+  method: string;
 
   @IsOptional()
   @IsString()

@@ -18,6 +18,7 @@ import { reply } from '../../app/utils/reply';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateOneContributorUserDto } from '../contributors/contributors.dto';
+import { CountriesService } from '../country/country.service';
 import { CurrenciesService } from '../currency/currency.service';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
@@ -29,10 +30,11 @@ export class ProfilesController {
     private readonly profilesService: ProfilesService,
     private readonly uploadsUtil: UploadsUtil,
     private readonly currenciesService: CurrenciesService,
+    private readonly countriesService: CountriesService,
   ) {}
 
   /** Show Profile */
-  @Get(`/show/:profileId`)
+  @Get(`/:profileId/show`)
   @UseGuards(UserAuthGuard)
   async getOneByIdUser(
     @Res() res,
@@ -44,7 +46,7 @@ export class ProfilesController {
   }
 
   /** Update user profile */
-  @Put(`/user/update/`)
+  @Put(`/:profileId/edit`)
   @UseGuards(UserAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   async updateProfile(
@@ -52,12 +54,13 @@ export class ProfilesController {
     @Req() req,
     @Body() body: CreateOneContributorUserDto,
     @UploadedFile() file: Express.Multer.File,
+    @Param('profileId', ParseUUIDPipe) profileId: string,
   ) {
     const { user } = req;
 
-    const { fileName } = await this.uploadsUtil.uploadOneAWS({
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
       file,
-      userId: user.id,
+      userId: user?.id,
       folder: 'photos',
     });
 
@@ -67,10 +70,10 @@ export class ProfilesController {
       address,
       lastName,
       firstName,
+      countryId,
       occupation,
-      companyName,
-      description,
       currencyId,
+      description,
     } = body;
 
     const findCurrency = await this.currenciesService.findOneBy({
@@ -83,8 +86,27 @@ export class ProfilesController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findCountry = await this.countriesService.findOneBy({
+      countryId,
+      status: true,
+    });
+    if (!findCountry)
+      throw new HttpException(
+        `CountryId: ${countryId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const fineOneUser = await this.profilesService.findOneBy({
+      profileId,
+    });
+    if (!fineOneUser)
+      throw new HttpException(
+        `ProfileId: ${profileId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     await this.profilesService.updateOne(
-      { profileId: user.profile?.id },
+      { profileId: user?.profile?.id },
       {
         city,
         phone,
@@ -92,11 +114,11 @@ export class ProfilesController {
         lastName,
         firstName,
         occupation,
-        companyName,
         description,
-        photo: fileName,
-        userId: user.id,
-        currencyId: findCurrency.id,
+        userId: user?.id,
+        photo: urlAWS?.Location,
+        countryId: findCountry?.id,
+        currencyId: findCurrency?.id,
       },
     );
 

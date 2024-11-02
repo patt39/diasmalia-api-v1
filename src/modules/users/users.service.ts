@@ -89,16 +89,9 @@ export class UsersService {
             name: true,
             image: true,
             description: true,
-            assignTypes: true,
           },
         },
       },
-      // include: {
-      //   profile: true,
-      //   organization: {
-      //     select: { name: true, logo: true, assignTypes: true },
-      //   },
-      // },
     });
 
     return user;

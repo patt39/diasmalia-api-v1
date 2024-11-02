@@ -21,6 +21,9 @@ export type UpdateContactsOptions = Partial<Contact>;
 export const contactsSelect = {
   createdAt: true,
   id: true,
+  email: true,
+  phone: true,
+  fullName: true,
   subject: true,
   description: true,
   userCreatedId: true,

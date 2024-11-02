@@ -74,6 +74,7 @@ export const AnimalSelect = {
   location: {
     select: {
       code: true,
+      cages: true,
       addCages: true,
       productionPhase: true,
       _count: {

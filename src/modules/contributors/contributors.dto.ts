@@ -37,7 +37,6 @@ export class AddContributorUserDto {
   @IsNotEmpty()
   @IsString()
   @IsEmail()
-  @MaxLength(50)
   email: string;
 }
 export class CreateOneContributorUserDto {
@@ -49,6 +48,14 @@ export class CreateOneContributorUserDto {
   @IsOptional()
   @IsString()
   firstName: string;
+
+  @IsOptional()
+  @IsString()
+  city: string;
+
+  @IsOptional()
+  @IsString()
+  description: string;
 
   @IsOptional()
   @IsString()
@@ -64,19 +71,7 @@ export class CreateOneContributorUserDto {
 
   @IsOptional()
   @IsString()
-  companyName: string;
-
-  @IsOptional()
-  @IsString()
   occupation: string;
-
-  @IsOptional()
-  @IsString()
-  description: string;
-
-  @IsOptional()
-  @IsString()
-  city: string;
 
   @IsOptional()
   @IsString()
@@ -86,6 +81,16 @@ export class CreateOneContributorUserDto {
   @IsString()
   @IsUUID()
   currencyId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  countryId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(RoleContributorRole)
+  role: RoleContributorRole;
 }
 
 export class InvitationConfirmationDto {

@@ -203,7 +203,7 @@ export const contributorCreateUserMail = async (options: {
 
                       <div style="text-align: center">
                         <span style="font-size: 16px">
-                            ${user.profile.firstName} ${user.profile.lastName} has invited you to join the ${user.organization.name}
+                            ${user?.profile?.firstName} ${user?.profile?.lastName} has invited you to join the ${user?.organization?.name}
                             organization </span
                           >
                       </div><br />
@@ -219,7 +219,7 @@ export const contributorCreateUserMail = async (options: {
                             <td colspan="2">
                               <div style="text-align: center">
                                 <a
-                                  href="${config.datasite.urlClient}/contributors/password/update/${token}"
+                                  href="${config.datasite.urlClient}/verify/contributor-confirmation/${token}"
                                   style="
                                     font-family: 'Google Sans', Roboto,
                                       RobotoDraft, Helvetica, Arial, sans-serif;
@@ -235,7 +235,7 @@ export const contributorCreateUserMail = async (options: {
                                     min-width: 90px;
                                   "
                                   target="_blank"
-                                  >Join ${user.organization.name}</a
+                                  >Join ${user.organization?.name}</a
                                 >
                               </div>
                             </td>
@@ -304,7 +304,7 @@ export const contributorCreateUserMail = async (options: {
                                 "
                               >
                                 If you’re having trouble clicking the "Join
-                                ${user.organization.name}" button, copy and paste the URL
+                                ${user?.organization.name}" button, copy and paste the URL
                                 below into your web browser is valid for 30
                                 minutes:
                                 <span

@@ -54,10 +54,14 @@ export class BlogService {
   async findOneBy(selections: GetOneBlogSelections) {
     const prismaWhere = {} as Prisma.BlogWhereInput;
 
-    const { blogId, category } = selections;
+    const { blogId, category, slug } = selections;
 
     if (blogId) {
       Object.assign(prismaWhere, { id: blogId });
+    }
+
+    if (slug) {
+      Object.assign(prismaWhere, { slug });
     }
 
     if (category) {
@@ -73,15 +77,24 @@ export class BlogService {
 
   /** Create one blog in database. */
   async createOne(options: CreateBlogsOptions): Promise<Blog> {
-    const { slug, image, title, description, category, userCreatedId } =
-      options;
+    const {
+      readingTime,
+      urlMedia,
+      image,
+      title,
+      description,
+      category,
+      userCreatedId,
+    } = options;
 
     const blog = this.client.blog.create({
       data: {
         title,
         image,
+        urlMedia,
         category,
         description,
+        readingTime,
         slug: `${Slug(title)}-${generateNumber(4)}`,
         userCreatedId,
       },
@@ -96,11 +109,27 @@ export class BlogService {
     options: UpdateBlogsOptions,
   ): Promise<Blog> {
     const { blogId } = selections;
-    const { title, image, category, description, deletedAt } = options;
+    const {
+      readingTime,
+      urlMedia,
+      title,
+      image,
+      category,
+      description,
+      deletedAt,
+    } = options;
 
     const blog = this.client.blog.update({
       where: { id: blogId },
-      data: { title, description, category, image, deletedAt },
+      data: {
+        readingTime,
+        urlMedia,
+        title,
+        description,
+        category,
+        image,
+        deletedAt,
+      },
     });
 
     return blog;

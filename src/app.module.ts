@@ -4,19 +4,20 @@ import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AnimalTypesModule } from './modules/animal-type/animal-type.module';
 import { AnimalsModule } from './modules/animals/animals.module';
-import { AssignTasksModule } from './modules/assigne-tasks/assigne-tasks.module';
 import { AssignTypesModule } from './modules/assigne-type/assigne-type.module';
 import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
 import { BlogsModule } from './modules/blog/blog.module';
 import { BreedingsModule } from './modules/breedings/breedings.module';
 import { BreedsModule } from './modules/breeds/breeds.module';
+import { CagesModule } from './modules/cages/cages.module';
 import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregnancies.module';
-import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { ContributorsModule } from './modules/contributors/contributors.module';
+import { CountriesModule } from './modules/country/country.module';
 import { CurrenciesModule } from './modules/currency/currency.module';
 import { DeathsModule } from './modules/death/deaths.module';
 import { EggHavestingsModule } from './modules/egg-havesting/egg-havesting.module';
+import { FaqsModule } from './modules/faq/faq.module';
 import { FarrowingsModule } from './modules/farrowings/farrowings.module';
 import { FatteningsModule } from './modules/fattenings/fattening.module';
 import { FeedStockModule } from './modules/feed-stock/feed-stock.module';
@@ -56,6 +57,9 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     SalesModule,
     BlogsModule,
     HealthModule,
+    FaqsModule,
+    CagesModule,
+    CountriesModule,
     FeedStockModule,
     AnalyticsModule,
     EggHavestingsModule,
@@ -66,10 +70,8 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     FatteningsModule,
     FarrowingsModule,
     FeedingsModule,
-    AssignTasksModule,
     FinanceModule,
     ActivityLogsModule,
-    ContactUsModule,
     CurrenciesModule,
     ContributorsModule,
     OrganizationsModule,

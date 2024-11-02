@@ -1,5 +1,6 @@
-import { AddCages, ProductionPhase } from '@prisma/client';
+import { AddCages } from '@prisma/client';
 import {
+  IsArray,
   IsEnum,
   IsIn,
   IsInt,
@@ -36,13 +37,22 @@ export class CreateOrUpdateLocationsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
   @IsOptional()
   @IsString()
   @IsEnum(AddCages)
   addCages: AddCages;
+}
+
+export class AnimalChangeLocationsDto {
+  @IsNotEmpty()
+  @IsString()
+  locationCode: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  animals: any;
 }
 
 export class CreateBulkLocationsDto {
@@ -68,15 +78,13 @@ export class CreateBulkLocationsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 }
 
 export class GetLocationsQueryDto {
   @IsOptional()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
   @IsOptional()
   @IsString()

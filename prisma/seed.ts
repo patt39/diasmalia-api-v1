@@ -210,6 +210,430 @@ async function main() {
           { name: 'Zambia', code: 'ZM' },
           { name: 'Zimbabwe', code: 'ZW' },
         ],
+        skipDuplicates: true,
+      });
+
+      /** Seedind animal breeds */
+      await prisma.breed.createMany({
+        data: [
+          {
+            name: 'Large White ',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Landrace',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Duroc ',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Berkshire',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Hampshire',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Pietrain',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Tamworth',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Chester White',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Gloucestershire Old Spot',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Vietnamese Pot-bellied Pig',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Meishan',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Mangalitsa',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Hereford',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Kunekune',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Poland China',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Red Wattle',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Iberian (Pata Negra)',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'American Guinea Hog',
+            animalTypeId: '3204534e-2605-4975-b054-59f21bda8f74',
+          },
+          {
+            name: 'Fauve de Bourgogne',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Néo-Zélandais',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Californien',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Chinchilla',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Satin',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Blanc de Hotot',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Argenté de Champagne',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Géant des Flandres',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Papillon Français',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Rex',
+            animalTypeId: '39273328-71fb-405f-8535-2ee913d8d488',
+          },
+          {
+            name: 'Boer',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Kiko',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Savannah',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Myotonic',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Spanish Goat ',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Alpine',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Nubienne',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Toggenbourg',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Barbari',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Beetal',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Chèvre Pygmée',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Nigerian Dwarf',
+            animalTypeId: 'fed212d5-7ce8-4e02-912f-c2dfcd151f13',
+          },
+          {
+            name: 'Texel',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Suffolk',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Charollais',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Charollais',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Dorper',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Dorset',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Ile-de-France',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Romanov',
+            animalTypeId: '48ae8f1b-66d5-48cb-b7a7-0678edd720d9',
+          },
+          {
+            name: 'Canard de Barbarie',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard Fulvous Whistling Duck',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard de Barbarie',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard Fulvous Whistling Duck',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard de Pékin',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard Mulard',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard Khaki Campbell',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard de Rouen',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard Coureur Indien',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Canard africain',
+            animalTypeId: '338bfc76-5b9e-40cb-9780-b0c704b42fe4',
+          },
+          {
+            name: 'Dindon Bronzaillé',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Blanc de Hollande',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Royal Palm',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Bleu de Suède',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Bourbon Rouge',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Narragansett',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Noir de Sologne',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Broad Breasted White',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Midget White',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Dindon Blanc de Hollande',
+            animalTypeId: 'c8cec2c4-c5e8-4e43-8e39-73aa6dff22df',
+          },
+          {
+            name: 'Holstein-Frisonne',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Jersey',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Guernesey',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Montbéliarde',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Normande',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Ayrshire',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Brune des Alpes (Brown Swiss)',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Pie Rouge des Plaines',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Holstein-Frisonne',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Charolaise',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Limousine',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Angus',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Zébu Boran',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Zébu Sahiwal',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Zébu Brahman',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Hereford',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Blonde Aquitaine',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Salers',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Galloway',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Simmental',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Shorthorn',
+            animalTypeId: '6f5cfbbf-8b02-4cb4-b1ed-4d08b4955832',
+          },
+          {
+            name: 'Tilapia',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Carpe commune',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Poisson-chat (Siluriformes)',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Silure (Clarias gariepinus)',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Truite arc-en-ciel',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Perche du Nil',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Esturgeon',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Bar ou Loup de mer ',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Dorade royale (Sparus aurata)',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Saumon Atlantique',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Maquereau',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Thon rouge ',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Flétan',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Turbot',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+          {
+            name: 'Cobia',
+            animalTypeId: 'f167c551-cbfd-426c-8e20-dfd2bf17c9b3',
+          },
+        ],
+        skipDuplicates: true,
       });
 
       /** Seedind currencies */
@@ -311,6 +735,7 @@ async function main() {
           { name: 'Hungarian Forint', code: 'HUF', symbol: 'Ft' },
           { name: 'Polish Zloty', code: 'PLN', symbol: 'zł' },
         ],
+        skipDuplicates: true,
       });
 
       /** Seeding animal types */
@@ -319,101 +744,145 @@ async function main() {
           {
             name: 'Poulet de chair',
             slug: 'poulets de chair',
+            tab: 'aves-locations',
             habitat: 'poulaillé',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/shutterstock_95209237-768x512.jpg20241024-C93N.jpeg',
             description:
-              'Ici vous pouvez élever des poulets de chaire zero jour à 31jour puis les vendre pour la viande',
+              'Elever des poulets de chair  de zero jour à 31jours pour leur viande',
           },
           {
             name: 'Pondeuses',
             slug: 'pondeuses',
+            tab: 'aves-locations',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/laying-hens-4133954_640.jpg20241024-e0QI.jpeg',
             habitat: 'poulaillé',
             description:
-              'Ici vous pouvez élever des pousins jusqua la phase de ponte pour les oeufs et puis les reformer pour la viande',
+              'Ici vous pouvez élever des poussins jusqua la phase de ponte pour les oeufs et puis les reformer pour la viande',
           },
           {
             name: 'Bovins',
             slug: 'boeufs',
+            tab: 'locations',
             habitat: 'Etable',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/cow-3383624_640.jpg20241024-tzfZ.jpeg',
             description:
-              'Une section pour élever des boeuf pour leur viande et du lait.',
+              'Une section pour élever des boeufs pour la production laitière et leur viande',
           },
           {
             name: 'Ovins',
             slug: 'moutons',
             habitat: 'enclos',
-            description: 'Elever des moutons pour leur viande ou de laine',
+            tab: 'locations',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/sheeps-6828766_640.jpg20241024-bfX0.jpeg',
+            description: 'Elever des moutons pour leur viande ou leur laine',
           },
           {
             name: 'Caprins',
             slug: 'chèvres',
             habitat: 'enclos',
+            tab: 'locations',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/csm_ziegen_prospecierara_0f7b1f0deb.jpg20241024-96ny.jpeg',
             description: 'Elever des chèvres pour leurs viande ou du lait',
           },
           {
             name: 'Porciculture',
             slug: 'porcs',
+            tab: 'locations',
             habitat: 'loge',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/breeding-3739223_640.jpg20241024-3lEB.jpeg',
             description:
-              'Elever des porcs pour leur viande bien grasse qui passe sur le marché nhesitez pas a varier les races',
+              'Elever des porcs pour leur viande qui passe bien sur le marché sans hésiter de varier les races pour maximer votre profit',
           },
           {
             name: 'Cuniculture',
             slug: 'lapins',
+            tab: 'locations',
             habitat: 'clapier',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/rabbits-6889130_640.jpg20241024-0Qme.jpeg',
             description:
-              'Elever des lapins pour leur viande succulent faible en matière grasse et bonne pour la santé',
+              'Elever des lapins pour leur prolificité, leur viande succulente faible en matière grasse et très bonne pour la santé',
           },
           {
             name: 'Quails',
             slug: 'quails',
             habitat: 'cage',
+            tab: 'aves-locations',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/pexels-brett-sayles-1309236.jpg20241024-jMYC.jpeg',
             description:
-              'Elever des quails pour les viande et leur oeufs faible en matière grasse et veture médicinale',
+              'Elever des quails pour les viande et leur oeufs faible en matière grasse et verture médicinale',
           },
           {
             name: 'Canard',
             slug: 'canards',
+            tab: 'aves-locations',
             habitat: 'canardière',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/pekin_ducks_cropped.jpg20241024-3Ui6.jpeg',
             description:
-              'Elever des canard pour leur rusticité leur viande et leur oeufs.',
+              'Elever des canards pour leur rusticité, la vente de leur bonne viande blanche très faible en matière grasse et riche en proteins, leur oeufs fécondés et leur cannetons',
           },
           {
             name: 'Pisciculture',
             slug: 'poissons',
-            habitat: 'etang',
+            habitat: 'étang',
+            tab: 'aves-locations',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/trout-4725772_640.jpg20241024-fRB1.jpeg',
             description:
               'Elever des poissons pour la consomation domestique ou la vente',
           },
           {
             name: 'Dinde',
             slug: 'dindons',
+            tab: 'aves-locations',
             habitat: 'poulaillé',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/turkey-3455659_640.jpg20241024-sm7X.jpeg',
             description:
-              'Elever des dindons et des dindes pour leur bonne viande blanche très riche en proteins et vente en grande surface',
+              'Elever des dindons pour leur gabarit, la vente de leur bonne viande blanche très faible en matière grasse et riche en proteins, leur oeufs fécondés et leur poussins',
           },
           {
             name: 'Pintarde',
             slug: 'pintardes',
+            tab: 'aves-locations',
             habitat: 'poullaillé',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/birds-7045998_640.jpg20241024-EeKf.jpeg',
             description:
               'Elever des pintarde pour leur rusticité et la vente de leur bonne viande blanche très faible en matière grasse, riche en proteins',
           },
           {
             name: 'Poulets Brahma',
             slug: 'poulets brahma',
+            tab: 'aves-locations',
             habitat: 'poullaillé',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/hen-brahma-4046755_640.jpg20241024-pc09.jpeg',
             description:
-              'Elever des pintarde pour leur rusticité et la vente de leur bonne viande blanche très faible en matière grasse, riche en proteins',
+              'Elever des poulets brahmas pour leur rusticité, la vente de leur bonne viande blanche très faible en matière grasse et riche en proteins, leur oeufs fécondés et leur poussins',
           },
           {
             name: 'Poulets Goliaths',
             slug: 'poulets goliath',
             habitat: 'poullaillé',
+            tab: 'aves-locations',
+            photo:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/1599px-des_poulets_goliath_de_couleur_beige_dans_un_poulailler_au_benin.jpg20241024-Zlci.jpeg',
             description:
               'Elever des pintarde pour leur rusticité et la vente de leur bonne viande blanche très faible en matière grasse, riche en proteins',
           },
         ],
+        skipDuplicates: true,
       });
+
       console.log(`${environment} database seeded successfully`);
       break;
     case 'test':

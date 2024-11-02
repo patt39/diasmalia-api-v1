@@ -102,12 +102,23 @@ export class AnimalTypesController {
   /** Update one animalType */
   @Put(`/:animalTypeId/edit`)
   @UseGuards(UserAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   async updateOne(
     @Res() res,
+    @Req() req,
     @Body() body: CreateOrUpdateAnimalTypesDto,
+    @UploadedFile() file: Express.Multer.File,
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
+    const { user } = req;
+
     const { name, slug, habitat, description, status } = body;
+
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'photos',
+    });
 
     const findOneType = await this.animalTypesService.findOneBy({
       animalTypeId,
@@ -125,6 +136,7 @@ export class AnimalTypesController {
         slug,
         status,
         habitat,
+        photo: urlAWS?.Location,
         description,
       },
     );

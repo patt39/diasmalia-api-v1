@@ -9,7 +9,8 @@ export type GetCurrencySelections = {
 export type GetOneCurrencySelections = {
   currencyId?: Currency['id'];
   organizationId?: string;
-  status?: Boolean;
+  code?: string;
+  status?: boolean;
 };
 
 export type UpdateCurrenciesSelections = {

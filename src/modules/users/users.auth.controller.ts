@@ -5,6 +5,7 @@ import {
   Headers,
   HttpException,
   HttpStatus,
+  Param,
   Post,
   Put,
   Req,
@@ -20,6 +21,7 @@ import {
 } from '../../app/utils/cookies';
 import { reply } from '../../app/utils/reply';
 import { ContributorsService } from '../contributors/contributors.service';
+import { CurrenciesService } from '../currency/currency.service';
 import { getOneLocationIpApi } from '../integrations/taux-live';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { ProfilesService } from '../profiles/profiles.service';
@@ -34,6 +36,7 @@ import {
   RegisterUserDto,
   ResetPasswordUserDto,
   UpdateResetPasswordUserDto,
+  verifyTokenDto,
 } from './users.dto';
 import { UsersService } from './users.service';
 import { checkIfPasswordMatch, hashPassword } from './users.type';
@@ -44,6 +47,7 @@ export class UsersAuthController {
     private readonly usersService: UsersService,
     private readonly profilesService: ProfilesService,
     private readonly checkUserService: CheckUserService,
+    private readonly currenciesService: CurrenciesService,
     private readonly contributorsService: ContributorsService,
     private readonly organizationsService: OrganizationsService,
   ) {}
@@ -65,34 +69,42 @@ export class UsersAuthController {
       email: email.toLocaleLowerCase(),
     });
 
+    const findCurrency = await this.currenciesService.findOneBy({
+      code: 'XAF',
+      status: true,
+    });
+
     await this.profilesService.createOne({
-      firstName,
       lastName,
+      firstName,
       userId: user.id,
+      occupation: 'OWNER',
+      currencyId: findCurrency?.id,
     });
 
     const organization = await this.organizationsService.createOne({
       name: organizationName,
-      userId: user.id,
+      userId: user?.id,
+      description: `Farm projet of ${firstName} ${lastName}`,
     });
 
     await this.usersService.updateOne(
-      { userId: user.id },
+      { userId: user?.id },
       { organizationId: organization.id },
     );
 
     await this.contributorsService.createOne({
       role: 'SUPERADMIN',
-      userId: user.id,
+      userId: user?.id,
       confirmation: 'YES',
       confirmedAt: new Date(),
-      organizationId: organization.id,
-      userCreatedId: user.id,
+      organizationId: organization?.id,
+      userCreatedId: user?.id,
     });
 
     const codeGenerate = generateNumber(6);
     const tokenUser = await this.checkUserService.createTokenCookie(
-      { userId: user.id, code: codeGenerate } as JwtToken,
+      { userId: user?.id, code: codeGenerate } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
@@ -305,6 +317,45 @@ export class UsersAuthController {
     return reply({ res, results: 'Password updated' });
   }
 
+  /** Verify token token */
+  @Get(`/verify/:token`)
+  async verifyToken(@Res() res, @Param() param: verifyTokenDto) {
+    const { token } = param;
+    if (!token) {
+      throw new HttpException(
+        `Token not valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+    const findOneUser = await this.usersService.findOneBy({
+      userId: payload?.userId,
+    });
+    if (!findOneUser)
+      throw new HttpException(
+        `User doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      userId: findOneUser?.id,
+      organizationId: payload?.organizationId,
+    });
+
+    // if (findOneContributor?.confirmedAt !== null)
+    //   throw new HttpException(`Invitation already confirmed`, HttpStatus.FOUND);
+
+    return reply({
+      res,
+      results: {
+        ...payload,
+        user: findOneUser,
+        contributor: findOneContributor,
+      },
+    });
+  }
+
   /** IpLocation new user */
   @Get(`/ip-location`)
   async ipLocation(@Res() res, @Req() req) {
@@ -341,6 +392,10 @@ export class UsersAuthController {
     res.clearCookie(
       config.cookie_access.user.nameLogin,
       validation_login_cookie_setting,
+    );
+    res.clearCookie(
+      config.cookie_access.user.nameVerify,
+      validation_verify_cookie_setting,
     );
 
     return reply({ res, results: 'User logout successfully' });

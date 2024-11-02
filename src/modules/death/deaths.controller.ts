@@ -87,7 +87,7 @@ export class DeathsController {
     const findOneAnimal = await this.animalsService.findOneByCode({
       code,
       status: 'ACTIVE',
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -173,9 +173,9 @@ export class DeathsController {
     }
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a dead ${findOneAnimal.animalType.name} with code ${findOneAnimal?.code} `,
-      organizationId: user.organizationId,
+      userId: user?.id,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a dead in ${findOneAnimal?.animalType.name} with code ${findOneAnimal?.code} `,
+      organizationId: user?.organizationId,
     });
 
     return reply({
@@ -216,7 +216,7 @@ export class DeathsController {
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a death for ${animals?.lenght} ${findOneAnimal?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a death for ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -302,7 +302,7 @@ export class DeathsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a death in ${findOneDeath?.animalType?.name} dead`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated ${findOneDeath?.animal?.code} dead in ${findOneDeath?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Death updated successfully' });

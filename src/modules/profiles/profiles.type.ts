@@ -17,3 +17,20 @@ export type UpdateProfilesSelections = {
 export type CreateProfilesOptions = Partial<Profile>;
 
 export type UpdateProfilesOptions = Partial<Profile>;
+
+export const UserProfileSelect = {
+  createdAt: true,
+  id: true,
+  firstName: true,
+  lastName: true,
+  occupation: true,
+  address: true,
+  phone: true,
+  photo: true,
+  description: true,
+  currency: {
+    select: {
+      symbol: true,
+    },
+  },
+};

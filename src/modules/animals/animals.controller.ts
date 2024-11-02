@@ -23,7 +23,6 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
-import { FarrowingsService } from '../farrowings/farrowings.service';
 import { FatteningsService } from '../fattenings/fattening.service';
 import { GestationsService } from '../gestation/gestations.service';
 import { LocationsService } from '../locations/locations.service';
@@ -43,7 +42,6 @@ export class AnimalsController {
     private readonly breedsService: BreedsService,
     private readonly animalsService: AnimalsService,
     private readonly locationsService: LocationsService,
-    private readonly farrowingsService: FarrowingsService,
     private readonly fatteningsService: FatteningsService,
     private readonly gestationsService: GestationsService,
     private readonly assignTypesService: AssignTypesService,
@@ -160,6 +158,7 @@ export class AnimalsController {
       birthday,
       quantity,
       supplier,
+      breedName,
       locationCode,
       productionPhase,
     } = body;
@@ -208,6 +207,16 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneBreed = await this.breedsService.findOneBy({
+      name: breedName,
+      animalTypeId: findOneAnimal?.animalType?.id,
+    });
+    if (!findOneBreed)
+      throw new HttpException(
+        `breed: ${breedName} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
     const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
 
@@ -220,6 +229,7 @@ export class AnimalsController {
       weight,
       supplier,
       productionPhase,
+      breedId: findOneBreed?.id,
       birthday: new Date(birthday),
       locationId: findOneLocation?.id,
       quantity: quantity ? quantity : sumAnimals,

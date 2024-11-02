@@ -38,6 +38,7 @@ export class LocationsService {
     }
 
     if (status) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       status === 'true'
         ? Object.assign(prismaWhere, { status: true })
         : Object.assign(prismaWhere, { status: false });
@@ -111,6 +112,7 @@ export class LocationsService {
     }
 
     if (status) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       status === 'true'
         ? Object.assign(prismaWhere, { status: true })
         : Object.assign(prismaWhere, { status: false });
@@ -137,7 +139,27 @@ export class LocationsService {
       select: LocationsSelect,
     });
 
-    return location;
+    const sumMales = await this.client.animal.count({
+      where: {
+        gender: 'MALE',
+        status: 'ACTIVE',
+        deletedAt: null,
+        locationId: location?.id,
+        animalTypeId: animalTypeId,
+      },
+    });
+
+    const sumFemales = await this.client.animal.count({
+      where: {
+        deletedAt: null,
+        gender: 'FEMALE',
+        status: 'ACTIVE',
+        locationId: location?.id,
+        animalTypeId: animalTypeId,
+      },
+    });
+
+    return { ...location, sumMales, sumFemales };
   }
 
   /** Create one location in database. */

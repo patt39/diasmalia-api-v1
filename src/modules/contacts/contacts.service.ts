@@ -65,10 +65,26 @@ export class ContactsService {
 
   /** Create one Contact in database. */
   async createOne(options: CreateContactsOptions): Promise<Contact> {
-    const { subject, description, organizationId, userCreatedId } = options;
+    const {
+      email,
+      phone,
+      subject,
+      fullName,
+      description,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const contact = this.client.contact.create({
-      data: { subject, description, organizationId, userCreatedId },
+      data: {
+        email,
+        phone,
+        subject,
+        fullName,
+        description,
+        organizationId,
+        userCreatedId,
+      },
     });
 
     return contact;

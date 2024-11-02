@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetOrganizationsSelections = {
   search?: string;
+  userId?: string;
   pagination?: PaginationType;
 };
 
@@ -23,17 +24,14 @@ export type UpdateOrganizationsOptions = Partial<Organization>;
 export const OrganizationSelect = {
   createdAt: true,
   id: true,
-  organization: {
+  logo: true,
+  name: true,
+  image: true,
+  description: true,
+  userId: true,
+  user: {
     select: {
-      logo: true,
-      name: true,
-      image: true,
-      description: true,
-      _count: {
-        select: {
-          assignTypes: true,
-        },
-      },
+      email: true,
     },
   },
 };

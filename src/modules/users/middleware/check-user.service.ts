@@ -6,6 +6,10 @@ export type JwtToken = {
   organizationId: string;
   code: string;
   email: string;
+  inviter?: string;
+  reqUserId?: string;
+  contributorId?: string;
+  organizationName?: string;
 };
 @Injectable()
 export class CheckUserService {
@@ -21,7 +25,7 @@ export class CheckUserService {
       throw new HttpException(`Token not verified`, HttpStatus.NOT_FOUND);
     if (!payload) {
       throw new HttpException(
-        `Code not valid please change`,
+        `Token not valid please change`,
         HttpStatus.NOT_FOUND,
       );
     }

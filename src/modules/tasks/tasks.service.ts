@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Task } from '@prisma/client';
 import { DatabaseService } from '../../app/database/database.service';
-import { Slug, generateNumber } from '../../app/utils/commons/generate-random';
 import {
   WithPaginationResponse,
   withPagination,
@@ -23,7 +22,8 @@ export class TasksService {
     selections: GetTasksSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTask = {} as Prisma.TaskWhereInput;
-    const { search, status, organizationId, pagination } = selections;
+    const { search, organizationId, pagination, contributorId, animalTypeId } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhereTask, {
@@ -46,12 +46,16 @@ export class TasksService {
       });
     }
 
+    if (animalTypeId) {
+      Object.assign(prismaWhereTask, { animalTypeId });
+    }
+
     if (organizationId) {
       Object.assign(prismaWhereTask, { organizationId });
     }
 
-    if (status) {
-      Object.assign(prismaWhereTask, { status });
+    if (contributorId) {
+      Object.assign(prismaWhereTask, { contributorId });
     }
 
     const tasks = await this.client.task.findMany({
@@ -76,20 +80,19 @@ export class TasksService {
   /** Find one task in database. */
   async findOneBy(selections: GetOneTasksSelections) {
     const prismaWhereTask = {} as Prisma.TaskWhereInput;
-    const { taskId, organizationId, slug } = selections;
+    const { taskId, organizationId } = selections;
 
     if (organizationId) {
       Object.assign(prismaWhereTask, { organizationId });
     }
 
-    if (slug) {
-      Object.assign(prismaWhereTask, { slug });
-    }
-
     if (taskId) {
       Object.assign(prismaWhereTask, { id: taskId });
     }
-    const task = await this.client.task.findFirst({});
+    const task = await this.client.task.findFirst({
+      where: { ...prismaWhereTask, deletedAt: null },
+      select: TaskSelect,
+    });
 
     return task;
   }
@@ -97,9 +100,12 @@ export class TasksService {
   /** Create one Tasks to the database. */
   async createOne(options: CreateTasksOptions): Promise<Task> {
     const {
+      type,
       title,
-      status,
       dueDate,
+      periode,
+      frequency,
+      animalTypeId,
       description,
       contributorId,
       organizationId,
@@ -108,11 +114,13 @@ export class TasksService {
 
     const task = this.client.task.create({
       data: {
+        type,
         title,
-        status,
+        dueDate,
+        periode,
+        frequency,
+        animalTypeId,
         description,
-        slug: `${Slug(title)}-${generateNumber(4)}`,
-        dueDate: new Date(dueDate),
         contributorId,
         organizationId,
         userCreatedId,
@@ -129,10 +137,12 @@ export class TasksService {
   ): Promise<Task> {
     const { taskId } = selections;
     const {
-      slug,
+      type,
       title,
-      status,
       dueDate,
+      periode,
+      frequency,
+      animalTypeId,
       description,
       contributorId,
       deletedAt,
@@ -141,10 +151,12 @@ export class TasksService {
     const task = this.client.task.update({
       where: { id: taskId },
       data: {
-        slug,
+        type,
         title,
-        status,
-        dueDate: new Date(dueDate),
+        periode,
+        dueDate,
+        frequency,
+        animalTypeId,
         description,
         contributorId,
         deletedAt,

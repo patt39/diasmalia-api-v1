@@ -1,29 +1,34 @@
-import { TaskStatus } from '@prisma/client';
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrUpdateTasksDto {
+  @IsOptional()
+  @IsString()
+  type: string;
+
   @IsNotEmpty()
   @IsString()
   title: string;
+
+  @IsOptional()
+  @IsString()
+  periode: string;
+
+  @IsOptional()
+  @IsString()
+  frequency: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 
   @IsNotEmpty()
   @IsString()
   description: string;
 
-  @IsNotEmpty()
-  @IsString()
-  dueDate: Date;
-
   @IsOptional()
   @IsString()
-  @IsEnum(TaskStatus)
-  status: TaskStatus;
+  dueDate: Date;
 
   @IsNotEmpty()
   @IsString()
@@ -31,9 +36,14 @@ export class CreateOrUpdateTasksDto {
   contributorId: string;
 }
 
-export class TasksQueryDto {
+export class TaskQueryDto {
   @IsOptional()
   @IsString()
-  @IsEnum(TaskStatus)
-  status: TaskStatus;
+  @IsUUID()
+  contributorId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
 }
