@@ -77,6 +77,25 @@ export class UpdateResetPasswordUserDto {
   token: string;
 }
 
+export class ContributorConfirmDto {
+  @IsNotEmpty()
+  @MinLength(8)
+  @IsString()
+  password: string;
+
+  @IsNotEmpty()
+  @MinLength(8)
+  @IsString()
+  @Match('password')
+  passwordConfirm: string;
+}
+
+export class verifyTokenDto {
+  @IsOptional()
+  @IsString()
+  token: string;
+}
+
 export class UpdateUserPasswordDto {
   @IsOptional()
   @MaxLength(100)

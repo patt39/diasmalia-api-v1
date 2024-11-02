@@ -1,6 +1,4 @@
-import { FeedCategory } from '@prisma/client';
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -11,8 +9,7 @@ import {
 export class UpdateFeedStocksDto {
   @IsOptional()
   @IsString()
-  @IsEnum(FeedCategory)
-  feedCategory: FeedCategory;
+  feedCategory: string;
 
   @IsOptional()
   @IsNumber()
@@ -40,10 +37,9 @@ export class CreateFeedStocksDto {
   @IsNumber()
   bagWeight: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @IsEnum(FeedCategory)
-  feedCategory: FeedCategory;
+  feedCategory: string;
 
   @IsNotEmpty()
   @IsString()

@@ -71,83 +71,6 @@ export class FeedStocksController {
   /** Post one feed stock */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(@Res() res, @Req() req, @Body() body: CreateFeedStocksDto) {
-    const { user } = req;
-    const { number, bagWeight, feedCategory, animalTypeId } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `Animal Type not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (
-      [
-        'Poulet de chair',
-        'Poulets Goliaths',
-        'Poulets brahma',
-        'Pondeuses',
-        'Pintardes',
-        'Dindes',
-        'Canards',
-        'Dindes',
-        'Quails',
-        'Pisciculture',
-      ].includes(findOneAssignType?.animalType?.name) &&
-      ['LACTATING_FEMALES', 'GESTATION_FEMALES'].includes(feedCategory)
-    )
-      throw new HttpException(
-        `Impossible to create bad feed category`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const totalWeight = Number(bagWeight * number);
-
-    const findOneFeedStock = await this.feedStocksService.findOneBy({
-      feedCategory,
-      organizationId: user?.organizationId,
-      animalTypeId: findOneAssignType?.animalTypeId,
-    });
-    if (findOneFeedStock)
-      throw new HttpException(
-        `Feed Type ${feedCategory} already created please update`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const feedStock = await this.feedStocksService.createOne({
-      number,
-      bagWeight,
-      feedCategory,
-      weight: totalWeight ? totalWeight : bagWeight,
-      animalTypeName: findOneAssignType?.animalType?.name,
-      animalTypeId: findOneAssignType?.animalTypeId,
-      organizationId: user?.organizationId,
-      userCreatedId: user?.id,
-    });
-
-    await this.activitylogsService.createOne({
-      userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${number} in feed stock for ${findOneAssignType?.animalType?.name} `,
-      organizationId: user?.organizationId,
-    });
-
-    return reply({
-      res,
-      results: {
-        status: HttpStatus.CREATED,
-        data: feedStock,
-        message: `Feed Stock Created Successfully`,
-      },
-    });
-  }
-
-  /** Post one feed stock */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
   async addCompostion(
     @Res() res,
     @Req() req,
@@ -175,13 +98,29 @@ export class FeedStocksController {
         'Pintardes',
         'Dindes',
         'Canards',
-        'Dindes',
         'Quails',
         'Pisciculture',
       ].includes(findOneAssignType?.animalType?.name) &&
       ['LACTATING_FEMALES', 'GESTATION_FEMALES', 'SILAGES', 'FORAGES'].includes(
         feedCategory,
       )
+    )
+      throw new HttpException(
+        `Impossible to create bad feed category`,
+        HttpStatus.BAD_REQUEST,
+      );
+
+    if (
+      [
+        'Cuniculture',
+        'Bovins',
+        'Caprins',
+        'Ovins',
+        'Porciculture',
+        'Chiens',
+        'Pisciculture',
+      ].includes(findOneAssignType?.animalType?.name) &&
+      ['LAYERS_FEED'].includes(feedCategory)
     )
       throw new HttpException(
         `Impossible to create bad feed category`,

@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -23,16 +21,12 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { contactNotification } from '../users/mails/contact-notification';
 import { UserAuthGuard } from '../users/middleware';
-import { UsersService } from '../users/users.service';
 import { CreateOrUpdateContactsDto } from './contacts.dto';
 import { ContactsService } from './contacts.service';
 
 @Controller('contacts')
 export class ContactsController {
-  constructor(
-    private readonly contactsService: ContactsService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly contactsService: ContactsService) {}
 
   /** Get all Contacts */
   @Get(`/`)
@@ -68,19 +62,25 @@ export class ContactsController {
     @Body() body: CreateOrUpdateContactsDto,
   ) {
     const { user } = req;
-    const { subject, description } = body;
+    const { email, phone, subject, fullName, description } = body;
 
     if (user) {
       await this.contactsService.createOne({
         subject,
         description,
-        userCreatedId: user.id,
-        organizationId: user.organizationId,
+        userCreatedId: user?.id,
+        organizationId: user?.organizationId,
       });
 
       await contactNotification({ email: user?.email, user });
     } else {
-      throw new HttpException(`user doesn't exists`, HttpStatus.NOT_FOUND);
+      await this.contactsService.createOne({
+        email,
+        phone,
+        subject,
+        fullName,
+        description,
+      });
     }
 
     return reply({ res, results: 'Contact send' });

@@ -46,7 +46,7 @@ export const config = {
    */
   organizationAddress: {
     name: 'Diasmalia',
-    company: 'Diasman',
+    company: 'Appbissi srl',
     street1: 'Via santa maria 17',
     street2: '',
     city: 'Vigevano',

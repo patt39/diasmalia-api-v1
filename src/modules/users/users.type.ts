@@ -54,7 +54,6 @@ export const UserSelect = {
       firstName: true,
       lastName: true,
       occupation: true,
-      companyName: true,
       address: true,
       phone: true,
       photo: true,
@@ -77,7 +76,12 @@ export const UserSelect = {
       name: true,
       image: true,
       description: true,
-      assignTypes: true,
+      assignTypes: {
+        select: {
+          animalTypeId: true,
+          userId: true,
+        },
+      },
     },
   },
 };

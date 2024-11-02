@@ -27,6 +27,7 @@ export class ContributorsService {
       Object.assign(prismaWhereContributor, {
         OR: [
           { user: { email: { contains: search, mode: 'insensitive' } } },
+          { organization: { name: { contains: search, mode: 'insensitive' } } },
           {
             user: {
               profile: { firstName: { contains: search, mode: 'insensitive' } },

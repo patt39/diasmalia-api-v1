@@ -25,9 +25,11 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
+  AnimalChangeLocationsDto,
   CreateBulkLocationsDto,
   CreateOrUpdateLocationsDto,
   GetLocationsQueryDto,
@@ -38,6 +40,7 @@ import { LocationsService } from './locations.service';
 export class LocationsController {
   constructor(
     private readonly locationsService: LocationsService,
+    private readonly animalsService: AnimalsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
@@ -115,7 +118,6 @@ export class LocationsController {
     const findOneLocation = await this.locationsService.findOneBy({
       code: code,
       organizationId: user?.organizationId,
-      animalTypeId: findOneAssignType?.animalTypeId,
     });
     if (
       code?.toLowerCase() == findOneLocation?.code ||
@@ -210,6 +212,59 @@ export class LocationsController {
         message: `Animals Created Successfully`,
       },
     });
+  }
+
+  /** Animals change location */
+  @Put(`/:locationId/change-location`)
+  @UseGuards(UserAuthGuard)
+  async createOneBulk(
+    @Res() res,
+    @Req() req,
+    @Body() body: AnimalChangeLocationsDto,
+    @Param('locationId', ParseUUIDPipe) locationId: string,
+  ) {
+    const { user } = req;
+    const { animals, locationCode } = body;
+
+    const findOneLocation = await this.locationsService.findOneBy({
+      locationId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneLocation)
+      throw new HttpException(
+        `LocationId: ${locationId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    for (const animal of animals) {
+      const findOneAnimal = await this.animalsService.findOneBy({
+        code: animal,
+      });
+
+      const findOneLocation = await this.locationsService.findOneBy({
+        code: locationCode,
+        animalTypeId: findOneAnimal?.animalTypeId,
+        organizationId: user?.organizationId,
+      });
+      if (!findOneLocation)
+        throw new HttpException(
+          `LocationId: ${locationCode} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        { locationId: findOneLocation?.id },
+      );
+
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} changed ${findOneAnimal?.code} location in ${findOneAnimal?.animalType?.name}`,
+      });
+    }
+
+    return reply({ res, results: 'Saved' });
   }
 
   /** Change location status */

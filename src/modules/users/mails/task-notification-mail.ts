@@ -4,9 +4,8 @@ import { sendEmail } from '../../integrations/email.service';
 export const taskNotification = async (options: {
   email: string;
   user: any;
-  slug: any;
 }) => {
-  const { email, user, slug } = options;
+  const { email, user } = options;
   const output = `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml">
@@ -230,7 +229,7 @@ export const taskNotification = async (options: {
                           <td colspan="2">
                             <div style="text-align: center">
                             <a
-                                href="${config.datasite.urlClient}/task/${slug}/show"                           
+                                href="${config.datasite.urlClient}/tasks/${user?.id}"                           
                                 style="
                                 font-family: 'Google Sans', Roboto,
                                   RobotoDraft, Helvetica, Arial, sans-serif;

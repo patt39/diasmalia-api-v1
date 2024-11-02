@@ -7,6 +7,7 @@ export type GetBlogsSelections = {
 };
 
 export type GetOneBlogSelections = {
+  slug?: Blog['slug'];
   blogId?: Blog['id'];
   category?: Category;
 };
@@ -23,6 +24,10 @@ export const BlogSelect = {
   createdAt: true,
   id: true,
   title: true,
+  image: true,
+  slug: true,
+  readingTime: true,
+  urlMedia: true,
   description: true,
   category: true,
 };

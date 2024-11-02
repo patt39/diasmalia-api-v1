@@ -27,3 +27,9 @@ export class GetOneUploadsDto {
   @IsString()
   folder: string;
 }
+
+export class GetOrganizationQueryDto {
+  @IsOptional()
+  @IsString()
+  userId: string;
+}

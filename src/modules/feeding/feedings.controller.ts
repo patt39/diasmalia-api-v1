@@ -129,7 +129,6 @@ export class FeedingsController {
       quantity,
       animalId: findOneAnimal?.id,
       feedStockId: findFeedStock?.id,
-      productionPhase: findOneAnimal?.productionPhase,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -174,6 +173,22 @@ export class FeedingsController {
     const { user } = req;
     const { quantity, animals, feedStockId } = body;
 
+    const findFeedStock = await this.feedStocksService.findOneBy({
+      feedStockId,
+      organizationId: user?.organizationId,
+    });
+    if (!findFeedStock)
+      throw new HttpException(
+        `FeedStockId: ${feedStockId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findFeedStock?.weight < quantity)
+      throw new HttpException(
+        `Insuficient amount of feed available please update feed stock`,
+        HttpStatus.EXPECTATION_FAILED,
+      );
+
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         status: 'ACTIVE',
@@ -185,27 +200,15 @@ export class FeedingsController {
           HttpStatus.NOT_FOUND,
         );
 
-      const findFeedStock = await this.feedStocksService.findOneBy({
-        feedStockId,
-        organizationId: user?.organizationId,
-        animalTypeId: findOneAnimal?.animalTypeId,
-      });
-      if (!findFeedStock)
-        throw new HttpException(
-          `FeedStockId: ${feedStockId} doesn't exists please change`,
-          HttpStatus.NOT_FOUND,
-        );
-
-      if (findFeedStock?.weight < quantity)
-        throw new HttpException(
-          `Insuficient amount of feed available please update feed stock`,
-          HttpStatus.EXPECTATION_FAILED,
-        );
-
       if (
-        ['LAYERS_FEED', 'GESTATION_FEMALES', 'LACTATING_FEMALES'].includes(
-          findFeedStock?.feedCategory,
-        ) &&
+        [
+          'LAY FOOD',
+          'ALIMENT PONTE',
+          'PREGNANT FEMALE',
+          'FEMELLES GESTANTES',
+          'LACTATIZING FEMALE',
+          'FEMELLES ALLAITANTES',
+        ].includes(findFeedStock?.feedCategory) &&
         findOneAnimal?.productionPhase === 'GROWTH'
       )
         throw new HttpException(
@@ -213,40 +216,39 @@ export class FeedingsController {
           HttpStatus.EXPECTATION_FAILED,
         );
 
-      const animalFed = Number(quantity / animals?.length);
+      const animalFed = Number((quantity * 1000) / animals?.length);
 
       await this.feedingsService.createOne({
         quantity: animalFed,
         animalId: findOneAnimal?.id,
         feedStockId: findFeedStock?.id,
-        productionPhase: findOneAnimal?.productionPhase,
         animalTypeId: findOneAnimal?.animalTypeId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       });
+    }
 
+    await this.feedStocksService.updateOne(
+      { feedStockId: findFeedStock?.id },
+      { weight: findFeedStock?.weight - quantity },
+    );
+
+    const feedDifference = Number(
+      findFeedStock?.weight - (findFeedStock?.weight - quantity),
+    );
+
+    if (feedDifference === findFeedStock?.bagWeight) {
       await this.feedStocksService.updateOne(
         { feedStockId: findFeedStock?.id },
-        { weight: findFeedStock?.weight - quantity },
+        { number: findFeedStock?.number - 1 },
       );
-
-      const feedDifference = Number(
-        findFeedStock?.weight - (findFeedStock?.weight - quantity),
-      );
-
-      if (feedDifference === findFeedStock?.bagWeight) {
-        await this.feedStocksService.updateOne(
-          { feedStockId: findFeedStock?.id },
-          { number: findFeedStock?.number - 1 },
-        );
-      }
-
-      await this.activitylogsService.createOne({
-        userId: user?.id,
-        organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} ${findOneAnimal?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
-      });
     }
+
+    await this.activitylogsService.createOne({
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} ${findFeedStock?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
+    });
 
     return reply({ res, results: 'Saved' });
   }
@@ -285,6 +287,8 @@ export class FeedingsController {
 
     const findFeedStock = await this.feedStocksService.findOneBy({
       feedStockId,
+      organizationId: user?.organizationId,
+      animalTypeId: findOneAnimal?.animalTypeId,
     });
     if (!findFeedStock)
       throw new HttpException(
@@ -323,7 +327,7 @@ export class FeedingsController {
 
     const findOneFeeding = await this.feedingsService.findOneBy({
       feedingId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFeeding)
       throw new HttpException(

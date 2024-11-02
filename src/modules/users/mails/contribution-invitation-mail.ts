@@ -219,7 +219,7 @@ export const contributorInvitationMail = async (options: {
                             <td colspan="2">
                               <div style="text-align: center">
                                 <a
-                                  href="${config.datasite.urlClient}/contributors/invitation/${token}"
+                                  href="${config.datasite.urlClient}/verify/invitation/${token}"
                                   style="
                                     font-family: 'Google Sans', Roboto,
                                       RobotoDraft, Helvetica, Arial, sans-serif;

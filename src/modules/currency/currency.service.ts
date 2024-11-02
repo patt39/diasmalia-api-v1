@@ -57,14 +57,14 @@ export class CurrenciesService {
   /** Find one currency in database. */
   async findOneBy(selections: GetOneCurrencySelections) {
     const prismaWhere = {} as Prisma.CurrencyWhereInput;
-    const { currencyId, organizationId, status } = selections;
+    const { currencyId, status, code } = selections;
 
     if (currencyId) {
       Object.assign(prismaWhere, { id: currencyId });
     }
 
-    if (organizationId) {
-      Object.assign(prismaWhere, { organizationId });
+    if (code) {
+      Object.assign(prismaWhere, { code });
     }
 
     if (status) {

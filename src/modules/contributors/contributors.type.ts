@@ -29,19 +29,23 @@ export const ContributorSelect = {
   id: true,
   role: true,
   userId: true,
+  confirmation: true,
+  confirmedAt: true,
   user: {
     select: {
       id: true,
       email: true,
+      organizationId: true,
       profile: {
         select: {
+          id: true,
           firstName: true,
           lastName: true,
           occupation: true,
-          companyName: true,
           address: true,
           phone: true,
           photo: true,
+          city: true,
           description: true,
           currency: {
             select: {

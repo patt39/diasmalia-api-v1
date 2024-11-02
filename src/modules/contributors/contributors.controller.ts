@@ -24,10 +24,10 @@ import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 
 import {
+  AddContributorUserDto,
   CreateOneContributorUserDto,
   CreateOrUpdateContributorDto,
   GetContributorsDto,
-  InvitationConfirmationDto,
 } from '../contributors/contributors.dto';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { ProfilesService } from '../profiles/profiles.service';
@@ -43,7 +43,7 @@ import { ContributorsService } from './contributors.service';
 
 import { validation_verify_cookie_setting } from '../../app/utils/cookies';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { Cookies } from '../users/middleware/cookie.guard';
+import { OrganizationsService } from '../organizations/organizations.service';
 import { UpdateResetPasswordUserDto } from '../users/users.dto';
 import { hashPassword } from '../users/users.type';
 
@@ -54,6 +54,7 @@ export class ContributorsController {
     private readonly profilesService: ProfilesService,
     private readonly contributorsService: ContributorsService,
     private readonly uploadsUtil: UploadsUtil,
+    private readonly organizationsService: OrganizationsService,
     private readonly activitylogsService: ActivityLogsService,
     private readonly checkUserService: CheckUserService,
   ) {}
@@ -63,12 +64,14 @@ export class ContributorsController {
   @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
+    @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
     @Query() queryContributors: GetContributorsDto,
   ) {
+    const { user } = req;
     const { search } = query;
-    const { role, userId, organizationId } = queryContributors;
+    const { role, userId } = queryContributors;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -82,11 +85,40 @@ export class ContributorsController {
       role,
       search,
       userId,
-      organizationId,
       pagination,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: contributors });
+  }
+
+  /** Get all organizations */
+  @Get(`/organizations`)
+  @UseGuards(UserAuthGuard)
+  async findAllOrganizations(
+    @Res() res,
+    @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() query: SearchQueryDto,
+    @Query() queryContributors: GetContributorsDto,
+  ) {
+    const { search } = query;
+    const { userId } = queryContributors;
+
+    const { take, page, sort, sortBy } = requestPaginationDto;
+    const pagination: PaginationType = addPagination({
+      page,
+      take,
+      sort,
+      sortBy,
+    });
+
+    const organizations = await this.contributorsService.findAll({
+      search,
+      userId,
+      pagination,
+    });
+
+    return reply({ res, results: organizations });
   }
 
   /** Post one Contributor */
@@ -98,15 +130,7 @@ export class ContributorsController {
     @Body() body: CreateOneContributorUserDto,
   ) {
     const { user } = req;
-    const {
-      email,
-      phone,
-      address,
-      lastName,
-      firstName,
-      occupation,
-      companyName,
-    } = body;
+    const { email, phone, address, lastName, firstName, occupation } = body;
 
     const findOneContributor = await this.usersService.findOneBy({ email });
     if (findOneContributor)
@@ -116,9 +140,10 @@ export class ContributorsController {
       );
 
     const findOneUser = await this.contributorsService.findOneBy({
-      userId: user.id,
+      userId: user?.id,
+      organizationId: user?.organizationId,
     });
-    if (findOneUser.role !== 'SUPERADMIN')
+    if (findOneUser?.role !== 'SUPERADMIN')
       throw new HttpException(
         `User can't add a contributor please change`,
         HttpStatus.NOT_FOUND,
@@ -136,27 +161,48 @@ export class ContributorsController {
       lastName,
       firstName,
       occupation,
-      companyName,
-      userId: newUser.id,
+      userId: newUser?.id,
     });
 
     const contributor = await this.contributorsService.createOne({
       role: 'ADMIN',
-      userId: newUser.id,
-      organizationId: newUser.organizationId,
-      userCreatedId: user.id,
+      userId: newUser?.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
+    });
+
+    const contribitorOrganization = await this.organizationsService.createOne({
+      name: `${firstName} ${lastName}`,
+      userId: newUser?.id,
+      description: `Farm projet of ${firstName} ${lastName}`,
+    });
+
+    await this.contributorsService.createOne({
+      role: 'SUPERADMIN',
+      userId: newUser?.id,
+      confirmation: 'YES',
+      confirmedAt: new Date(),
+      organizationId: contribitorOrganization?.id,
+      userCreatedId: user?.id,
     });
 
     const token = await this.checkUserService.createTokenCookie(
-      { userId: newUser.id, email: newUser.email } as JwtToken,
+      {
+        userId: newUser?.id,
+        email: newUser?.email,
+        contributorId: contributor?.id,
+        organizationName: user?.organization?.name,
+        inviter: `${user?.profile?.firstName} ${user?.profile?.lastName}`,
+      } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
     await contributorCreateUserMail({ user, email, token });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a new contributor with ${contributor.role} access`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a new contributor with ${contributor?.role} access`,
     });
 
     return reply({ res, results: 'Contributor saved successfully' });
@@ -168,7 +214,7 @@ export class ContributorsController {
   async inviteContributor(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOneContributorUserDto,
+    @Body() body: AddContributorUserDto,
   ) {
     const { user } = req;
     const { email } = body;
@@ -176,45 +222,46 @@ export class ContributorsController {
     const findOneUser = await this.usersService.findOneBy({ email });
     if (!findOneUser)
       throw new HttpException(
-        `User doesn't existes please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const checkUserRole = await this.contributorsService.findOneBy({
-      userId: user.id,
-    });
-    if (checkUserRole.role !== 'SUPERADMIN')
-      throw new HttpException(
-        `User can't invite a contributor please change`,
+        `User doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const findOneContributor = await this.contributorsService.findOneBy({
-      organizationId: user.organizationId,
+      userId: findOneUser?.id,
+      organizationId: user?.organizationId,
     });
     if (findOneContributor)
       throw new HttpException(
-        `Contributor already exists please invite instead`,
+        `Collaborator already invited`,
         HttpStatus.NOT_FOUND,
       );
 
-    await this.contributorsService.createOne({
+    const contributor = await this.contributorsService.createOne({
       role: 'ADMIN',
-      userId: findOneUser.id,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      userId: findOneUser?.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     const token = await this.checkUserService.createTokenCookie(
-      { email: findOneUser.email } as JwtToken,
+      {
+        reqUserId: user?.id,
+        userId: findOneUser?.id,
+        email: findOneUser?.email,
+        contributorId: contributor?.id,
+        organizationId: user?.organizationId,
+        organizationName: user?.organization?.name,
+        inviter: `${user?.profile?.firstName} ${user?.profile?.lastName}`,
+      } as JwtToken,
       config.cookie_access.user.accessExpireVerify,
     );
 
-    await contributorInvitationMail({ user, token, email: findOneUser.email });
+    await contributorInvitationMail({ user, token, email });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} invited ${findOneContributor.user.profile.firstName} ${findOneContributor.user.profile.lastName}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} invited ${findOneContributor?.user?.profile?.firstName} ${findOneContributor?.user?.profile?.lastName}`,
     });
 
     res.cookie(
@@ -226,25 +273,18 @@ export class ContributorsController {
     return reply({ res, results: token });
   }
 
-  /** Resend invitation email */
-  @Get(`/invitation/resend-email`)
+  /** Resend creation email */
+  @Get(`/:userId/resend-email`)
   @UseGuards(UserAuthGuard)
-  async resendInvitationEmail(@Res() res, @Req() req, @Cookies() cookies) {
+  async resendCreationEmail(
+    @Res() res,
+    @Req() req,
+    @Param('userId') userId: string,
+  ) {
     const { user } = req;
-    const token = cookies[config.cookie_access.user.nameLogin];
-    if (!token) {
-      throw new HttpException(
-        `Token not valid please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    const payload = await this.checkUserService.verifyTokenCookie(token);
-    const tokenUser = await this.checkUserService.createTokenCookie(
-      { email: payload?.email } as JwtToken,
-      config.cookie_access.user.accessExpireVerify,
-    );
+
     const findOneUser = await this.usersService.findOneBy({
-      email: payload?.email,
+      userId,
     });
     if (!findOneUser)
       throw new HttpException(
@@ -252,37 +292,33 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await contributorInvitationMail({ user, token, email: findOneUser.email });
-
-    res.cookie(
-      config.cookie_access.user.nameVerify,
-      tokenUser,
-      validation_verify_cookie_setting,
+    const token = await this.checkUserService.createTokenCookie(
+      {
+        userId: findOneUser?.id,
+        email: findOneUser?.email,
+        organizationName: user?.organization?.name,
+        inviter: `${user?.profile?.firstName} ${user?.profile?.lastName}`,
+      } as JwtToken,
+      config.cookie_access.user.accessExpireVerify,
     );
 
-    return reply({ res, results: token });
+    await contributorCreateUserMail({ user, email: findOneUser?.email, token });
+
+    return reply({ res, results: 'Email resend successfully' });
   }
 
   /** Resend creation email */
-  @Get(`/resend-email`)
+  @Get(`/:userId/invitation/resend-email`)
   @UseGuards(UserAuthGuard)
-  async resendCreationEmail(@Res() res, @Req() req, @Cookies() cookies) {
+  async resendInvitationEmail(
+    @Res() res,
+    @Req() req,
+    @Param('userId') userId: string,
+  ) {
     const { user } = req;
-    const token = cookies[config.cookie_access.user.nameLogin];
-    console.log(token);
-    if (!token) {
-      throw new HttpException(
-        `Token not valid please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    const payload = await this.checkUserService.verifyTokenCookie(token);
-    const tokenUser = await this.checkUserService.createTokenCookie(
-      { userId: payload.userId, email: payload?.email } as JwtToken,
-      config.cookie_access.user.accessExpireVerify,
-    );
+
     const findOneUser = await this.usersService.findOneBy({
-      email: payload?.email,
+      userId,
     });
     if (!findOneUser)
       throw new HttpException(
@@ -290,16 +326,27 @@ export class ContributorsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await contributorCreateUserMail({ user, token, email: payload.email });
+    const findOneContributor = await this.contributorsService.findOneBy({
+      userId: findOneUser?.id,
+      organizationId: user?.organizationId,
+    });
 
-    res.cookie(
-      config.cookie_access.user.nameVerify,
-      tokenUser,
-      findOneUser,
-      validation_verify_cookie_setting,
+    const token = await this.checkUserService.createTokenCookie(
+      {
+        reqUserId: user?.id,
+        userId: findOneUser?.id,
+        email: findOneUser?.email,
+        organizationId: user?.organizationId,
+        contributorId: findOneContributor?.id,
+        organizationName: user?.organization?.name,
+        inviter: `${user?.profile?.firstName} ${user?.profile?.lastName}`,
+      } as JwtToken,
+      config.cookie_access.user.accessExpireVerify,
     );
 
-    return reply({ res, results: token });
+    await contributorInvitationMail({ user, email: findOneUser?.email, token });
+
+    return reply({ res, results: 'Email resend successfully' });
   }
 
   /** New contributor password reset with token */
@@ -336,39 +383,6 @@ export class ContributorsController {
     return reply({ res, results: 'Password confirmed' });
   }
 
-  /** Contributor invitation confirmation*/
-  @Put(`/invitation/:token`)
-  async updatePassword(@Res() res, @Body() body: InvitationConfirmationDto) {
-    const { confirmation, token } = body;
-    const payload = await this.checkUserService.verifyTokenCookie(token);
-    const findOneUser = await this.usersService.findOneBy({
-      email: payload?.email,
-    });
-    if (!findOneUser)
-      throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
-    if (!findOneUser)
-      throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
-
-    const findOneContributor = await this.contributorsService.findOneBy({
-      userId: findOneUser.id,
-    });
-    if (confirmation === 'YES') {
-      await this.contributorsService.updateOne(
-        { contributorId: findOneContributor.id },
-        { confirmedAt: new Date(), confirmation: 'YES' },
-      );
-    }
-
-    if (confirmation === 'NO') {
-      await this.contributorsService.updateOne(
-        { contributorId: findOneContributor.id },
-        { deletedAt: new Date(), confirmation: 'NO' },
-      );
-    }
-
-    return reply({ res, results: 'Invitation confirmed' });
-  }
-
   /** Show Contributor */
   @Get(`/profile/show`)
   @UseGuards(UserAuthGuard)
@@ -400,7 +414,7 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!fineOnecontributor)
       throw new HttpException(
@@ -409,49 +423,17 @@ export class ContributorsController {
       );
 
     const contributor = await this.contributorsService.updateOne(
-      { contributorId: fineOnecontributor.id },
+      { contributorId: fineOnecontributor?.id },
       { role },
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} updated ${fineOnecontributor.user.profile.firstName} ${fineOnecontributor.user.profile.lastName} role`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated ${fineOnecontributor?.user?.profile?.firstName} ${fineOnecontributor?.user?.profile?.lastName} role`,
     });
 
     return reply({ res, results: contributor });
-  }
-
-  /** Get contributor organizations */
-  @Get(`/:contributorId/organizations`)
-  @UseGuards(UserAuthGuard)
-  async findAllOrganizations(
-    @Res() res,
-    @Req() req,
-    @Query() requestPaginationDto: RequestPaginationDto,
-    @Query() query: SearchQueryDto,
-    @Param('contributorId', ParseUUIDPipe) contributorId: string,
-  ) {
-    const { user } = req;
-    const { search } = query;
-    const { take, page, sort } = requestPaginationDto;
-    const pagination: PaginationType = addPagination({ page, take, sort });
-
-    const fineOnecontributor = await this.contributorsService.findOneBy({
-      contributorId,
-      organizationId: user.organizationId,
-    });
-    if (!fineOnecontributor)
-      throw new HttpException(
-        `ContributorId: ${contributorId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const contributors = await this.contributorsService.findAll({
-      search,
-      pagination,
-    });
-
-    return reply({ res, results: contributors });
   }
 
   /** Get one contributor */
@@ -478,7 +460,7 @@ export class ContributorsController {
   }
 
   /** Delete one contributor */
-  @Delete(`/delete/:contributorId`)
+  @Delete(`/:contributorId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -489,7 +471,7 @@ export class ContributorsController {
 
     const fineOnecontributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!fineOnecontributor)
       throw new HttpException(
@@ -503,8 +485,9 @@ export class ContributorsController {
     );
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted ${fineOnecontributor.user.profile.firstName}`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted ${fineOnecontributor?.user?.profile?.firstName}`,
     });
 
     return reply({ res, results: 'Contributor deleted successfully' });

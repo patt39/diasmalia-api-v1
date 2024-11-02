@@ -21,14 +21,25 @@ import {
 import { SearchQueryDto } from 'src/app/utils/search-query';
 import { config } from '../../app/config/index';
 import { reply } from '../../app/utils/reply';
+import { ContributorsService } from '../contributors/contributors.service';
+import { contributorRejectionMail } from './mails/contribution-rejection-mail';
 import { UserAuthGuard } from './middleware';
-import { UpdateOneEmailUserDto, UpdateUserPasswordDto } from './users.dto';
+import { CheckUserService } from './middleware/check-user.service';
+import {
+  ContributorConfirmDto,
+  UpdateOneEmailUserDto,
+  UpdateUserPasswordDto,
+} from './users.dto';
 import { UsersService } from './users.service';
 import { checkIfPasswordMatch, hashPassword } from './users.type';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly checkUserService: CheckUserService,
+    private readonly contributorsService: ContributorsService,
+  ) {}
 
   /** Get one User */
   @Get(`/me`)
@@ -37,20 +48,31 @@ export class UsersController {
     const { user } = req;
     const findOneUser = await this.usersService.findMe({
       userId: user.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneUser)
+      throw new HttpException(`Invalid credentials`, HttpStatus.NOT_FOUND);
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      userId: user.id,
+      organizationId: user?.organizationId,
     });
     if (!findOneUser)
       throw new HttpException(`Invalid credentials`, HttpStatus.NOT_FOUND);
 
     return reply({
       res,
-      results: { ...findOneUser, role: user?.contributor?.role },
+      results: {
+        ...findOneUser,
+        ...findOneContributor,
+      },
     });
   }
 
-  /** Get all users */
+  /** Get user organizations */
   @Get(`/`)
   @UseGuards(UserAuthGuard)
-  async findAll(
+  async getUserOrganizations(
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
@@ -88,6 +110,109 @@ export class UsersController {
     );
 
     return reply({ res, results: 'Password Updated successfully' });
+  }
+
+  /** New contributor confirmation */
+  @Put(`/confirmation/:token`)
+  async contributorPasswordUpdate(
+    @Res() res,
+    @Body() body: ContributorConfirmDto,
+    @Param('token') token: string,
+  ) {
+    const { password } = body;
+
+    if (!token) {
+      throw new HttpException(
+        `Token not valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+    const findOneUser = await this.usersService.findOneBy({
+      email: payload?.email,
+    });
+    if (!findOneUser)
+      throw new HttpException(`User invalid`, HttpStatus.NOT_FOUND);
+
+    await this.usersService.updateOne(
+      { userId: findOneUser?.id },
+      { password: await hashPassword(password), confirmedAt: new Date() },
+    );
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      contributorId: payload?.contributorId,
+    });
+    if (findOneContributor) {
+      await this.contributorsService.updateOne(
+        { contributorId: findOneContributor?.id },
+        { confirmedAt: new Date(), confirmation: 'YES' },
+      );
+    }
+
+    return reply({ res, results: 'Password confirmed' });
+  }
+
+  /** Invitation confirmation */
+  @Put(`/invitation/confirmation/:token`)
+  async collaboratorInvitationconfirmation(
+    @Res() res,
+    @Param('token') token: string,
+  ) {
+    if (!token) {
+      throw new HttpException(
+        `Token not valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      contributorId: payload?.contributorId,
+    });
+    if (findOneContributor) {
+      await this.contributorsService.updateOne(
+        { contributorId: findOneContributor?.id },
+        { confirmedAt: new Date(), confirmation: 'YES' },
+      );
+    }
+
+    return reply({ res, results: 'Invitation confirmed' });
+  }
+
+  /** Collaboration rejection */
+  @Put(`/rejection/:token`)
+  async collaborationRejection(@Res() res, @Param('token') token: string) {
+    if (!token) {
+      throw new HttpException(
+        `Token not valid please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const payload = await this.checkUserService.verifyTokenCookie(token);
+
+    const findUser = await this.usersService.findOneBy({
+      userId: payload?.reqUserId,
+    });
+
+    const findOneContributor = await this.contributorsService.findOneBy({
+      contributorId: payload?.contributorId,
+    });
+    if (findOneContributor) {
+      await this.contributorsService.updateOne(
+        { contributorId: findOneContributor?.id },
+        { confirmedAt: null, confirmation: 'NO' },
+      );
+    }
+
+    await contributorRejectionMail({
+      contributor: findOneContributor,
+      email: findUser?.email,
+    });
+
+    return reply({ res, results: 'Collaboration rejected' });
   }
 
   /** Change connected user email */

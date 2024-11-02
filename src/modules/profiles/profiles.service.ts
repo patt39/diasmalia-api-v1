@@ -5,13 +5,13 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
-import { UserSelect } from '../users/users.type';
 import {
   CreateProfilesOptions,
   GetOneProfilesSelections,
   GetProfilesSelections,
   UpdateProfilesOptions,
   UpdateProfilesSelections,
+  UserProfileSelect,
 } from './profiles.type';
 
 @Injectable()
@@ -70,7 +70,7 @@ export class ProfilesService {
 
     const profile = await this.client.profile.findFirst({
       where: { ...prismaWhereProfile, deletedAt: null },
-      select: UserSelect,
+      select: UserProfileSelect,
     });
 
     return profile;
@@ -86,7 +86,6 @@ export class ProfilesService {
       address,
       lastName,
       firstName,
-      companyName,
       occupation,
       currencyId,
       description,
@@ -101,7 +100,6 @@ export class ProfilesService {
         address,
         lastName,
         firstName,
-        companyName,
         occupation,
         currencyId,
         description,
@@ -123,8 +121,8 @@ export class ProfilesService {
       photo,
       address,
       lastName,
+      countryId,
       firstName,
-      companyName,
       occupation,
       currencyId,
       description,
@@ -140,8 +138,8 @@ export class ProfilesService {
         address,
         lastName,
         firstName,
-        companyName,
         occupation,
+        countryId,
         currencyId,
         description,
         deletedAt,

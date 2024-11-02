@@ -3,10 +3,8 @@ import {
   CastratedStatus,
   Gender,
   IsolatedStatus,
-  ProductionPhase,
 } from '@prisma/client';
 import {
-  IsArray,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -28,7 +26,7 @@ export class CreateAnimalsDto {
   @IsString()
   codeMother: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsNumber()
   weight: number;
 
@@ -41,12 +39,11 @@ export class CreateAnimalsDto {
   @IsEnum(Gender)
   gender: Gender;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   locationCode: string;
 
@@ -68,7 +65,7 @@ export class BulkAnimalsCreateDto {
   @IsString()
   codeMother: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsNumber()
   weight: number;
 
@@ -76,41 +73,22 @@ export class BulkAnimalsCreateDto {
   @IsString()
   birthday: Date;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   @IsEnum(Gender)
   gender: Gender;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   locationCode: string;
 
   @IsNotEmpty()
   @IsString()
   breedName: string;
-}
-
-export class BulkAvesCreateDto {
-  @IsNotEmpty()
-  @IsArray()
-  locations: any;
-
-  @IsOptional()
-  @IsNumber()
-  weight: number;
-
-  @IsNotEmpty()
-  @IsString()
-  birthday: Date;
-
-  @IsOptional()
-  @IsNumber()
-  quantity: number;
 }
 
 export class UpdateAnimalsDto {
@@ -161,8 +139,7 @@ export class UpdateAnimalsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
   @IsOptional()
   @IsString()
@@ -191,7 +168,7 @@ export class CreateAvesDto {
   @IsNumber()
   quantity: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   birthday: Date;
 
@@ -203,12 +180,11 @@ export class CreateAvesDto {
   @IsString()
   supplier: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   locationCode: string;
 
@@ -219,13 +195,16 @@ export class CreateAvesDto {
   @IsOptional()
   @IsNumber()
   male: number;
+
+  @IsOptional()
+  @IsString()
+  breedName: string;
 }
 
 export class GetAnimalsQuery {
   @IsOptional()
   @IsString()
-  @IsEnum(ProductionPhase)
-  productionPhase: ProductionPhase;
+  productionPhase: string;
 
   @IsOptional()
   @IsString()

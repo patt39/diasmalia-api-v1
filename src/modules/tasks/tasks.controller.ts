@@ -23,10 +23,12 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { AnimalsService } from '../animals/animals.service';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { ContributorsService } from '../contributors/contributors.service';
 import { taskNotification } from '../users/mails/task-notification-mail';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateTasksDto, TasksQueryDto } from './tasks.dto';
+import { CreateOrUpdateTasksDto, TaskQueryDto } from './tasks.dto';
 import { TasksService } from './tasks.service';
 
 @Controller('tasks')
@@ -35,6 +37,8 @@ export class TasksController {
     private readonly tasksService: TasksService,
     private readonly activitylogsService: ActivityLogsService,
     private readonly contributorsService: ContributorsService,
+    private readonly assignTypesService: AssignTypesService,
+    private readonly animalsService: AnimalsService,
   ) {}
 
   /** Get all Tasks */
@@ -45,11 +49,11 @@ export class TasksController {
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() queryTasks: TasksQueryDto,
+    @Query() taskQuery: TaskQueryDto,
   ) {
     const { user } = req;
     const { search } = query;
-    const { status } = queryTasks;
+    const { contributorId, animalTypeId } = taskQuery;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -60,10 +64,11 @@ export class TasksController {
     });
 
     const tasks = await this.tasksService.findAll({
-      status,
       search,
       pagination,
-      organizationId: user.organizationId,
+      animalTypeId,
+      contributorId,
+      organizationId: user?.organizationId,
     });
 
     return reply({ res, results: tasks });
@@ -78,11 +83,20 @@ export class TasksController {
     @Body() body: CreateOrUpdateTasksDto,
   ) {
     const { user } = req;
-    const { title, description, dueDate, contributorId } = body;
+    const {
+      type,
+      title,
+      dueDate,
+      periode,
+      description,
+      contributorId,
+      animalTypeId,
+      frequency,
+    } = body;
 
     const findOneContributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneContributor)
       throw new HttpException(
@@ -90,31 +104,38 @@ export class TasksController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (findOneContributor.role === 'ADMIN')
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
       throw new HttpException(
-        `ContributorId: ${contributorId} can't create a task`,
+        `AnimalType not assigned please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const task = await this.tasksService.createOne({
+      type,
       title,
-      dueDate,
+      periode,
+      frequency,
       description,
-      contributorId: findOneContributor.id,
-      organizationId: user.organizationId,
-      userCreatedId: user.id,
+      dueDate: dueDate ? new Date(dueDate) : new Date(),
+      animalTypeId: findOneAssignType?.animalTypeId,
+      contributorId: findOneContributor?.id,
+      organizationId: user?.organizationId,
+      userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} assigned a task to ${findOneContributor?.user?.profile?.firstName} ${findOneContributor?.user?.profile?.lastName}`,
     });
 
     await taskNotification({
       user,
-      slug: task.slug,
-      email: findOneContributor.user.email,
+      email: findOneContributor?.user?.email,
     });
 
     return reply({ res, results: task });
@@ -130,11 +151,20 @@ export class TasksController {
     @Param('taskId', ParseUUIDPipe) taskId: string,
   ) {
     const { user } = req;
-    const { title, description, dueDate, status, contributorId } = body;
+    const {
+      type,
+      title,
+      periode,
+      dueDate,
+      frequency,
+      description,
+      animalTypeId,
+      contributorId,
+    } = body;
 
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -145,7 +175,7 @@ export class TasksController {
 
     const findOneContributor = await this.contributorsService.findOneBy({
       contributorId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneContributor)
       throw new HttpException(
@@ -153,48 +183,57 @@ export class TasksController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (
-      findOneContributor.role === 'ADMIN' &&
-      findOneTask.userCreatedId !== user.id
-    )
+    const findOneAssignType = await this.assignTypesService.findOneBy({
+      animalTypeId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAssignType)
       throw new HttpException(
-        `ContributorId: ${contributorId} can't update this task`,
+        `AnimalType not assigned please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const task = await this.tasksService.updateOne(
-      { taskId: findOneTask.id },
+      { taskId: findOneTask?.id },
       {
+        type,
         title,
-        status,
         dueDate,
+        periode,
+        frequency,
         description,
-        contributorId: findOneContributor.id,
-        userCreatedId: user.id,
+        animalTypeId: findOneAssignType?.animalTypeId,
+        contributorId: findOneContributor?.id,
+        userCreatedId: user?.id,
       },
     );
 
+    await taskNotification({
+      user,
+      email: findOneContributor?.user?.email,
+    });
+
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} created a task`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a task`,
     });
 
     return reply({ res, results: task });
   }
 
   /** Get one Task */
-  @Get(`/:slug/show`)
+  @Get(`/:taskId/show`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdUser(@Res() res, @Req() req, @Param('slug') slug: string) {
+  async viewTask(@Res() res, @Req() req, @Param('taskId') taskId: string) {
     const { user } = req;
     const findOneTask = await this.tasksService.findOneBy({
-      slug,
-      organizationId: user.organizationId,
+      taskId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
-        `Task: ${slug} doesn't exists`,
+        `Task: ${taskId} doesn't exists`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -203,7 +242,7 @@ export class TasksController {
   }
 
   /** Delete one Task */
-  @Delete(`/delete/:taskId`)
+  @Delete(`/:taskId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,
@@ -213,7 +252,7 @@ export class TasksController {
     const { user } = req;
     const findOneTask = await this.tasksService.findOneBy({
       taskId,
-      organizationId: user.organizationId,
+      organizationId: user?.organizationId,
     });
     if (!findOneTask) {
       throw new HttpException(
@@ -223,13 +262,13 @@ export class TasksController {
     }
 
     await this.activitylogsService.createOne({
-      userId: user.id,
-      organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted a task`,
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a task`,
     });
 
     const task = await this.tasksService.updateOne(
-      { taskId: findOneTask.id },
+      { taskId: findOneTask?.id },
       { deletedAt: new Date() },
     );
 
