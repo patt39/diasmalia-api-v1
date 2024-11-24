@@ -178,6 +178,7 @@ export class BreedingsService {
     const {
       breedingId,
       animalMaleId,
+      animalFemaleId,
       animalTypeId,
       organizationId,
       checkStatus,
@@ -199,11 +200,16 @@ export class BreedingsService {
       Object.assign(prismaWhere, { animalMaleId });
     }
 
+    if (animalFemaleId) {
+      Object.assign(prismaWhere, { animalFemaleId });
+    }
+
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
     }
 
     const breeding = await this.client.breeding.findFirst({
+      orderBy: { createdAt: 'desc' },
       where: { ...prismaWhere, deletedAt: null },
     });
 

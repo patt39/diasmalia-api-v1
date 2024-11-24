@@ -1,9 +1,9 @@
-import { Finance, financeType } from '@prisma/client';
+import { Finance } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetFinancesSelections = {
   search?: string;
-  type?: financeType;
+  type?: string;
   periode?: number;
   days?: string;
   months?: string;

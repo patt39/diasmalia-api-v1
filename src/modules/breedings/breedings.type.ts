@@ -20,6 +20,7 @@ export type GetOneBreedingsSelections = {
   checkStatus?: Breeding['checkStatus'];
   animalTypeId?: Animal['animalTypeId'];
   animalMaleId?: Breeding['animalMaleId'];
+  animalFemaleId?: Breeding['animalFemaleId'];
   organizationId?: Breeding['organizationId'];
 };
 

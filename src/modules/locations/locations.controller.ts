@@ -27,6 +27,7 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
+import { BuildingsService } from '../buildings/buildings.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   AnimalChangeLocationsDto,
@@ -41,6 +42,7 @@ export class LocationsController {
   constructor(
     private readonly locationsService: LocationsService,
     private readonly animalsService: AnimalsService,
+    private readonly buildingsService: BuildingsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
@@ -57,7 +59,8 @@ export class LocationsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { productionPhase, animalTypeId, status, addCages } = queryLocations;
+    const { productionPhase, animalTypeId, status, addCages, buildingId } =
+      queryLocations;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -71,6 +74,7 @@ export class LocationsController {
       status,
       search,
       addCages,
+      buildingId,
       pagination,
       animalTypeId,
       productionPhase,
@@ -97,6 +101,7 @@ export class LocationsController {
       manger,
       through,
       addCages,
+      buildingCode,
       squareMeter,
       productionPhase,
     } = body;
@@ -116,7 +121,7 @@ export class LocationsController {
     const codeGenerated = `${orgInitials}${generateNumber(2)}${appInitials}`;
 
     const findOneLocation = await this.locationsService.findOneBy({
-      code: code,
+      code,
       organizationId: user?.organizationId,
     });
     if (
@@ -128,6 +133,11 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneBuilding = await this.buildingsService.findOneBy({
+      code: buildingCode,
+      organizationId: user?.organizationId,
+    });
+
     await this.locationsService.createOne({
       nest,
       cages,
@@ -136,6 +146,7 @@ export class LocationsController {
       addCages,
       squareMeter,
       productionPhase,
+      buildingId: buildingCode ? findOneBuilding?.id : null,
       code: code ? code.toLowerCase() : codeGenerated.toLowerCase(),
       animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user?.organizationId,
@@ -166,8 +177,14 @@ export class LocationsController {
     @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
   ) {
     const { user } = req;
-    const { number, manger, through, squareMeter, productionPhase, nest } =
-      body;
+    const {
+      number,
+      manger,
+      through,
+      squareMeter,
+      buildingCode,
+      productionPhase,
+    } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -179,18 +196,29 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const findOneBuilding = await this.buildingsService.findOneBy({
+      code: buildingCode,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneBuilding)
+      throw new HttpException(
+        `Code: ${buildingCode} already doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
     const newAnimalArray: any = [];
 
     for (let i = 0; i < number; i++) {
       const animal = await this.locationsService.createOne({
-        nest,
         manger,
         through,
         squareMeter,
-        productionPhase,
-        code: `${orgInitials}${generateNumber(2)}${appInitials}`,
+        buildingId: findOneBuilding?.id,
+        productionPhase: productionPhase
+          ? productionPhase
+          : findOneBuilding?.productionPhase,
+        code: `${orgInitials}${generateNumber(3)}`,
         animalTypeId: findOneAssignType?.animalTypeId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
@@ -200,7 +228,7 @@ export class LocationsController {
 
       await this.activitylogsService.createOne({
         userId: user?.id,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created ${number} in ${findOneAssignType?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} added location ${animal?.code} in ${findOneAssignType?.animalType?.name}`,
         organizationId: user.organizationId,
       });
     }
@@ -270,7 +298,7 @@ export class LocationsController {
   /** Change location status */
   @Put(`/:locationId/change-status`)
   @UseGuards(UserAuthGuard)
-  async enableCurrency(
+  async changeStatus(
     @Res() res,
     @Req() req,
     @Param('locationId', ParseUUIDPipe) locationId: string,
@@ -350,7 +378,7 @@ export class LocationsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a location in ${findOneLocation?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated location ${findOneLocation?.code} in ${findOneLocation?.animalType?.name}`,
     });
 
     return reply({
@@ -424,7 +452,7 @@ export class LocationsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a location in ${findOneLocation?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted location ${findOneLocation?.code} in ${findOneLocation?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Location deleted successfully' });

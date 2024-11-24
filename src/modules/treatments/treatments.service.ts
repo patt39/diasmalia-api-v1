@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Treatment } from '@prisma/client';
-import {
-  Slug,
-  dateTimeNowUtc,
-  generateNumber,
-  substrateDaysToTimeNowUtcDate,
-} from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
+import {
+  dateTimeNowUtc,
+  substrateDaysToTimeNowUtcDate,
+} from '../../app/utils/commons';
 import {
   WithPaginationResponse,
   withPagination,
@@ -139,7 +137,6 @@ export class TreatmentsService {
         note,
         name,
         dose,
-        slug: `${Slug(name)}-${generateNumber(4)}`,
         method,
         animalId,
         diagnosis,

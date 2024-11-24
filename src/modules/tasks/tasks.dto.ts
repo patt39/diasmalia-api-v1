@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrUpdateTasksDto {
   @IsOptional()
   @IsString()
   type: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   title: string;
 
@@ -17,12 +17,16 @@ export class CreateOrUpdateTasksDto {
   @IsString()
   frequency: string;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @IsString()
+  status: string;
+
+  @IsOptional()
   @IsString()
   @IsUUID()
   animalTypeId: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description: string;
 
@@ -30,7 +34,7 @@ export class CreateOrUpdateTasksDto {
   @IsString()
   dueDate: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsUUID()
   contributorId: string;
@@ -46,4 +50,12 @@ export class TaskQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  type: string;
+
+  @IsOptional()
+  @IsString()
+  status: string;
 }

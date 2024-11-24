@@ -5,6 +5,8 @@ export type WithPaginationResponse = {
   pagination?: PaginationType;
   value: any;
   rowCount?: number;
+  revenue?: number;
+  animals?: number;
 };
 
 export type PaginationType = {
@@ -47,7 +49,7 @@ export const addPagination = (options: PaginationType) => {
 };
 
 export const withPagination = async (options: WithPaginationResponse) => {
-  const { rowCount, value, pagination } = options;
+  const { rowCount, value, pagination, revenue, animals } = options;
 
   const n_pages = Math.ceil(Number(rowCount) / Number(pagination?.take));
 
@@ -72,5 +74,7 @@ export const withPagination = async (options: WithPaginationResponse) => {
     total_page: n_pages,
     total_value: Array.isArray(value) ? value.length : 0,
     value,
+    revenue,
+    animals,
   };
 };

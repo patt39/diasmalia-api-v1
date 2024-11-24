@@ -1,8 +1,8 @@
-import { Category } from '@prisma/client';
+import { Category, Status, Type } from '@prisma/client';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateBlogDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   title: string;
 
@@ -18,19 +18,39 @@ export class CreateOrUpdateBlogDto {
   @IsString()
   urlMedia: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   readingTime: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(Category)
-  category: Category;
-}
-
-export class GetBlogByCategoriesDto {
   @IsOptional()
   @IsString()
   @IsEnum(Category)
   category: Category;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(Status)
+  status: Status;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(Type)
+  type: Type;
+}
+
+export class GetBlogQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsEnum(Category)
+  category: Category;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(Status)
+  status: Status;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(Type)
+  type: Type;
 }

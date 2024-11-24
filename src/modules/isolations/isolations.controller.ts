@@ -24,6 +24,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkIsolationsDto,
@@ -38,6 +39,7 @@ export class IsolationsController {
   constructor(
     private readonly isolationsService: IsolationsService,
     private readonly animalsService: AnimalsService,
+    private readonly locationsService: LocationsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -132,7 +134,7 @@ export class IsolationsController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} put ${number} ${findOneAnimal?.animalType?.name} in ${findOneAnimal?.code} in isolation`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} put ${number} in ${findOneAnimal?.animalType?.name} for ${findOneAnimal?.code} in isolation`,
       organizationId: user?.organizationId,
     });
 
@@ -151,7 +153,7 @@ export class IsolationsController {
   @UseGuards(UserAuthGuard)
   async createOneBulk(@Res() res, @Req() req, @Body() body: BulkIsolationsDto) {
     const { user } = req;
-    const { animals, note } = body;
+    const { animals, note, locationCode } = body;
 
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
@@ -165,6 +167,17 @@ export class IsolationsController {
           HttpStatus.NOT_FOUND,
         );
 
+      const findOneLocation = await this.locationsService.findOneBy({
+        code: locationCode,
+        animalTypeId: findOneAnimal?.animalTypeId,
+        organizationId: user?.organizationId,
+      });
+      if (!findOneLocation)
+        throw new HttpException(
+          `LocationId: ${locationCode} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
       await this.isolationsService.createOne({
         note,
         animalId: findOneAnimal?.id,
@@ -175,13 +188,13 @@ export class IsolationsController {
 
       await this.animalsService.updateOne(
         { animalId: findOneAnimal?.id },
-        { isIsolated: 'YES' },
+        { isIsolated: 'YES', locationId: findOneLocation?.id },
       );
 
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} isolation ${animals?.lenght} ${findOneAnimal?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} isolated ${animals?.lenght} in ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -224,7 +237,7 @@ export class IsolationsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated an isolation in ${findOneIsolation?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated an isolation in ${findOneIsolation?.animalType?.name} for ${findOneIsolation?.animal?.code}`,
     });
 
     return reply({ res, results: isolation });

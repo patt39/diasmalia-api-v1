@@ -91,6 +91,40 @@ export class BulkAnimalsCreateDto {
   breedName: string;
 }
 
+export class OffspringsIdentificationDto {
+  @IsNotEmpty()
+  @IsNumber()
+  males: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  females: number;
+
+  @IsOptional()
+  @IsString()
+  codeFather: string;
+
+  @IsOptional()
+  @IsString()
+  codeMother: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  weight: number;
+
+  @IsOptional()
+  @IsString()
+  birthday: Date;
+
+  @IsOptional()
+  @IsString()
+  productionPhase: string;
+
+  @IsNotEmpty()
+  @IsString()
+  breedName: string;
+}
+
 export class UpdateAnimalsDto {
   @IsOptional()
   @IsString()

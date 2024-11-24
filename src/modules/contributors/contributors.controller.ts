@@ -202,7 +202,7 @@ export class ContributorsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a new contributor with ${contributor?.role} access`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a new collaborator with ${contributor?.role} access`,
     });
 
     return reply({ res, results: 'Contributor saved successfully' });
@@ -261,7 +261,7 @@ export class ContributorsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} invited ${findOneContributor?.user?.profile?.firstName} ${findOneContributor?.user?.profile?.lastName}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} invited ${findOneContributor?.user?.profile?.firstName} ${findOneContributor?.user.profile?.lastName}`,
     });
 
     res.cookie(

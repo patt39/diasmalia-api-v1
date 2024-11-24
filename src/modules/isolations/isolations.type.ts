@@ -40,6 +40,7 @@ export const IsolationsSelect = {
       status: true,
       female: true,
       quantity: true,
+      productionPhase: true,
     },
   },
   animalType: {

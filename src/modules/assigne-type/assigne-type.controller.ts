@@ -119,29 +119,6 @@ export class AssignTypesController {
     return reply({ res, results: 'Saved' });
   }
 
-  /** View animal type */
-  @Get(`/view/:assignTypeId`)
-  @UseGuards(UserAuthGuard)
-  async openAnimalType(
-    @Res() res,
-    @Req() req,
-    @Param('assignTypeId', ParseUUIDPipe) assignTypeId: string,
-  ) {
-    const { user } = req;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      assignTypeId,
-      organizationId: user.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `AssigneTypeId: ${assignTypeId} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    return reply({ res, results: 'Animal type opened' });
-  }
-
   /** Delete one assignType */
   @Delete(`/:assignTypeId/delete`)
   @UseGuards(UserAuthGuard)
@@ -169,7 +146,7 @@ export class AssignTypesController {
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted an animal type in your organization `,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} deleted ${findOneAssignType.animalType?.name} in your organization `,
     });
 
     return reply({ res, results: assignType });

@@ -1,11 +1,4 @@
-import { MethodBreeding } from '@prisma/client';
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateBreedingsDto {
   @IsNotEmpty()
@@ -22,8 +15,7 @@ export class CreateBreedingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(MethodBreeding)
-  method: MethodBreeding;
+  method: string;
 }
 
 export class UpdateBreedingsDto {
@@ -41,8 +33,7 @@ export class UpdateBreedingsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(MethodBreeding)
-  method: MethodBreeding;
+  method: string;
 }
 
 export class GetAnimalBreedingsDto {
@@ -58,8 +49,7 @@ export class GetAnimalBreedingsQueryDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(MethodBreeding)
-  method: MethodBreeding;
+  method: string;
 
   @IsOptional()
   @IsString()

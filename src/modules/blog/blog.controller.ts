@@ -27,7 +27,7 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateBlogDto } from './blog.dto';
+import { CreateOrUpdateBlogDto, GetBlogQueryDto } from './blog.dto';
 import { BlogService } from './blog.service';
 
 @Controller('blogs')
@@ -44,8 +44,10 @@ export class BlogController {
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryBlogs: GetBlogQueryDto,
   ) {
     const { search } = query;
+    const { category, type, status } = queryBlogs;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -56,7 +58,10 @@ export class BlogController {
     });
 
     const blog = await this.blogService.findAll({
+      type,
+      status,
       search,
+      category,
       pagination,
     });
 
@@ -74,7 +79,15 @@ export class BlogController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const { user } = req;
-    const { readingTime, urlMedia, title, description, category } = body;
+    const {
+      readingTime,
+      urlMedia,
+      title,
+      description,
+      category,
+      status,
+      type,
+    } = body;
 
     const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
       file,
@@ -83,7 +96,9 @@ export class BlogController {
     });
 
     const blog = await this.blogService.createOne({
+      type,
       title,
+      status,
       urlMedia,
       category,
       description,
@@ -103,7 +118,16 @@ export class BlogController {
     @Body() body: CreateOrUpdateBlogDto,
     @Param('blogId', ParseUUIDPipe) blogId: string,
   ) {
-    const { readingTime, urlMedia, title, description, image, category } = body;
+    const {
+      readingTime,
+      urlMedia,
+      title,
+      description,
+      image,
+      category,
+      status,
+      type,
+    } = body;
 
     const findOneBlog = await this.blogService.findOneBy({
       blogId,
@@ -117,6 +141,8 @@ export class BlogController {
     const blog = await this.blogService.updateOne(
       { blogId: findOneBlog?.id },
       {
+        status,
+        type,
         title,
         image,
         urlMedia,

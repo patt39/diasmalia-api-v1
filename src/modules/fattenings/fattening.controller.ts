@@ -136,7 +136,7 @@ export class FatteningsController {
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} put animals: ${animals} in ${findOneAnimal?.animalType?.name} in fattening`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} put ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name} in fattening`,
       });
     }
 
@@ -250,7 +250,7 @@ export class FatteningsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a fattening in ${findOneFattening?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted ${findOneFattening?.animal?.code} in fattening in ${findOneFattening?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Fattening deleted successfully' });

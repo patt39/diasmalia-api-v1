@@ -30,6 +30,7 @@ model User {
   authProviders  AuthProvider[]
   assignTypes    AssignType[]
   activityLogs   ActivityLog[]
+  suggestions    Suggestion[]
 }
 
 model Contributor {
@@ -70,7 +71,9 @@ model Profile {
   phone       String?
   photo       String?
   occupation  String?
+  member      Boolean?  @default(false)
   description String?   @db.Text
+  testimonial String?   @db.Text
   city        String?
   currencyId  String?   @unique
   countryId   String?   @unique
@@ -138,6 +141,9 @@ model Organization {
   FeedStock        FeedStock[]
   healths          Health[]
   cages            Cage[]
+  suggestions      Suggestion[]
+  assignMaterials  AssignMaterial[]
+  buildings        Building[]
 }
 
 model Contact {
@@ -148,7 +154,7 @@ model Contact {
   email          String?
   phone          String?
   fullName       String?
-  subject        String
+  subject        String?
   description    String        @db.Text
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -186,6 +192,7 @@ model Task {
   type           String
   dueDate        DateTime?
   periode        String?
+  status         String?      @default("TODO")
   frequency      String?
   description    String       @db.Text
   organizationId String
@@ -212,25 +219,45 @@ model AssignType {
 }
 
 model Location {
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
-  id              String       @id @default(uuid())
+  id              String           @id @default(uuid())
   code            String
-  manger          Int?
-  through         Int?
+  manger          Int?             @default(0)
+  through         Int?             @default(0)
   nest            Int?
   cages           Int?
-  addCages        AddCages?    @default(NO)
-  status          Boolean      @default(true)
+  addCages        AddCages?        @default(NO)
+  status          Boolean          @default(true)
   animalTypeId    String
-  animalType      AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType      AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  buildingId      String?
+  building        Building?        @relation(fields: [buildingId], references: [id], onDelete: Cascade)
   squareMeter     Int
   productionPhase String
   organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId   String
   animals         Animal[]
+  assignMaterials AssignMaterial[]
+}
+
+model Building {
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  id              String           @id @default(uuid())
+  code            String
+  animalTypeId    String
+  animalType      AnimalType       @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  squareMeter     Int
+  productionPhase String
+  organizationId  String
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userCreatedId   String
+  locations       Location[]
+  assignMaterials AssignMaterial[]
 }
 
 enum AddCages {
@@ -247,6 +274,40 @@ model Breed {
   animalTypeId String
   animalType   AnimalType @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animals      Animal[]
+}
+
+model Material {
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  id              String           @id @default(uuid())
+  name            String
+  image           String?
+  type            MaterialType?    @default(TOOL)
+  assignMaterials AssignMaterial[]
+}
+
+model AssignMaterial {
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  id             String        @id @default(uuid())
+  status         Boolean       @default(false)
+  materialId     String?
+  type           MaterialType? @default(LOCATION)
+  material       Material?     @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  buildingId     String?
+  building       Building?     @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  locationId     String?
+  location       Location?     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  userCreatedId  String
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum MaterialType {
+  LOCATION
+  TOOL
 }
 
 model Animal {
@@ -293,6 +354,7 @@ model Animal {
   sales             Sale[]
   incubations       Incubation[]
   cages             Cage[]
+  suggestions       Suggestion[]
 }
 
 model AnimalType {
@@ -329,6 +391,7 @@ model AnimalType {
   healths          Health[]
   tasks            Task[]
   cages            Cage[]
+  Building         Building[]
 }
 
 enum Gender {
@@ -359,24 +422,23 @@ enum IsolatedStatus {
 }
 
 model Treatment {
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-  id             String          @id @default(uuid())
+  id             String       @id @default(uuid())
   name           String?
-  note           String?         @db.Text
-  slug           String?
+  note           String?      @db.Text
   dose           Int?
-  diagnosis      String?         @db.Text
-  method         MethodTreatment
+  diagnosis      String?      @db.Text
+  method         String?
   healthId       String
-  health         Health          @relation(fields: [healthId], references: [id], onDelete: Cascade)
+  health         Health       @relation(fields: [healthId], references: [id], onDelete: Cascade)
   animalTypeId   String
-  animalType     AnimalType      @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   animalId       String
-  animal         Animal          @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
 }
 
@@ -386,14 +448,16 @@ model Health {
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   name           String
-  category       HealthMethod @default(MEDICATION)
+  image          String?
+  description    String?      @db.Text
+  category       String
   status         Boolean      @default(true)
   animalTypeId   String?
   animalType     AnimalType?  @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  Treatment      Treatment[]
+  treatments     Treatment[]
 }
 
 model Cage {
@@ -403,8 +467,9 @@ model Cage {
   id             String       @id @default(uuid())
   code           String
   dimension      Int
-  eggHarvested   Int?
-  number         Int
+  eggHarvested   Int?         @default(0)
+  death          Int?         @default(0)
+  numberPerCage  Int
   animalId       String
   animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
   animalTypeId   String
@@ -414,45 +479,25 @@ model Cage {
   userCreatedId  String
 }
 
-enum MethodTreatment {
-  EYE
-  ORAL
-  NASAL
-  INJECTION
-  ASPERTION
-  FEEDANDWATER
-}
-
-enum HealthMethod {
-  MEDICATION
-  EQUIPMENT
-  HYGIENE
-}
-
 model Breeding {
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-  id             String          @id @default(uuid())
-  note           String?         @db.Text
-  method         MethodBreeding?
+  id             String       @id @default(uuid())
+  note           String?      @db.Text
+  method         String?
   result         String?
-  checkStatus    Boolean         @default(false)
+  checkStatus    Boolean      @default(false)
   animalFemaleId String
   animalMaleId   String
   femaleCode     String
   maleCode       String
   animalTypeId   String
-  animalType     AnimalType      @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  gestation      Gestation[]
-}
-
-enum MethodBreeding {
-  NATURAL
-  INVITRO
+  gestations     Gestation[]
 }
 
 model CheckPregnancy {
@@ -468,13 +513,7 @@ model CheckPregnancy {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  gestation      Gestation[]
-}
-
-enum ResultCheckPregnancy {
-  OPEN
-  EXPOSED
-  PREGNANT
+  gestations     Gestation[]
 }
 
 model Farrowing {
@@ -486,6 +525,8 @@ model Farrowing {
   litter         Int?
   weight         Int?
   dead           Int?
+  image          String?
+  farrowingDate  DateTime?
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
@@ -592,9 +633,9 @@ model FeedStock {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  number         Int
+  number         Int?         @default(0)
   weight         Int
-  bagWeight      Int
+  bagWeight      Int?         @default(0)
   composition    Json?
   feedCategory   String
   animalTypeName String
@@ -603,15 +644,15 @@ model FeedStock {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-  Feeding        Feeding[]
+  feedings       Feeding[]
 }
 
 model Sale {
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-  id             String         @id @default(uuid())
-  note           String?        @db.Text
+  id             String       @id @default(uuid())
+  note           String?      @db.Text
   phone          String?
   email          String?
   address        String?
@@ -619,35 +660,20 @@ model Sale {
   type           String
   price          Int
   number         Int?
-  male           Int?           @default(0)
-  female         Int?           @default(0)
+  male           Int?         @default(0)
+  female         Int?         @default(0)
   animals        Json?
   soldTo         String?
   salePdf        String?
-  method         sellingMethod?
-  detail         sellingDetail? @default(CHICKENS)
+  method         String?
+  detail         String?
   animalId       String?
-  animal         Animal?        @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animal         Animal?      @relation(fields: [animalId], references: [id], onDelete: Cascade)
   animalTypeId   String
-  animalType     AnimalType     @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
+  animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-}
-
-enum sellingMethod {
-  FARM
-  MARKET
-  AUCTION
-  CONTRACT
-  SOCIALMEDIA
-  OTHER
-}
-
-enum sellingDetail {
-  EGGS
-  CHICKS
-  CHICKENS
 }
 
 model Finance {
@@ -655,18 +681,13 @@ model Finance {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
-  type           financeType
+  type           String
   slug           String
   amount         Int?
   detail         String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-}
-
-enum financeType {
-  INCOME
-  EXPENSE
 }
 
 model Isolation {
@@ -703,23 +724,13 @@ model Fattening {
   userCreatedId  String
 }
 
-enum CastrationMethod {
-  SURGICAL
-  BANDING
-  BURDIZZO
-  CHEMICAL
-  ELECTROCAUTARY
-  LASER
-  OTHER
-}
-
 model EggHavesting {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   id             String       @id @default(uuid())
   quantity       Int
-  size           Size
+  size           String
   animalId       String
   animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
   animalTypeId   String
@@ -727,12 +738,6 @@ model EggHavesting {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userCreatedId  String
-}
-
-enum Size {
-  BIG
-  SMALL
-  MEDIUM
 }
 
 model Incubation {
@@ -766,20 +771,30 @@ model ActivityLog {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
-model Subscription {
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+model Suggestion {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-  id             String          @id @default(uuid())
-  isSubscribed   Boolean         @default(true)
-  type           SuscriptionType
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message        String
+  title          String
   organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  animalId       String?
+  animal         Animal?      @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 
-enum SuscriptionType {
-  MONTHLY
-  YEARLY
+model Subscription {
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  id             String       @id @default(uuid())
+  isSubscribed   Boolean      @default(true)
+  type           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Blog {
@@ -787,14 +802,27 @@ model Blog {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
   id            String    @id @default(uuid())
-  title         String
+  title         String?
   description   String    @db.Text
-  image         String
-  slug          String
+  image         String?
+  slug          String?
+  type          Type?     @default(BLOG)
+  status        Status?   @default(PUBLIC)
   readingTime   String?
   category      Category
   urlMedia      String?
   userCreatedId String
+}
+
+enum Type {
+  BLOG
+  POLICY_PRIVACY
+  TERM_CONDITIONS
+}
+
+enum Status {
+  PRIVATE
+  PUBLIC
 }
 
 enum Category {

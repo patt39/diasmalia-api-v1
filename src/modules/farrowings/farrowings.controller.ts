@@ -25,6 +25,7 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { GestationsService } from '../gestation/gestations.service';
+import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateFarrowingsDto,
@@ -39,6 +40,7 @@ export class FarrowingsController {
     private readonly farrowingsService: FarrowingsService,
     private readonly animalsService: AnimalsService,
     private readonly gestationsService: GestationsService,
+    private readonly locationsService: LocationsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -80,7 +82,7 @@ export class FarrowingsController {
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Req() req, @Body() body: CreateFarrowingsDto) {
     const { user } = req;
-    const { dead, litter, note, codeFemale, weight } = body;
+    const { dead, litter, note, codeFemale, weight, farrowingDate } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code: codeFemale,
@@ -92,6 +94,12 @@ export class FarrowingsController {
     if (!findOneFemale)
       throw new HttpException(
         `Animal ${findOneFemale?.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findOneFemale?.location?._count?.animals !== 1)
+      throw new HttpException(
+        `Impossible to create ${findOneFemale?.code} isn't isolated please do`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -112,6 +120,7 @@ export class FarrowingsController {
       litter,
       weight,
       animalId: findOneFemale?.id,
+      farrowingDate: new Date(farrowingDate),
       animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -119,6 +128,11 @@ export class FarrowingsController {
 
     await this.animalsService.updateOne(
       { animalId: findOneFemale?.id },
+      { productionPhase: 'LACTATION' },
+    );
+
+    await this.locationsService.updateOne(
+      { locationId: findOneFemale?.locationId },
       { productionPhase: 'LACTATION' },
     );
 
@@ -265,7 +279,7 @@ export class FarrowingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a farrowing in ${findOneFarrowing?.animalType.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a farrowing in ${findOneFarrowing?.animalType.name} for ${findOneFarrowing?.animal?.code}`,
     });
 
     return reply({ res, results: 'Farrowing deleted successfully' });

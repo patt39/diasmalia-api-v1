@@ -1,16 +1,9 @@
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateOrUpdateContactsDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(100)
-  @MinLength(3)
   subject: string;
 
   @IsOptional()

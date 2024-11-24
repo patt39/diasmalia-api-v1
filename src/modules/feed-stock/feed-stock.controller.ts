@@ -77,7 +77,7 @@ export class FeedStocksController {
     @Body() body: CreateFeedStocksDto,
   ) {
     const { user } = req;
-    const { number, bagWeight, feedCategory, animalTypeId } = body;
+    const { number, bagWeight, feedCategory, animalTypeId, weight } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -101,9 +101,16 @@ export class FeedStocksController {
         'Quails',
         'Pisciculture',
       ].includes(findOneAssignType?.animalType?.name) &&
-      ['LACTATING_FEMALES', 'GESTATION_FEMALES', 'SILAGES', 'FORAGES'].includes(
-        feedCategory,
-      )
+      [
+        'LACTATING FEMALES',
+        'FEMELLES ALLAITANTES',
+        'PREGNANT FEMALE',
+        'FEMELLES GESTANTES',
+        'SILAGES',
+        'ENSILAGES',
+        'FORAGES',
+        'FOURAGES',
+      ].includes(feedCategory)
     )
       throw new HttpException(
         `Impossible to create bad feed category`,
@@ -117,10 +124,9 @@ export class FeedStocksController {
         'Caprins',
         'Ovins',
         'Porciculture',
-        'Chiens',
         'Pisciculture',
       ].includes(findOneAssignType?.animalType?.name) &&
-      ['LAYERS_FEED'].includes(feedCategory)
+      ['LAY FOOD', 'ALIMENT PONTE'].includes(feedCategory)
     )
       throw new HttpException(
         `Impossible to create bad feed category`,
@@ -144,7 +150,7 @@ export class FeedStocksController {
       number,
       bagWeight,
       feedCategory,
-      weight: totalWeight ? totalWeight : bagWeight,
+      weight: totalWeight ? totalWeight : weight,
       animalTypeName: findOneAssignType?.animalType?.name,
       animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user?.organizationId,
@@ -153,7 +159,7 @@ export class FeedStocksController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${number} in feed stock for ${findOneAssignType?.animalType?.name} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${number} bags in feed stock for ${findOneAssignType?.animalType?.name} `,
       organizationId: user?.organizationId,
     });
 
@@ -177,7 +183,14 @@ export class FeedStocksController {
     @Param('feedStockId', ParseUUIDPipe) feedStockId: string,
   ) {
     const { user } = req;
-    const { number, bagWeight, animalTypeId, feedCategory, composition } = body;
+    const {
+      number,
+      bagWeight,
+      animalTypeId,
+      feedCategory,
+      composition,
+      weight,
+    } = body;
 
     const findOneFeedStock = await this.feedStocksService.findOneBy({
       feedStockId,
@@ -208,7 +221,7 @@ export class FeedStocksController {
         bagWeight,
         feedCategory,
         composition: composition,
-        weight: totalWeight ? totalWeight : bagWeight,
+        weight: totalWeight ? totalWeight : weight,
         animalTypeName: findOneAssignType?.animalType?.name,
         animalTypeId: findOneAssignType?.animalTypeId,
         userCreatedId: user?.id,

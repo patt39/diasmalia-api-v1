@@ -22,8 +22,15 @@ export class TasksService {
     selections: GetTasksSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereTask = {} as Prisma.TaskWhereInput;
-    const { search, organizationId, pagination, contributorId, animalTypeId } =
-      selections;
+    const {
+      type,
+      status,
+      search,
+      pagination,
+      contributorId,
+      animalTypeId,
+      organizationId,
+    } = selections;
 
     if (search) {
       Object.assign(prismaWhereTask, {
@@ -44,6 +51,14 @@ export class TasksService {
           },
         ],
       });
+    }
+
+    if (status) {
+      Object.assign(prismaWhereTask, { status });
+    }
+
+    if (type) {
+      Object.assign(prismaWhereTask, { type });
     }
 
     if (animalTypeId) {
@@ -102,6 +117,7 @@ export class TasksService {
     const {
       type,
       title,
+      status,
       dueDate,
       periode,
       frequency,
@@ -116,6 +132,7 @@ export class TasksService {
       data: {
         type,
         title,
+        status,
         dueDate,
         periode,
         frequency,
@@ -139,6 +156,7 @@ export class TasksService {
     const {
       type,
       title,
+      status,
       dueDate,
       periode,
       frequency,
@@ -153,6 +171,7 @@ export class TasksService {
       data: {
         type,
         title,
+        status,
         periode,
         dueDate,
         frequency,

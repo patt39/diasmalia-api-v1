@@ -45,6 +45,7 @@ export const SalesSelect = {
   method: true,
   address: true,
   animalId: true,
+  animalTypeId: true,
   animal: {
     select: {
       code: true,

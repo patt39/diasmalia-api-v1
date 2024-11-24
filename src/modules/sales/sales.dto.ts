@@ -1,7 +1,5 @@
-import { sellingDetail, sellingMethod } from '@prisma/client';
 import {
   IsArray,
-  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -17,8 +15,7 @@ export class CreateSalesDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(sellingDetail)
-  detail: sellingDetail;
+  detail: string;
 
   @IsNotEmpty()
   @IsString()
@@ -58,8 +55,7 @@ export class CreateSalesDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(sellingMethod)
-  method: sellingMethod;
+  method: string;
 }
 
 export class UpdateSalesDto {
@@ -69,8 +65,7 @@ export class UpdateSalesDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(sellingDetail)
-  detail: sellingDetail;
+  detail: string;
 
   @IsOptional()
   @IsString()
@@ -106,8 +101,7 @@ export class UpdateSalesDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(sellingMethod)
-  method: sellingMethod;
+  method: string;
 }
 
 export class BulkSalesDto {
@@ -141,8 +135,7 @@ export class BulkSalesDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(sellingMethod)
-  method: sellingMethod;
+  method: string;
 
   @IsNotEmpty()
   @IsArray()
@@ -151,13 +144,11 @@ export class BulkSalesDto {
 export class SalesDto {
   @IsOptional()
   @IsString()
-  @IsEnum(sellingMethod)
-  method: sellingMethod;
+  method: string;
 
   @IsOptional()
   @IsString()
-  @IsEnum(sellingDetail)
-  detail: sellingDetail;
+  detail: string;
 
   @IsOptional()
   @IsString()

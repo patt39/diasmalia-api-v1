@@ -23,12 +23,24 @@ export class BlogService {
     selections: GetBlogsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.BlogWhereInput;
-    const { search, pagination } = selections;
+    const { search, pagination, category, status, type } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [{ name: { contains: search, mode: 'insensitive' } }],
       });
+    }
+
+    if (type) {
+      Object.assign(prismaWhere, { type });
+    }
+
+    if (status) {
+      Object.assign(prismaWhere, { status });
+    }
+
+    if (category) {
+      Object.assign(prismaWhere, { category });
     }
 
     const blogs = await this.client.blog.findMany({
@@ -54,7 +66,7 @@ export class BlogService {
   async findOneBy(selections: GetOneBlogSelections) {
     const prismaWhere = {} as Prisma.BlogWhereInput;
 
-    const { blogId, category, slug } = selections;
+    const { blogId, slug } = selections;
 
     if (blogId) {
       Object.assign(prismaWhere, { id: blogId });
@@ -62,10 +74,6 @@ export class BlogService {
 
     if (slug) {
       Object.assign(prismaWhere, { slug });
-    }
-
-    if (category) {
-      Object.assign(prismaWhere, { category });
     }
 
     const blog = await this.client.blog.findFirst({
@@ -78,24 +86,28 @@ export class BlogService {
   /** Create one blog in database. */
   async createOne(options: CreateBlogsOptions): Promise<Blog> {
     const {
-      readingTime,
-      urlMedia,
+      type,
       image,
       title,
-      description,
+      status,
+      urlMedia,
       category,
+      readingTime,
+      description,
       userCreatedId,
     } = options;
 
     const blog = this.client.blog.create({
       data: {
-        title,
+        type,
         image,
+        title,
+        status,
         urlMedia,
         category,
         description,
         readingTime,
-        slug: `${Slug(title)}-${generateNumber(4)}`,
+        slug: `${Slug(type === 'POLICY_PRIVACY' ? 'Policy privacy' : type === 'TERM_CONDITIONS' ? 'Terms and condition' : title)}-${generateNumber(4)}`,
         userCreatedId,
       },
     });
@@ -110,11 +122,13 @@ export class BlogService {
   ): Promise<Blog> {
     const { blogId } = selections;
     const {
-      readingTime,
-      urlMedia,
+      type,
       title,
       image,
+      status,
+      urlMedia,
       category,
+      readingTime,
       description,
       deletedAt,
     } = options;
@@ -122,12 +136,14 @@ export class BlogService {
     const blog = this.client.blog.update({
       where: { id: blogId },
       data: {
-        readingTime,
-        urlMedia,
+        type,
         title,
-        description,
-        category,
         image,
+        status,
+        category,
+        urlMedia,
+        readingTime,
+        description,
         deletedAt,
       },
     });

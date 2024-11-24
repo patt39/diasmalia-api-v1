@@ -256,14 +256,6 @@ export class BreedingsController {
         `Unable to perform breeding animals have same parents`,
         HttpStatus.BAD_REQUEST,
       );
-    } else if (
-      findOneMale?.codeMother === findOneFemale?.codeMother &&
-      findOneMale?.codeFather === findOneFemale?.codeFather
-    ) {
-      throw new HttpException(
-        `Unable to perform breeding animals are siblings`,
-        HttpStatus.BAD_REQUEST,
-      );
     }
 
     const breeding = await this.breedingsService.updateOne(
@@ -281,7 +273,7 @@ export class BreedingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated the breeding between ${findOneBreeding?.maleCode} with ${findOneBreeding?.femaleCode} in ${findOneMale?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated the breeding between ${findOneBreeding?.maleCode} and ${findOneBreeding?.femaleCode} in ${findOneMale?.animalType?.name}`,
     });
 
     return reply({
@@ -321,7 +313,7 @@ export class BreedingsController {
   /** Get one breeding by male animalId */
   @Get(`/:animalMaleId/view/breeding`)
   @UseGuards(UserAuthGuard)
-  async getOneMaleBreeding(
+  async getOneByMaleId(
     @Res() res,
     @Req() req,
     @Param('animalMaleId', ParseUUIDPipe) animalMaleId: string,
@@ -334,7 +326,31 @@ export class BreedingsController {
     });
     if (!findOnebreeding) {
       throw new HttpException(
-        `AnimalId: ${animalMaleId} doesn't exists please change`,
+        `${animalMaleId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOnebreeding });
+  }
+
+  /** Get one breeding by femaleId */
+  @Get(`/:animalFemaleId/view/female-breeding`)
+  @UseGuards(UserAuthGuard)
+  async getOneByFemaleId(
+    @Res() res,
+    @Req() req,
+    @Param('animalFemaleId', ParseUUIDPipe) animalFemaleId: string,
+  ) {
+    const { user } = req;
+
+    const findOnebreeding = await this.breedingsService.findOneBy({
+      animalFemaleId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOnebreeding) {
+      throw new HttpException(
+        `${animalFemaleId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }

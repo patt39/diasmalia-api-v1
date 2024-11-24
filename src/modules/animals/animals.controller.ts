@@ -23,6 +23,7 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
+import { FarrowingsService } from '../farrowings/farrowings.service';
 import { FatteningsService } from '../fattenings/fattening.service';
 import { GestationsService } from '../gestation/gestations.service';
 import { LocationsService } from '../locations/locations.service';
@@ -32,6 +33,7 @@ import {
   CreateAnimalsDto,
   CreateAvesDto,
   GetAnimalsQuery,
+  OffspringsIdentificationDto,
   UpdateAnimalsDto,
 } from './animals.dto';
 import { AnimalsService } from './animals.service';
@@ -46,6 +48,7 @@ export class AnimalsController {
     private readonly gestationsService: GestationsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
+    private readonly farrowingsService: FarrowingsService,
   ) {}
 
   /** Get all animals */
@@ -97,6 +100,7 @@ export class AnimalsController {
   ) {
     const { periode } = query;
     const { user } = req;
+
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
       organizationId: user?.organizationId,
@@ -110,7 +114,9 @@ export class AnimalsController {
     const animalStatistics = await this.animalsService.getAnimalTransactions({
       periode,
       animalTypeId,
+      organizationId: user.organizationId,
     });
+
     return reply({ res, results: animalStatistics });
   }
 
@@ -134,7 +140,7 @@ export class AnimalsController {
       );
 
     const animalStatistics = await this.animalsService.getAllAnimalTransactions(
-      { animalTypeId },
+      { animalTypeId, organizationId: user?.organizationId },
     );
     return reply({ res, results: animalStatistics });
   }
@@ -163,6 +169,10 @@ export class AnimalsController {
       productionPhase,
     } = body;
 
+    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+    const generatedCode = `${orgInitials}${generateNumber(4)}${appInitials}`;
+
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
       organizationId: user?.organizationId,
@@ -174,12 +184,11 @@ export class AnimalsController {
       );
 
     const findOneAnimal = await this.animalsService.findOneBy({
-      code,
+      code: code ? code : generatedCode,
       status: 'ACTIVE',
       organizationId: user?.organizationId,
-      animalTypeId: findOneAssignType?.animalTypeId,
     });
-    if (code == findOneAnimal?.code)
+    if (findOneAnimal)
       throw new HttpException(
         `Animal code: ${findOneAnimal?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
@@ -217,9 +226,6 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
-    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
-
     const sumAnimals = Number(male + female);
 
     const animal = await this.animalsService.createOne({
@@ -229,10 +235,10 @@ export class AnimalsController {
       weight,
       supplier,
       productionPhase,
-      breedId: findOneBreed?.id,
       birthday: new Date(birthday),
       locationId: findOneLocation?.id,
       quantity: quantity ? quantity : sumAnimals,
+      breedId: breedName ? findOneBreed?.id : null,
       code: code ? code : `${orgInitials}${generateNumber(4)}${appInitials}`,
       animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user?.organizationId,
@@ -249,7 +255,7 @@ export class AnimalsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an animal in ${findOneAssignType?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a band with code ${animal?.code} in ${findOneAssignType?.animalType?.name}`,
     });
 
     return reply({
@@ -437,7 +443,7 @@ export class AnimalsController {
       );
 
     const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
-    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+    const orgInitials = user?.organization.name.substring(0, 1).toUpperCase();
     const newAnimalArray: any = [];
 
     for (let i = 0; i < number; i++) {
@@ -493,6 +499,121 @@ export class AnimalsController {
         message: `Animals Created Successfully`,
       },
     });
+  }
+
+  /** Offsprings identification */
+  @Post(`/identification`)
+  @UseGuards(UserAuthGuard)
+  async offspringsIdentification(
+    @Res() res,
+    @Req() req,
+    @Body() body: OffspringsIdentificationDto,
+  ) {
+    const { user } = req;
+    const {
+      males,
+      females,
+      weight,
+      breedName,
+      codeFather,
+      codeMother,
+      birthday,
+    } = body;
+
+    const sumAnimals = Number(males + females);
+
+    const findOneBreed = await this.breedsService.findOneBy({
+      name: breedName,
+    });
+    if (!findOneBreed)
+      throw new HttpException(
+        `breed: ${breedName} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      code: codeMother,
+      organizationId: user?.organizationId,
+      //animalTypeId: findOneBreed?.animalTypeId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Mother code: ${findOneAnimal?.codeMother} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findLatestFarrowing = await this.farrowingsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+      animalTypeId: findOneBreed?.animalTypeId,
+    });
+    if (!findLatestFarrowing)
+      throw new HttpException(
+        `${findLatestFarrowing?.id} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (findLatestFarrowing?.litter !== sumAnimals)
+      throw new HttpException(
+        `Impossible to create farrowing litter: ${findLatestFarrowing?.litter} please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const appInitials = config.datasite.name.substring(0, 1).toUpperCase();
+    const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
+    const animalArray: any = [];
+
+    for (let i = 0; i < males; i++) {
+      const animal = await this.animalsService.createOne({
+        weight,
+        codeFather,
+        codeMother,
+        gender: 'MALE',
+        productionPhase: 'GROWTH',
+        breedId: findOneBreed?.id,
+        birthday: new Date(birthday),
+        locationId: findOneAnimal?.locationId,
+        code: `${orgInitials}${generateNumber(4)}${appInitials}`,
+        animalTypeId: findOneBreed?.animalTypeId,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+
+      animalArray.push(animal);
+
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an animal with code ${animal?.code} in ${findOneAnimal?.animalType?.name}`,
+        organizationId: user?.organizationId,
+      });
+    }
+
+    for (let i = 0; i < females; i++) {
+      const animal = await this.animalsService.createOne({
+        weight,
+        codeFather,
+        codeMother,
+        gender: 'FEMALE',
+        productionPhase: 'GROWTH',
+        breedId: findOneBreed?.id,
+        birthday: new Date(birthday),
+        locationId: findOneAnimal?.locationId,
+        code: `${orgInitials}${generateNumber(4)}${appInitials}`,
+        animalTypeId: findOneBreed?.animalTypeId,
+        organizationId: user?.organizationId,
+        userCreatedId: user?.id,
+      });
+
+      animalArray.push(animal);
+
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an animal with code ${animal?.code} in ${findOneAnimal?.animalType?.name}`,
+        organizationId: user?.organizationId,
+      });
+    }
+
+    return reply({ res, results: 'Animals created successfully' });
   }
 
   /** Update one animal */
@@ -563,15 +684,6 @@ export class AnimalsController {
       );
 
     if (
-      productionPhase === 'LAYING' &&
-      findOneAnimal?.location?.productionPhase !== 'LAYING'
-    )
-      throw new HttpException(
-        `Band can't be placed in this location code: ${findOneAnimal?.location?.code} please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    if (
       productionPhase === 'GROWTH' &&
       findOneAnimal?._count?.eggHavestings !== 0
     )
@@ -596,13 +708,18 @@ export class AnimalsController {
         isCastrated,
         productionPhase,
         birthday: new Date(birthday),
-        breedId: findOneBreed?.id,
+        breedId: breedName ? findOneBreed?.id : breedName,
         locationId: locationCode
           ? findOneLocation?.id
           : findOneAnimal?.locationId,
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
+    );
+
+    await this.locationsService.updateOne(
+      { locationId: animal?.locationId },
+      { productionPhase: animal?.productionPhase },
     );
 
     await this.activitylogsService.createOne({
@@ -740,7 +857,7 @@ export class AnimalsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} archived an ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} archived ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
     });
 
     return reply({ res, results: { message: 'Animal archived successfully' } });

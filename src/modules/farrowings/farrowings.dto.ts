@@ -26,6 +26,10 @@ export class CreateFarrowingsDto {
   @IsOptional()
   @IsString()
   codeFemale: string;
+
+  @IsNotEmpty()
+  @IsString()
+  farrowingDate: Date;
 }
 
 export class UpdateFarrowingsDto {

@@ -24,7 +24,6 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
-import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   CreateIncubationsDto,
@@ -38,7 +37,6 @@ export class IncubationsController {
   constructor(
     private readonly incubationsService: IncubationsService,
     private readonly animalsService: AnimalsService,
-    private readonly EggHavestingsService: EggHavestingsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -120,7 +118,7 @@ export class IncubationsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an incubation for ${findOneAnimal?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} incubated ${quantityStart} for ${findOneAnimal?.animalType?.name}`,
     });
 
     return reply({ res, results: incubation });

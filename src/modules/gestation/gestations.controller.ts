@@ -136,4 +136,28 @@ export class GestationsController {
 
     return reply({ res, results: findOneGestation });
   }
+
+  /** Get one gestation */
+  @Get(`/:animalId/show`)
+  @UseGuards(UserAuthGuard)
+  async getOneByAnimalId(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const findOneGestation = await this.gestationsService.findOneBy({
+      animalId,
+      organizationId: user?.organization,
+    });
+    if (!findOneGestation) {
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return reply({ res, results: findOneGestation });
+  }
 }

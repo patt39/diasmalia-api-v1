@@ -3,6 +3,8 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetTasksSelections = {
   search?: string;
+  type?: string;
+  status?: string;
   organizationId: string;
   contributorId: string;
   animalTypeId: string;
@@ -27,6 +29,7 @@ export const TaskSelect = {
   id: true,
   type: true,
   title: true,
+  status: true,
   dueDate: true,
   periode: true,
   frequency: true,
@@ -34,6 +37,8 @@ export const TaskSelect = {
   contributorId: true,
   contributor: {
     select: {
+      userId: true,
+      userCreatedId: true,
       user: {
         select: {
           profile: {

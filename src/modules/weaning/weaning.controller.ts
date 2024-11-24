@@ -24,7 +24,10 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { BreedingsService } from '../breedings/breedings.service';
+import { BreedsService } from '../breeds/breeds.service';
 import { FarrowingsService } from '../farrowings/farrowings.service';
+import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateWeaningsDto, WeaningDto } from './weaning.dto';
 import { WeaningsService } from './weaning.service';
@@ -34,6 +37,9 @@ export class WeaningsController {
   constructor(
     private readonly weaningsService: WeaningsService,
     private readonly animalsService: AnimalsService,
+    private readonly breedsService: BreedsService,
+    private readonly breedingsService: BreedingsService,
+    private readonly locationsService: LocationsService,
     private readonly farrowingsService: FarrowingsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
@@ -79,7 +85,7 @@ export class WeaningsController {
     @Body() body: CreateOrUpdateWeaningsDto,
   ) {
     const { user } = req;
-    const { litter, code, weight } = body;
+    const { animals, code, weight, locationCode } = body;
 
     const findOneFemale = await this.animalsService.findOneBy({
       code,
@@ -96,6 +102,8 @@ export class WeaningsController {
 
     const findOneFarrowing = await this.farrowingsService.findOneBy({
       animalId: findOneFemale?.id,
+      animalTypeId: findOneFemale?.animalTypeId,
+      organizationId: user?.organizationId,
     });
     if (!findOneFarrowing)
       throw new HttpException(
@@ -103,21 +111,44 @@ export class WeaningsController {
         HttpStatus.NOT_FOUND,
       );
 
-    if (litter > Number(findOneFarrowing?.litter - findOneFarrowing?.dead))
+    if (animals?.length > Number(findOneFarrowing?.litter))
       throw new HttpException(
-        `Weaning litter: ${litter} can't be greater than farrowing litter: ${Number(findOneFarrowing?.litter - findOneFarrowing?.dead)}`,
+        `Weaning litter: ${animals?.length} can't be greater than farrowing litter: ${Number(findOneFarrowing?.litter)}`,
         HttpStatus.AMBIGUOUS,
       );
 
-    if (weight < findOneFarrowing?.weight)
-      throw new HttpException(
-        `Weaning weight: ${weight} can't be less than farrowing weight: ${findOneFarrowing?.weight}`,
-        HttpStatus.AMBIGUOUS,
-      );
+    for (const animal of animals) {
+      const findOneAnimal = await this.animalsService.findOneBy({
+        code: animal,
+        organizationId: user?.organizationId,
+        animalTypeId: findOneFemale?.animalTypeId,
+      });
+      if (!findOneAnimal)
+        throw new HttpException(
+          `Animal ${findOneAnimal?.code} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
 
-    const weaning = await this.weaningsService.createOne({
-      litter,
+      const findOneLocation = await this.locationsService.findOneBy({
+        code: locationCode,
+        organizationId: user?.organizationId,
+        animalTypeId: findOneFemale?.animalTypeId,
+      });
+      if (!findOneLocation)
+        throw new HttpException(
+          `Location: ${locationCode} doesn't exists please change`,
+          HttpStatus.NOT_FOUND,
+        );
+
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        { locationId: findOneLocation?.id },
+      );
+    }
+
+    await this.weaningsService.createOne({
       weight,
+      litter: animals.length,
       animalId: findOneFemale?.id,
       farrowingId: findOneFarrowing?.id,
       farrowingLitter: findOneFarrowing?.litter,
@@ -131,13 +162,18 @@ export class WeaningsController {
       { productionPhase: 'REPRODUCTION' },
     );
 
+    await this.locationsService.updateOne(
+      { locationId: findOneFemale?.locationId },
+      { productionPhase: 'REPRODUCTION' },
+    );
+
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
       message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a weaning in ${findOneFemale?.animalType?.name} for animal ${findOneFemale?.code}`,
     });
 
-    return reply({ res, results: weaning });
+    return reply({ res, results: 'Animals weaned successfully' });
   }
 
   /** Update one Weaning */
@@ -150,7 +186,7 @@ export class WeaningsController {
     @Param('weaningId', ParseUUIDPipe) weaningId: string,
   ) {
     const { user } = req;
-    const { litter, weight } = body;
+    const { weight } = body;
 
     const findOneWeaning = await this.weaningsService.findOneBy({
       weaningId,
@@ -177,16 +213,9 @@ export class WeaningsController {
         HttpStatus.AMBIGUOUS,
       );
 
-    if (litter > findOneFarrowing?.litter)
-      throw new HttpException(
-        `Weaning litter: ${litter} can't be greater than farrowing litter: ${findOneFarrowing?.litter}`,
-        HttpStatus.AMBIGUOUS,
-      );
-
     const weaning = await this.weaningsService.updateOne(
       { weaningId: findOneWeaning?.id },
       {
-        litter,
         weight,
         userCreatedId: user?.id,
       },

@@ -67,14 +67,6 @@ export class FinanceController {
     return reply({ res, results: finances });
   }
 
-  /** Get finance statistics */
-  @Get(`/statistics`)
-  @UseGuards(UserAuthGuard)
-  async getFinanceStatistics(@Res() res) {
-    const financeCount = await this.financeService.getFinanceTransactions();
-    return reply({ res, results: financeCount });
-  }
-
   /** Post one Finance */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)

@@ -26,12 +26,17 @@ export class IsolationsService {
     selections: GetIsolationsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.IsolationWhereInput;
-    const { search, periode, animalTypeId, pagination } = selections;
+    const { search, periode, animalTypeId, pagination, organizationId } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [{ animal: { code: { contains: search, mode: 'insensitive' } } }],
       });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
     }
 
     if (animalTypeId) {

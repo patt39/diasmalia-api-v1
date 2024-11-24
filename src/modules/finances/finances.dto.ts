@@ -1,11 +1,4 @@
-import { financeType } from '@prisma/client';
-import {
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateFinancesDto {
   @IsOptional()
@@ -18,15 +11,13 @@ export class CreateOrUpdateFinancesDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(financeType)
-  type: financeType;
+  type: string;
 }
 
 export class GetFinancesByType {
   @IsOptional()
   @IsString()
-  @IsEnum(financeType)
-  type: financeType;
+  type: string;
 
   @IsOptional()
   @IsString()

@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -8,8 +9,8 @@ import {
 
 export class CreateOrUpdateWeaningsDto {
   @IsNotEmpty()
-  @IsNumber()
-  litter: number;
+  @IsArray()
+  animals: any;
 
   @IsNotEmpty()
   @IsNumber()
@@ -18,6 +19,10 @@ export class CreateOrUpdateWeaningsDto {
   @IsOptional()
   @IsString()
   code: string;
+
+  @IsNotEmpty()
+  @IsString()
+  locationCode: string;
 }
 
 export class WeaningDto {

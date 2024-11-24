@@ -765,7 +765,7 @@ async function main() {
             name: 'Bovins',
             slug: 'boeufs',
             tab: 'locations',
-            habitat: 'Etable',
+            habitat: 'etables',
             photo:
               'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/cow-3383624_640.jpg20241024-tzfZ.jpeg',
             description:
@@ -793,7 +793,7 @@ async function main() {
             name: 'Porciculture',
             slug: 'porcs',
             tab: 'locations',
-            habitat: 'loge',
+            habitat: 'loges',
             photo:
               'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/breeding-3739223_640.jpg20241024-3lEB.jpeg',
             description:
@@ -803,7 +803,7 @@ async function main() {
             name: 'Cuniculture',
             slug: 'lapins',
             tab: 'locations',
-            habitat: 'clapier',
+            habitat: 'clapiers',
             photo:
               'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/rabbits-6889130_640.jpg20241024-0Qme.jpeg',
             description:
@@ -812,7 +812,7 @@ async function main() {
           {
             name: 'Quails',
             slug: 'quails',
-            habitat: 'cage',
+            habitat: 'cages',
             tab: 'aves-locations',
             photo:
               'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/pexels-brett-sayles-1309236.jpg20241024-jMYC.jpeg',
@@ -832,7 +832,7 @@ async function main() {
           {
             name: 'Pisciculture',
             slug: 'poissons',
-            habitat: 'étang',
+            habitat: 'étangs',
             tab: 'aves-locations',
             photo:
               'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/trout-4725772_640.jpg20241024-fRB1.jpeg',
@@ -881,6 +881,113 @@ async function main() {
           },
         ],
         skipDuplicates: true,
+      });
+
+      await prisma.material.createMany({
+        data: [
+          {
+            name: 'Ventilation & temperature',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/ventilation-elevage.jpeg20241115-Gec8.jpeg',
+          },
+          {
+            name: 'Canalisation & gestion des dejections',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/canalisation.jpeg20241115-Hzq8.jpeg',
+          },
+          {
+            name: 'Litière & confort',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/litiere.jpeg20241115-R390.jpeg',
+          },
+          {
+            name: 'Éclairage naturel & artificiel',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/eclairage.png20241115-CK5c.png',
+          },
+          {
+            name: 'Orientation, taille & emplacement',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/orientation.jpeg20241115-FZm1.jpeg',
+          },
+          {
+            name: 'Isolation',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/isolation.jpeg20241115-4dk6.jpeg',
+          },
+          {
+            name: 'Sécurité et Surveillance',
+            type: 'LOCATION',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/security.jpeg20241115-F1cb.jpeg',
+          },
+          {
+            name: 'Dorseuse et balance',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/doseuse.jpeg20241114-a0gt.jpeg',
+          },
+          {
+            name: 'Pulvérisateurs et nébulisateurs',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/download.jpeg20241114-04PM.jpeg',
+          },
+          {
+            name: 'Pelles, râteaux et balais',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/tools.jpeg20241114-w07j.jpeg',
+          },
+          {
+            name: 'Échographes',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/echographe.jpeg20241114-v1eI.jpeg',
+          },
+          {
+            name: 'Casiers et plateaux à œufs',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/casiers-a-oeufs.jpeg20241114-feSx.jpeg',
+          },
+          {
+            name: 'Lampe de mirage',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/lampe-de-mirage.jpeg20241114-RSP2.jpeg',
+          },
+          {
+            name: 'Anneaux ou étiquettes d’identification',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/images.jpeg20241114-gicX.jpeg',
+          },
+          {
+            name: 'Radiant & thermostat',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/radiant.jpeg20241114-TRRQ.jpeg',
+          },
+          {
+            name: 'Forage',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/forage.jpeg20241114-uPcm.jpeg',
+          },
+          {
+            name: 'Mangeoires et abreuvoirs',
+            type: 'TOOL',
+            image:
+              'https://diasmalia-buck.s3.eu-central-1.amazonaws.com/photos/mangeaors.jpeg20241114-kxec.jpeg',
+          },
+        ],
       });
 
       console.log(`${environment} database seeded successfully`);
