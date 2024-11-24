@@ -1,7 +1,5 @@
-import { HealthMethod } from '@prisma/client';
 import {
   IsArray,
-  IsEnum,
   IsIn,
   IsNotEmpty,
   IsOptional,
@@ -9,10 +7,18 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class CreateHealthsDto {
+export class CreateOrUpdateHealthsDto {
   @IsOptional()
   @IsString()
   name: string;
+
+  @IsOptional()
+  @IsString()
+  image: string;
+
+  @IsOptional()
+  @IsString()
+  description: string;
 
   @IsOptional()
   @IsString()
@@ -21,8 +27,7 @@ export class CreateHealthsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(HealthMethod)
-  category: HealthMethod;
+  category: string;
 }
 
 export class SelectMedecinesDto {
@@ -39,8 +44,12 @@ export class GetHealthQueryDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(HealthMethod)
-  category: HealthMethod;
+  @IsUUID()
+  organizationId: string;
+
+  @IsOptional()
+  @IsString()
+  category: string;
 
   @IsOptional()
   @IsString()

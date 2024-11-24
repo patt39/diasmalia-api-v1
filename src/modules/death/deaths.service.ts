@@ -155,6 +155,7 @@ export class DeathsService {
     }
 
     const death = await this.client.death.findFirst({
+      orderBy: { createdAt: 'desc' },
       where: { ...prismaWhere, deletedAt: null },
       select: DeathSelect,
     });

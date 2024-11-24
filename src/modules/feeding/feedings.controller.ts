@@ -117,7 +117,7 @@ export class FeedingsController {
       );
 
     if (
-      findFeedStock?.feedCategory === 'LAYERS_FEED' &&
+      ['LAY FOOD', 'ALIMENT PONTE'].includes(findFeedStock?.feedCategory) &&
       findOneAnimal?.productionPhase === 'GROWTH'
     )
       throw new HttpException(
@@ -143,7 +143,12 @@ export class FeedingsController {
       findFeedStock?.weight - (findFeedStock?.weight - quantity),
     );
 
-    if (feedDifference === findFeedStock?.bagWeight) {
+    if (
+      feedDifference === findFeedStock?.bagWeight &&
+      !['FORAGES', 'FOURAGES', 'ENSILAGES', 'SILAGES'].includes(
+        findFeedStock?.feedCategory,
+      )
+    ) {
       await this.feedStocksService.updateOne(
         { feedStockId: findFeedStock?.id },
         { number: findFeedStock?.number - 1 },
@@ -152,7 +157,7 @@ export class FeedingsController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a feeding for ${findOneAnimal?.animalType?.name} with code ${findOneAnimal?.code} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a feeding in ${findOneAnimal?.animalType?.name} for ${findOneAnimal?.code} `,
       organizationId: user?.organizationId,
     });
 
@@ -206,7 +211,7 @@ export class FeedingsController {
           'ALIMENT PONTE',
           'PREGNANT FEMALE',
           'FEMELLES GESTANTES',
-          'LACTATIZING FEMALE',
+          'LACTATING FEMALES',
           'FEMELLES ALLAITANTES',
         ].includes(findFeedStock?.feedCategory) &&
         findOneAnimal?.productionPhase === 'GROWTH'
@@ -237,7 +242,10 @@ export class FeedingsController {
       findFeedStock?.weight - (findFeedStock?.weight - quantity),
     );
 
-    if (feedDifference === findFeedStock?.bagWeight) {
+    if (
+      feedDifference === findFeedStock?.bagWeight &&
+      !['FORAGES', 'SILAGES'].includes(findFeedStock?.feedCategory)
+    ) {
       await this.feedStocksService.updateOne(
         { feedStockId: findFeedStock?.id },
         { number: findFeedStock?.number - 1 },
@@ -247,7 +255,7 @@ export class FeedingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} ${findFeedStock?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} in ${findFeedStock?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
     });
 
     return reply({ res, results: 'Saved' });

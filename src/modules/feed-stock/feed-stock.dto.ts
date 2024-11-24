@@ -16,6 +16,10 @@ export class UpdateFeedStocksDto {
   number: number;
 
   @IsOptional()
+  @IsNumber()
+  weight: number;
+
+  @IsOptional()
   composition: any;
 
   @IsOptional()
@@ -29,15 +33,19 @@ export class UpdateFeedStocksDto {
 }
 
 export class CreateFeedStocksDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   number: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   bagWeight: number;
 
   @IsOptional()
+  @IsNumber()
+  weight: number;
+
+  @IsNotEmpty()
   @IsString()
   feedCategory: string;
 

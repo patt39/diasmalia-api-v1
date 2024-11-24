@@ -3,11 +3,14 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetCagesSelections = {
   search?: string;
+  animalId?: string;
+  organizationId?: string;
   pagination?: PaginationType;
 };
 
 export type GetOneCageSelections = {
   cageId: Cage['id'];
+  organizationId?: string;
 };
 
 export type UpdateCagesSelections = {
@@ -23,15 +26,15 @@ export const cagesSelect = {
   id: true,
   dimension: true,
   code: true,
+  death: true,
+  eggHarvested: true,
+  numberPerCage: true,
   animalId: true,
   animal: {
     select: {
       code: true,
-      select: {
-        location: {
-          select: { cages: true },
-        },
-      },
+      quantity: true,
+      locationId: true,
     },
   },
   animalTypeId: true,

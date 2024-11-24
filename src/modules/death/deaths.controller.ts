@@ -174,7 +174,7 @@ export class DeathsController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a dead in ${findOneAnimal?.animalType.name} with code ${findOneAnimal?.code} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added dead animals in ${findOneAnimal?.animalType.name} for ${findOneAnimal?.code} `,
       organizationId: user?.organizationId,
     });
 
@@ -216,7 +216,7 @@ export class DeathsController {
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a death for ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} added dead animals for ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -239,7 +239,7 @@ export class DeathsController {
     });
     if (!findOneDeadAnimal)
       throw new HttpException(
-        `DeathId: ${animalId} doesn't exists please change`,
+        `AnimalId: ${animalId} doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
 
@@ -350,7 +350,7 @@ export class DeathsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted ${findOneDead?.animal?.code} in ${findOneDead?.animalType?.name} dead`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted dead in ${findOneDead?.animal?.code} for ${findOneDead?.animalType?.name}`,
     });
 
     return reply({ res, results: death });

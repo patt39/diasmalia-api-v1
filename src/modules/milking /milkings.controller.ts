@@ -105,7 +105,7 @@ export class MilkingsController {
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} milked ${animals?.lenght} in ${findOneFemale?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} milked ${findOneFemale?.code} in ${findOneFemale?.animalType?.name}`,
       });
     }
 
@@ -159,10 +159,10 @@ export class MilkingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a feeding in ${findOneMilking?.animalType?.name} for ${findOneMilking?.animal?.code}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a milking in ${findOneMilking?.animalType?.name} for ${findOneMilking?.animal?.code}`,
     });
 
-    return reply({ res, results: 'Milking Created Successfully' });
+    return reply({ res, results: 'Milking Updated Successfully' });
   }
 
   /** Delete one milking */

@@ -5,30 +5,31 @@ import {
   IsIn,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
 
 export class CreateOrUpdateLocationsDto {
-  @IsNotEmpty()
-  @IsInt()
+  @IsOptional()
+  @IsNumber()
   squareMeter: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   manger: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   through: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   cages: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   nest: number;
 
   @IsOptional()
@@ -43,6 +44,10 @@ export class CreateOrUpdateLocationsDto {
   @IsString()
   @IsEnum(AddCages)
   addCages: AddCages;
+
+  @IsOptional()
+  @IsString()
+  buildingCode: string;
 }
 
 export class AnimalChangeLocationsDto {
@@ -70,11 +75,11 @@ export class CreateBulkLocationsDto {
 
   @IsOptional()
   @IsInt()
-  nest: number;
+  number: number;
 
   @IsOptional()
-  @IsInt()
-  number: number;
+  @IsString()
+  buildingCode: string;
 
   @IsOptional()
   @IsString()
@@ -90,6 +95,16 @@ export class GetLocationsQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  buildingId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  organizationId: string;
 
   @IsOptional()
   @IsString()

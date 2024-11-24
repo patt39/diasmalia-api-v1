@@ -26,7 +26,8 @@ export class FatteningsService {
     selections: GetFatteningsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FatteningWhereInput;
-    const { search, periode, animalTypeId, pagination } = selections;
+    const { search, periode, animalTypeId, pagination, organizationId } =
+      selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -36,6 +37,10 @@ export class FatteningsService {
 
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
     }
 
     if (periode) {

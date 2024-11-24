@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -22,7 +23,7 @@ import { reply } from '../../app/utils/reply';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateHealthsDto, GetHealthQueryDto } from './health.dto';
+import { CreateOrUpdateHealthsDto, GetHealthQueryDto } from './health.dto';
 import { HealthsService } from './health.service';
 
 @Controller('health')
@@ -67,9 +68,13 @@ export class HealthsController {
   /** Post one health */
   @Post(`/create`)
   @UseGuards(UserAuthGuard)
-  async createOne(@Res() res, @Req() req, @Body() body: CreateHealthsDto) {
+  async createOne(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateHealthsDto,
+  ) {
     const { user } = req;
-    const { name, category, animalTypeId } = body;
+    const { name, category, animalTypeId, description } = body;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -95,6 +100,7 @@ export class HealthsController {
     const health = await this.healthsService.createOne({
       name,
       category,
+      description,
       animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -102,7 +108,7 @@ export class HealthsController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${name} in feed stock for ${findOneAssignType?.animalType?.name} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${name} in health box for ${findOneAssignType?.animalType?.name} `,
       organizationId: user?.organizationId,
     });
 
@@ -142,5 +148,110 @@ export class HealthsController {
     );
 
     return reply({ res, results: 'Status changed successfully' });
+  }
+
+  /** Update one health */
+  @Put(`/:healthId/edit`)
+  @UseGuards(UserAuthGuard)
+  async updateOne(
+    @Res() res,
+    @Req() req,
+    @Body() body: CreateOrUpdateHealthsDto,
+    @Param('healthId', ParseUUIDPipe) healthId: string,
+  ) {
+    const { user } = req;
+    const { image, description, name } = body;
+
+    const findOneHealth = await this.healthsService.findOneBy({
+      healthId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneHealth)
+      throw new HttpException(
+        `Name: ${findOneHealth?.name} doesn't exists please update`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const gestation = await this.healthsService.updateOne(
+      { healthId: findOneHealth?.id },
+      {
+        image,
+        name,
+        description,
+        userCreatedId: user?.id,
+      },
+    );
+
+    await this.activitylogsService.createOne({
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a gestation, in ${findOneHealth?.animalType?.name}`,
+    });
+
+    return reply({
+      res,
+      results: {
+        status: HttpStatus.CREATED,
+        data: gestation,
+        message: 'Health updated successfully',
+      },
+    });
+  }
+
+  /** Get one health */
+  @Get(`/:healthId/view`)
+  @UseGuards(UserAuthGuard)
+  async getOneByIdGestation(
+    @Res() res,
+    @Req() req,
+    @Param('healthId', ParseUUIDPipe) healthId: string,
+  ) {
+    const { user } = req;
+
+    const findOneHealth = await this.healthsService.findOneBy({
+      healthId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneHealth)
+      throw new HttpException(
+        `Name: ${findOneHealth?.name} doesn't exists please update`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneHealth });
+  }
+
+  /** Delete one health */
+  @Delete(`/:healthId/delete`)
+  @UseGuards(UserAuthGuard)
+  async deleteOne(
+    @Res() res,
+    @Req() req,
+    @Param('healthId', ParseUUIDPipe) healthId: string,
+  ) {
+    const { user } = req;
+
+    const findOneHealth = await this.healthsService.findOneBy({
+      healthId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneHealth)
+      throw new HttpException(
+        `Name: ${findOneHealth?.name} doesn't exists please update`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.healthsService.updateOne(
+      { healthId: findOneHealth?.id },
+      { deletedAt: new Date() },
+    );
+
+    await this.activitylogsService.createOne({
+      userId: user?.id,
+      organizationId: user?.organizationId,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a medication for ${findOneHealth?.animalType?.name}`,
+    });
+
+    return reply({ res, results: 'Medication deleted successfully' });
   }
 }

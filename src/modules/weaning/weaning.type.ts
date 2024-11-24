@@ -66,6 +66,7 @@ export const WeaningSelect = {
       litter: true,
       note: true,
       dead: true,
+      weight: true,
     },
   },
   organizationId: true,

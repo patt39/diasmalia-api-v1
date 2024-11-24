@@ -1,8 +1,5 @@
-import { MethodTreatment } from '@prisma/client';
-
 import {
   IsArray,
-  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -34,8 +31,7 @@ export class CreateOrUpdateTreatmentsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(MethodTreatment)
-  method: MethodTreatment;
+  method: string;
 
   @IsNotEmpty()
   @IsString()
@@ -64,10 +60,9 @@ export class BulkTreatmentsDto {
   @IsArray()
   animals: any;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsEnum(MethodTreatment)
-  method: MethodTreatment;
+  method: string;
 
   @IsNotEmpty()
   @IsString()

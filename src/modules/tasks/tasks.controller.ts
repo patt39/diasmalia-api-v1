@@ -23,7 +23,6 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { ContributorsService } from '../contributors/contributors.service';
 import { taskNotification } from '../users/mails/task-notification-mail';
@@ -38,7 +37,6 @@ export class TasksController {
     private readonly activitylogsService: ActivityLogsService,
     private readonly contributorsService: ContributorsService,
     private readonly assignTypesService: AssignTypesService,
-    private readonly animalsService: AnimalsService,
   ) {}
 
   /** Get all Tasks */
@@ -53,7 +51,7 @@ export class TasksController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { contributorId, animalTypeId } = taskQuery;
+    const { contributorId, animalTypeId, type, status } = taskQuery;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -64,6 +62,8 @@ export class TasksController {
     });
 
     const tasks = await this.tasksService.findAll({
+      type,
+      status,
       search,
       pagination,
       animalTypeId,
@@ -154,6 +154,7 @@ export class TasksController {
     const {
       type,
       title,
+      status,
       periode,
       dueDate,
       frequency,
@@ -198,6 +199,7 @@ export class TasksController {
       {
         type,
         title,
+        status,
         dueDate,
         periode,
         frequency,

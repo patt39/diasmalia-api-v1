@@ -154,6 +154,7 @@ export class AnimalsService {
       quantity,
       animalId,
       deletedAt,
+      codeMother,
       isIsolated,
       locationId,
       isCastrated,
@@ -188,6 +189,10 @@ export class AnimalsService {
 
     if (code) {
       Object.assign(prismaWhere, { code });
+    }
+
+    if (codeMother) {
+      Object.assign(prismaWhere, { codeMother });
     }
 
     if (status) {
@@ -627,9 +632,11 @@ export class AnimalsService {
   async getAnimalTransactions({
     periode,
     animalTypeId,
+    organizationId,
   }: {
     periode: string;
     animalTypeId: string;
+    organizationId: string;
   }) {
     const prismaWhereSales = {} as Prisma.SaleWhereInput;
     const prismaWhereFarrowings = {} as Prisma.FarrowingWhereInput;
@@ -644,6 +651,7 @@ export class AnimalsService {
     const prismaWhereBreedings = {} as Prisma.BreedingWhereInput;
     const prismaWhereMilkings = {} as Prisma.MilkingWhereInput;
     const prismaWhereHealths = {} as Prisma.HealthWhereInput;
+    const prismaWhereFeedStocks = {} as Prisma.FeedStockWhereInput;
 
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
@@ -718,6 +726,8 @@ export class AnimalsService {
       totalMilkings,
       sumTreatments,
       sumMedications,
+      sumEquipments,
+      sumHygiens,
       totalBreedings,
       totalPositiveBreedings,
     ] = await this.client.$transaction([
@@ -727,6 +737,7 @@ export class AnimalsService {
           status: 'ACTIVE',
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -735,6 +746,7 @@ export class AnimalsService {
           status: 'ACTIVE',
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -744,6 +756,7 @@ export class AnimalsService {
           productionPhase: 'GROWTH',
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -753,6 +766,7 @@ export class AnimalsService {
           productionPhase: 'GROWTH',
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -761,6 +775,7 @@ export class AnimalsService {
           productionPhase: 'FATTENING',
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -770,6 +785,7 @@ export class AnimalsService {
           animalTypeId: animalTypeId,
           productionPhase: 'REPRODUCTION',
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -779,6 +795,7 @@ export class AnimalsService {
           animalTypeId: animalTypeId,
           productionPhase: 'REPRODUCTION',
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -788,6 +805,7 @@ export class AnimalsService {
           animalTypeId: animalTypeId,
           productionPhase: 'GESTATION',
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -797,6 +815,7 @@ export class AnimalsService {
           animalTypeId: animalTypeId,
           productionPhase: 'LACTATION',
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.farrowing.aggregate({
@@ -805,6 +824,7 @@ export class AnimalsService {
           ...prismaWhereFarrowings,
           animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
         _sum: {
           litter: true,
@@ -819,6 +839,7 @@ export class AnimalsService {
           ...prismaWhereWeanings,
           animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
         _sum: {
           litter: true,
@@ -831,6 +852,7 @@ export class AnimalsService {
           status: 'ACTIVE',
           ...prismaWhereAnimals,
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
         _sum: {
           female: true,
@@ -848,6 +870,7 @@ export class AnimalsService {
           animalTypeId: animalTypeId,
           ...prismaWhereEggsHarvestings,
           animal: { status: 'ACTIVE', deletedAt: null },
+          organizationId: organizationId,
         },
         _sum: {
           quantity: true,
@@ -859,6 +882,7 @@ export class AnimalsService {
           ...prismaWhereDeaths,
           animalTypeId: animalTypeId,
           animal: { status: 'ACTIVE', deletedAt: null },
+          organizationId: organizationId,
         },
         _sum: {
           number: true,
@@ -870,6 +894,7 @@ export class AnimalsService {
           ...prismaWhereFeedings,
           animalTypeId: animalTypeId,
           animal: { status: 'ACTIVE', deletedAt: null },
+          organizationId: organizationId,
         },
         _sum: {
           quantity: true,
@@ -881,6 +906,7 @@ export class AnimalsService {
           ...prismaWhereIncubations,
           animalTypeId: animalTypeId,
           animal: { status: 'ACTIVE', deletedAt: null },
+          organizationId: organizationId,
         },
         _sum: {
           quantityEnd: true,
@@ -894,6 +920,7 @@ export class AnimalsService {
           deletedAt: null,
           animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
         _sum: {
           price: true,
@@ -907,6 +934,7 @@ export class AnimalsService {
           animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
         _sum: {
           price: true,
@@ -920,6 +948,7 @@ export class AnimalsService {
           animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
         _sum: {
           price: true,
@@ -933,6 +962,7 @@ export class AnimalsService {
           ...prismaWhereSales,
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
         _sum: {
           price: true,
@@ -944,6 +974,7 @@ export class AnimalsService {
           ...prismaWhereIsolations,
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
         _sum: {
           number: true,
@@ -952,6 +983,8 @@ export class AnimalsService {
       this.client.feedStock.aggregate({
         where: {
           deletedAt: null,
+          ...prismaWhereFeedStocks,
+          organizationId: organizationId,
         },
         _sum: {
           number: true,
@@ -964,6 +997,7 @@ export class AnimalsService {
           animal: { status: 'ACTIVE', deletedAt: null },
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
         _sum: {
           quantity: true,
@@ -974,6 +1008,7 @@ export class AnimalsService {
           ...prismaWhereTreatments,
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.health.count({
@@ -982,6 +1017,25 @@ export class AnimalsService {
           category: 'MEDICATION',
           ...prismaWhereHealths,
           deletedAt: null,
+          organizationId: organizationId,
+        },
+      }),
+      this.client.health.count({
+        where: {
+          status: true,
+          category: 'EQUIPMENT',
+          ...prismaWhereHealths,
+          deletedAt: null,
+          organizationId: organizationId,
+        },
+      }),
+      this.client.health.count({
+        where: {
+          status: true,
+          category: 'HYGIENE',
+          ...prismaWhereHealths,
+          deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.breeding.count({
@@ -989,6 +1043,7 @@ export class AnimalsService {
           ...prismaWhereBreedings,
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
       this.client.breeding.count({
@@ -997,6 +1052,7 @@ export class AnimalsService {
           ...prismaWhereBreedings,
           animalTypeId: animalTypeId,
           deletedAt: null,
+          organizationId: organizationId,
         },
       }),
     ]);
@@ -1036,13 +1092,21 @@ export class AnimalsService {
       sumMilkings: totalMilkings._sum?.quantity,
       sumTreatments,
       sumMedications,
+      sumEquipments,
+      sumHygiens,
       totalBreedings,
       totalPositiveBreedings,
     };
   }
 
   /** Get animal sold and dead transactions. */
-  async getAllAnimalTransactions({ animalTypeId }: { animalTypeId: string }) {
+  async getAllAnimalTransactions({
+    animalTypeId,
+    organizationId,
+  }: {
+    animalTypeId: string;
+    organizationId: string;
+  }) {
     const findOneAssignType = await this.assignTypesService.findOneBy({
       animalTypeId,
     });
@@ -1068,12 +1132,14 @@ export class AnimalsService {
         where: {
           status: 'SOLD',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
         where: {
           status: 'DEAD',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1082,6 +1148,7 @@ export class AnimalsService {
           gender: 'MALE',
           productionPhase: 'GROWTH',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1090,6 +1157,7 @@ export class AnimalsService {
           gender: 'FEMALE',
           productionPhase: 'GROWTH',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1098,6 +1166,7 @@ export class AnimalsService {
           gender: 'FEMALE',
           productionPhase: 'GESTATION',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1105,6 +1174,7 @@ export class AnimalsService {
           status: 'SOLD',
           productionPhase: 'FATTENING',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1113,6 +1183,7 @@ export class AnimalsService {
           gender: 'FEMALE',
           productionPhase: 'REPRODUCTION',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1121,6 +1192,7 @@ export class AnimalsService {
           gender: 'MALE',
           productionPhase: 'REPRODUCTION',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1129,6 +1201,7 @@ export class AnimalsService {
           gender: 'FEMALE',
           productionPhase: 'REPRODUCTION',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1137,6 +1210,7 @@ export class AnimalsService {
           gender: 'MALE',
           productionPhase: 'REPRODUCTION',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1145,6 +1219,7 @@ export class AnimalsService {
           gender: 'MALE',
           productionPhase: 'GROWTH',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1153,6 +1228,7 @@ export class AnimalsService {
           gender: 'FEMALE',
           productionPhase: 'GROWTH',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
       this.client.animal.count({
@@ -1160,6 +1236,7 @@ export class AnimalsService {
           status: 'DEAD',
           productionPhase: 'FATTENING',
           animalTypeId: animalTypeId,
+          organizationId: organizationId,
         },
       }),
     ]);

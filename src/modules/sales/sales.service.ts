@@ -301,7 +301,7 @@ export class SalesService {
     return eggsAnalytics;
   }
 
-  /** Get sales analytics. */
+  /** Get animals sales analytics. */
   async getAnimalSalesAnalytics(selections: GetSalesSelections) {
     const prismaWhere = {} as Prisma.SaleWhereInput;
     const { animalTypeId, periode, months, year, organizationId } = selections;

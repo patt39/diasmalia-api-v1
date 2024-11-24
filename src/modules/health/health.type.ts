@@ -30,8 +30,10 @@ export const HealthSelect = {
   createdAt: true,
   id: true,
   name: true,
+  image: true,
   status: true,
   category: true,
+  description: true,
   animalTypeId: true,
   animalType: {
     select: {

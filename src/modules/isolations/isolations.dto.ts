@@ -43,6 +43,10 @@ export class BulkIsolationsDto {
   @IsNotEmpty()
   @IsArray()
   animals: any;
+
+  @IsNotEmpty()
+  @IsString()
+  locationCode: string;
 }
 
 export class IsolationsQueryDto {

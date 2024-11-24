@@ -7,6 +7,7 @@ export type GetLocationsSelections = {
   pagination?: PaginationType;
   locationId?: Location['id'];
   addCages?: Location['addCages'];
+  buildingId?: Location['buildingId'];
   animalTypeId?: Location['animalTypeId'];
   productionPhase?: Location['productionPhase'];
   organizationId?: Location['organizationId'];
@@ -32,6 +33,7 @@ export type UpdateLocationsOptions = Partial<Location>;
 
 export const LocationsSelect = {
   createdAt: true,
+  deletedAt: true,
   id: true,
   code: true,
   nest: true,
@@ -47,6 +49,13 @@ export const LocationsSelect = {
       name: true,
     },
   },
+  buildingId: true,
+  building: {
+    select: {
+      code: true,
+      productionPhase: true,
+    },
+  },
   productionPhase: true,
   organizationId: true,
   organization: {
@@ -60,6 +69,11 @@ export const LocationsSelect = {
         where: {
           deletedAt: null,
           status: 'ACTIVE' as AnimalStatus,
+        },
+      },
+      assignMaterials: {
+        where: {
+          status: true,
         },
       },
     },

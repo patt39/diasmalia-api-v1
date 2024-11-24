@@ -4,11 +4,13 @@ import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AnimalTypesModule } from './modules/animal-type/animal-type.module';
 import { AnimalsModule } from './modules/animals/animals.module';
+import { AssignMaterialsModule } from './modules/assigne-material/assigne-material.module';
 import { AssignTypesModule } from './modules/assigne-type/assigne-type.module';
 import { AuthProvidersModule } from './modules/auth-providers/auth-providers.module';
 import { BlogsModule } from './modules/blog/blog.module';
 import { BreedingsModule } from './modules/breedings/breedings.module';
 import { BreedsModule } from './modules/breeds/breeds.module';
+import { BuildingsModule } from './modules/buildings/buildings.module';
 import { CagesModule } from './modules/cages/cages.module';
 import { CheckPregnanciesModule } from './modules/check-pregnancies/check-pregnancies.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
@@ -28,10 +30,12 @@ import { HealthModule } from './modules/health/health.module';
 import { IncubationsModule } from './modules/incubation/incubation.module';
 import { IsolationsModule } from './modules/isolations/isolations.module';
 import { LocationsModule } from './modules/locations/locations.module';
+import { MaterialsModule } from './modules/material/material.module';
 import { MilkingsModule } from './modules/milking /milkings.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { SalesModule } from './modules/sales/sales.module';
+import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { TreatmentsModule } from './modules/treatments/treatments.module';
 import { UsersModule } from './modules/users/users.module';
@@ -59,9 +63,13 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     HealthModule,
     FaqsModule,
     CagesModule,
+    MaterialsModule,
     CountriesModule,
     FeedStockModule,
     AnalyticsModule,
+    SuggestionsModule,
+    BuildingsModule,
+    AssignMaterialsModule,
     EggHavestingsModule,
     AnimalTypesModule,
     IncubationsModule,

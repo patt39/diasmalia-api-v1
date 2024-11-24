@@ -28,10 +28,12 @@ export type UpdateFarrowingsOptions = Partial<Farrowing>;
 export const FarrowingSelect = {
   createdAt: true,
   id: true,
+  image: true,
   dead: true,
   weight: true,
   litter: true,
   note: true,
+  farrowingDate: true,
   animalId: true,
   animal: {
     select: {

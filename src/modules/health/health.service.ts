@@ -30,6 +30,7 @@ export class HealthsService {
     }
 
     if (status) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       status === 'true'
         ? Object.assign(prismaWhere, { status: true })
         : Object.assign(prismaWhere, { status: false });
@@ -72,6 +73,7 @@ export class HealthsService {
     }
 
     if (status) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       status === 'true'
         ? Object.assign(prismaWhere, { status: true })
         : Object.assign(prismaWhere, { status: false });
@@ -101,8 +103,10 @@ export class HealthsService {
   async createOne(options: CreateHealthsOptions): Promise<Health> {
     const {
       name,
+      image,
       status,
       category,
+      description,
       animalTypeId,
       organizationId,
       userCreatedId,
@@ -111,8 +115,10 @@ export class HealthsService {
     const health = this.client.health.create({
       data: {
         name,
+        image,
         status,
         category,
+        description,
         animalTypeId,
         organizationId,
         userCreatedId,
@@ -128,15 +134,25 @@ export class HealthsService {
     options: UpdateHealthsOptions,
   ): Promise<Health> {
     const { healthId } = selections;
-    const { name, status, category, userCreatedId, animalTypeId, deletedAt } =
-      options;
+    const {
+      name,
+      image,
+      status,
+      category,
+      description,
+      userCreatedId,
+      animalTypeId,
+      deletedAt,
+    } = options;
 
     const health = this.client.health.update({
       where: { id: healthId },
       data: {
         name,
+        image,
         status,
         category,
+        description,
         animalTypeId,
         userCreatedId,
         deletedAt,

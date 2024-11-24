@@ -113,11 +113,13 @@ export class FarrowingsService {
     const {
       note,
       dead,
+      image,
       litter,
       weight,
       animalId,
       animalTypeId,
       userCreatedId,
+      farrowingDate,
       organizationId,
     } = options;
 
@@ -125,9 +127,11 @@ export class FarrowingsService {
       data: {
         note,
         dead,
+        image,
         litter,
         weight,
         animalId,
+        farrowingDate,
         animalTypeId,
         userCreatedId,
         organizationId,
@@ -143,19 +147,30 @@ export class FarrowingsService {
     options: UpdateFarrowingsOptions,
   ): Promise<Farrowing> {
     const { farrowingId } = selections;
-    const { note, dead, weight, litter, animalId, userCreatedId, deletedAt } =
-      options;
+    const {
+      note,
+      dead,
+      image,
+      weight,
+      litter,
+      animalId,
+      userCreatedId,
+      deletedAt,
+      farrowingDate,
+    } = options;
 
     const farrowing = this.client.farrowing.update({
       where: { id: farrowingId },
       data: {
         dead,
         note,
+        image,
         weight,
         litter,
         animalId,
         userCreatedId,
         deletedAt,
+        farrowingDate,
       },
     });
 

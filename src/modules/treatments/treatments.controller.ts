@@ -131,7 +131,7 @@ export class TreatmentsController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a treatment ${findOneAnimal?.animalType?.name} with code ${findOneAnimal?.code} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a treatment in ${findOneAnimal?.animalType?.name} for ${findOneAnimal?.code} `,
       organizationId: user?.organizationId,
     });
 
@@ -191,7 +191,7 @@ export class TreatmentsController {
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} treated ${animals.length} ${findOneAnimal?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} treated ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -260,7 +260,7 @@ export class TreatmentsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a treatment for animal ${findOneTreatement?.animal?.code}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a treatment for animal ${findOneTreatement?.animal?.code} in ${findOneTreatement?.animalType?.name}`,
     });
 
     return reply({ res, results: treatment });
@@ -338,7 +338,7 @@ export class TreatmentsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a treatment for animal ${findOneTreatement?.animal?.code}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a treatment for animal ${findOneTreatement?.animal?.code} in ${findOneTreatement?.animalType?.name}`,
     });
 
     await this.treatmentsService.updateOne(

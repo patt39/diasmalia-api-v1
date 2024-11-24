@@ -19,6 +19,7 @@ export type GetAnimalsSelections = {
 export type GetOneAnimalsSelections = {
   animalId?: Animal['id'];
   code?: Animal['code'];
+  codeMother?: Animal['codeMother'];
   gender?: Animal['gender'];
   quantity?: Animal['quantity'];
   locationId?: Animal['locationId'];
@@ -87,6 +88,7 @@ export const AnimalSelect = {
           },
         },
       },
+      building: { select: { code: true } },
     },
   },
   breedId: true,
@@ -111,6 +113,7 @@ export const AnimalSelect = {
       treatments: true,
       feedings: true,
       sales: true,
+      cages: true,
     },
   },
 };

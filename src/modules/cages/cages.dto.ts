@@ -1,21 +1,52 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
-export class CreateCagesDto {
-  @IsNotEmpty()
+export class CreateOrUpdateCagesDto {
+  @IsOptional()
   @IsString()
   code: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   dimension: number;
 
+  @IsOptional()
+  @IsNumber()
+  number: number;
+
   @IsNotEmpty()
   @IsNumber()
-  animalsPerCage: number;
+  numberPerCage: number;
 }
 
-export class UpdateCagesDto {
+export class CagesEggHarvestedDto {
   @IsNotEmpty()
   @IsNumber()
-  dimension: number;
+  number: number;
+
+  @IsNotEmpty()
+  @IsString()
+  size: string;
+}
+
+export class DeathDto {
+  @IsNotEmpty()
+  @IsNumber()
+  number: number;
+
+  @IsNotEmpty()
+  @IsString()
+  size: string;
+}
+
+export class GetCagesDto {
+  @IsOptional()
+  @IsUUID()
+  @IsString()
+  animalId: string;
 }

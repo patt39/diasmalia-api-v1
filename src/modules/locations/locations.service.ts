@@ -26,9 +26,11 @@ export class LocationsService {
       search,
       status,
       addCages,
+      buildingId,
       animalTypeId,
       productionPhase,
       pagination,
+      organizationId,
     } = selections;
 
     if (search) {
@@ -48,12 +50,20 @@ export class LocationsService {
       Object.assign(prismaWhere, { addCages });
     }
 
+    if (buildingId) {
+      Object.assign(prismaWhere, { buildingId });
+    }
+
     if (animalTypeId) {
       Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (productionPhase) {
       Object.assign(prismaWhere, { productionPhase });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
     }
 
     const locations = await this.client.location.findMany({
@@ -64,6 +74,13 @@ export class LocationsService {
       orderBy: pagination.orderBy,
     });
 
+    const initialValue = 0;
+    const sumAnimals = locations.reduce(
+      (accumulator: any, currentValue: any) =>
+        accumulator + currentValue._count?.animals,
+      initialValue,
+    );
+
     const rowCount = await this.client.location.count({
       where: { ...prismaWhere, deletedAt: null },
     });
@@ -71,6 +88,7 @@ export class LocationsService {
     return withPagination({
       pagination,
       rowCount,
+      animals: sumAnimals,
       value: locations,
     });
   }
@@ -171,6 +189,7 @@ export class LocationsService {
       manger,
       through,
       addCages,
+      buildingId,
       squareMeter,
       animalTypeId,
       productionPhase,
@@ -186,6 +205,7 @@ export class LocationsService {
         manger,
         through,
         addCages,
+        buildingId,
         squareMeter,
         animalTypeId,
         productionPhase,
@@ -211,6 +231,7 @@ export class LocationsService {
       status,
       through,
       addCages,
+      buildingId,
       squareMeter,
       productionPhase,
       deletedAt,
@@ -226,6 +247,7 @@ export class LocationsService {
         status,
         through,
         addCages,
+        buildingId,
         squareMeter,
         productionPhase,
         deletedAt,

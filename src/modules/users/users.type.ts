@@ -70,6 +70,7 @@ export const UserSelect = {
       contributors: true,
     },
   },
+  organizationId: true,
   organization: {
     select: {
       logo: true,

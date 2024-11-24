@@ -1,6 +1,4 @@
-import { Size } from '@prisma/client';
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -15,8 +13,7 @@ export class CreateEggHavestingsDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsEnum(Size)
-  size: Size;
+  size: string;
 
   @IsNotEmpty()
   @IsString()
@@ -30,8 +27,7 @@ export class UpdateEggHavestingsDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(Size)
-  size: Size;
+  size: string;
 
   @IsOptional()
   @IsString()

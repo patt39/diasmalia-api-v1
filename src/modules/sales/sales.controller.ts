@@ -39,6 +39,7 @@ import { UsersService } from '../users/users.service';
 import {
   formatDDMMYYDate,
   formatNowDateYYMMDD,
+  formatWeight,
 } from './../../app/utils/commons/formate-date';
 import {
   BulkSalesDto,
@@ -236,6 +237,7 @@ export class SalesController {
       );
 
     const sale = await this.salesService.createOne({
+      code,
       male,
       female,
       phone,
@@ -264,6 +266,37 @@ export class SalesController {
       );
     }
 
+    if (
+      detail === 'CHICKENS' &&
+      sale?.type === 'Pisciculture' &&
+      ['LAYING', 'FATTENING'].includes(findOneAnimal?.productionPhase)
+    ) {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        {
+          female: findOneAnimal?.female - female,
+          male: findOneAnimal?.male - male,
+          quantity: findOneAnimal?.quantity - sale?.number,
+        },
+      );
+    }
+
+    if (
+      detail === 'CHICKENS' &&
+      sale?.type === 'Pisciculture' &&
+      ['GROWTH', 'FATTENING'].includes(findOneAnimal?.productionPhase)
+    ) {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        { quantity: findOneAnimal?.quantity - sale?.number },
+      );
+    }
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      { quantity: findOneAnimal?.quantity - sale?.number },
+    );
+
     if (findOneAnimal?.quantity - sale?.number === 0) {
       await this.animalsService.updateOne(
         { animalId: findOneAnimal?.id },
@@ -277,7 +310,7 @@ export class SalesController {
 
     await this.financesService.createOne({
       type: 'INCOME',
-      detail: `Sale of ${detail} `,
+      detail: `Sale`,
       organizationId: user.organizationId,
       userCreatedId: user.id,
       amount: price,
@@ -285,7 +318,7 @@ export class SalesController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a sale ${findOneAnimal.animalType.name} with code ${findOneAnimal?.code} `,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} added a sale in ${findOneAnimal.animalType.name} for ${findOneAnimal?.code} `,
       organizationId: user.organizationId,
     });
 
@@ -377,30 +410,31 @@ export class SalesController {
         {
           table: {
             body: [
-              [
-                'Animal Type',
-                'Number',
-                'Age',
-                'Weight(kg)',
-                'Production phase',
-              ],
+              ['Animal Type', 'Number', 'Weight', 'Detail'],
               [
                 findOneAnimal?.animalType?.slug,
                 sale?.number,
-                findOneAnimal?.birthday,
-                findOneAnimal?.weight,
-                findOneAnimal?.productionPhase,
+                formatWeight(findOneAnimal?.weight),
+                sale?.detail,
               ],
             ],
           },
         },
         '\n',
         {
-          text: `Price:  ${price} ${findUniqueUser?.profile?.currency?.symbol}`,
-          style: { fontSize: 12 },
+          text: `Price:  ${price.toLocaleString('en-US')} ${findUniqueUser?.profile?.currency?.symbol}`,
+          style: { fontSize: 20 },
           bold: true,
           margin: [0, 0, 0, 20],
         },
+        '\n',
+        {
+          qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animal/${findOneAnimal?.id}`,
+          fit: 200,
+          alignment: 'center',
+          eccLevel: 'H',
+        },
+        '\n',
         {
           text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues thanks`,
           style: { fontSize: 12 },
@@ -522,7 +556,7 @@ export class SalesController {
       });
 
       animalArrayPdfCodes.push(findOneAnimal?.code);
-      animalArrayPdfWeights.push(findOneAnimal?.weight);
+      animalArrayPdfWeights.push(formatWeight(findOneAnimal?.weight));
       animalArrayPdfGenders.push(findOneAnimal?.gender);
       animalArrayPdfTypesId.push(findOneAnimal?.animalType?.id);
       animalArrayPdfTypes.push(findOneAnimal?.animalType?.slug);
@@ -554,7 +588,7 @@ export class SalesController {
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} sold ${animals.lenght} ${sale.type} to ${soldTo}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} sold ${animals.lenght} in ${sale.type} to ${soldTo}`,
     });
 
     await this.financesService.createOne({
@@ -662,11 +696,10 @@ export class SalesController {
               [
                 newAnimalArrayPdf,
                 [
-                  note,
                   {
                     table: {
                       body: [
-                        ['Codes', 'Weight(kg)', 'Gender', 'Type'],
+                        ['Codes', 'Weight(g)', 'Gender', 'Type'],
                         [
                           animalArrayPdfCodes,
                           animalArrayPdfWeights,
@@ -689,8 +722,8 @@ export class SalesController {
           margin: [0, 0, 0, 20],
         },
         {
-          text: `Price:  ${price} ${findUniqueUser?.profile?.currency?.symbol}`,
-          style: { fontSize: 12 },
+          text: `Price:  ${price.toLocaleString('en-US')} ${findUniqueUser?.profile?.currency?.symbol}`,
+          style: { fontSize: 20 },
           bold: true,
           margin: [0, 0, 0, 20],
         },
@@ -864,6 +897,11 @@ export class SalesController {
       );
       res.set('Cross-Origin-Resource-Policy', 'cross-origin');
       res.send(pdfResponse.data);
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} downloaded a pdf for ${findOneSale?.type}`,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).send('Error during file recovering.');

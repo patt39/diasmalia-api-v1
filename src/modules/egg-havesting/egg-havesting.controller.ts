@@ -220,7 +220,7 @@ export class EggHavestingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted an egg-havesting ${findOneEggHarvesting?.animalType?.name} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted an egg-havesting for ${findOneEggHarvesting?.animal?.code} in ${findOneEggHarvesting?.animalType?.name} `,
     });
 
     return reply({ res, results: 'EggHarvesting deleted successfully' });

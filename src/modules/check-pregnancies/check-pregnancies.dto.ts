@@ -9,10 +9,6 @@ export class CreateOrUpdateCheckPregnanciesDto {
   @IsString()
   method: string;
 
-  @IsOptional()
-  @IsString()
-  locationCode: string;
-
   @IsNotEmpty()
   @IsString()
   result: string;
