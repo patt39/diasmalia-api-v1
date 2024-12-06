@@ -51,6 +51,7 @@ export const UserSelect = {
   confirmedAt: true,
   profile: {
     select: {
+      id: true,
       firstName: true,
       lastName: true,
       occupation: true,
@@ -73,9 +74,7 @@ export const UserSelect = {
   organizationId: true,
   organization: {
     select: {
-      logo: true,
       name: true,
-      image: true,
       description: true,
       assignTypes: {
         select: {

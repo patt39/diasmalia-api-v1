@@ -14,8 +14,19 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import axios from 'axios';
+import PdfPrinter from 'pdfmake';
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { Writable } from 'stream';
 import { config } from '../../app/config/index';
-import { generateNumber } from '../../app/utils/commons';
+import {
+  formatDDMMYYDate,
+  formatNowDateYYMMDD,
+  formatWeight,
+  generateNumber,
+  generateUUID,
+  getDayOfMonth,
+} from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import { addPagination } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
@@ -26,8 +37,11 @@ import { BreedsService } from '../breeds/breeds.service';
 import { FarrowingsService } from '../farrowings/farrowings.service';
 import { FatteningsService } from '../fattenings/fattening.service';
 import { GestationsService } from '../gestation/gestations.service';
+import { awsS3ServiceAdapter } from '../integrations/aws/aws-s3-service-adapter';
 import { LocationsService } from '../locations/locations.service';
+import { reportPDFAttachment } from '../users/mails/report-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
+import { UsersService } from '../users/users.service';
 import {
   BulkAnimalsCreateDto,
   CreateAnimalsDto,
@@ -43,6 +57,7 @@ export class AnimalsController {
   constructor(
     private readonly breedsService: BreedsService,
     private readonly animalsService: AnimalsService,
+    private readonly usersService: UsersService,
     private readonly locationsService: LocationsService,
     private readonly fatteningsService: FatteningsService,
     private readonly gestationsService: GestationsService,
@@ -296,11 +311,11 @@ export class AnimalsController {
       );
 
     const findOneAnimal = await this.animalsService.findOneBy({
-      code: code.toLowerCase(),
+      code: code,
       organizationId: user?.organizationId,
       animalTypeId: findOneLocation?.animalTypeId,
     });
-    if (code.toLowerCase() == findOneAnimal?.code)
+    if (code == findOneAnimal?.code)
       throw new HttpException(
         `Animal code: ${findOneAnimal?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
@@ -344,7 +359,7 @@ export class AnimalsController {
       birthday: new Date(birthday),
       locationId: findOneLocation?.id,
       code: code
-        ? code.toLowerCase()
+        ? code.toUpperCase()
         : `${orgInitials}${generateNumber(4)}${appInitials}`,
       animalTypeId: findOneBreed?.animalTypeId,
       organizationId: user?.organizationId,
@@ -665,8 +680,8 @@ export class AnimalsController {
 
     const findOneLocation = await this.locationsService.findOneBy({
       code: locationCode,
-      animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
+      animalTypeId: findOneAnimal?.animalTypeId,
     });
     if (!findOneLocation)
       throw new HttpException(
@@ -695,7 +710,6 @@ export class AnimalsController {
     const animal = await this.animalsService.updateOne(
       { animalId: findOneAnimal?.id },
       {
-        code,
         male,
         strain,
         female,
@@ -703,11 +717,12 @@ export class AnimalsController {
         gender,
         supplier,
         quantity,
-        codeFather,
-        codeMother,
         isCastrated,
         productionPhase,
+        code: code.toUpperCase(),
         birthday: new Date(birthday),
+        codeMother: codeMother,
+        codeFather: codeFather,
         breedId: breedName ? findOneBreed?.id : breedName,
         locationId: locationCode
           ? findOneLocation?.id
@@ -715,11 +730,6 @@ export class AnimalsController {
         organizationId: user?.organizationId,
         userCreatedId: user?.id,
       },
-    );
-
-    await this.locationsService.updateOne(
-      { locationId: animal?.locationId },
-      { productionPhase: animal?.productionPhase },
     );
 
     await this.activitylogsService.createOne({
@@ -758,6 +768,312 @@ export class AnimalsController {
       );
 
     return reply({ res, results: findOneAnimal });
+  }
+
+  /** Change production status */
+  @Put(`/:animalId/change-status`)
+  @UseGuards(UserAuthGuard)
+  async changeStatus(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const findOneAnimal = await this.animalsService.findOneAnimalDetails({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Animal ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneUser = await this.usersService.findOneBy({
+      organizationId: user?.organizationId,
+    });
+    if (!findOneUser)
+      throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
+
+    const findUniqueUser = await this.usersService.findMe({
+      userId: user?.id,
+    });
+    if (!findUniqueUser)
+      throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
+
+    const feedIndex = Number(
+      findOneAnimal?.feedingsCount / findOneAnimal?.weight,
+    );
+
+    const duration = Number(
+      getDayOfMonth(findOneAnimal?.birthday) - new Date().getDate(),
+    );
+
+    const deathPercentage =
+      Number(findOneAnimal?.deathsCount / findOneAnimal?.quantity) * 100;
+
+    const revenu =
+      Number(
+        findOneAnimal?.chickenSaleAmount +
+          findOneAnimal?.chickSaleAmount +
+          findOneAnimal?.eggSaleAmount,
+      ) - Number(String(findOneAnimal?.totalExpenses).slice(1));
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      { status: 'STOPPED' },
+    );
+
+    const fonts = {
+      Helvetica: {
+        normal: 'Helvetica',
+        bold: 'Helvetica-Bold',
+        italics: 'Helvetica-Oblique',
+        bolditalics: 'Helvetica-BoldOblique',
+      },
+    };
+
+    const printer = new PdfPrinter(fonts);
+    const docDefinition = {
+      footer: function () {
+        return {
+          text: `Generated by ${config.datasite.name} on ${formatDDMMYYDate(new Date())}`,
+          alignment: 'right',
+          style: 'normalText',
+          margin: [10, 10, 10, 10],
+        };
+      },
+
+      content: [
+        {
+          text: `Rapport de fin de production`,
+          alignment: 'center',
+          bold: true,
+          style: { fontSize: 20 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Lancé le: ${formatDDMMYYDate(findOneAnimal?.birthday)}`,
+          alignment: 'center',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Fournisseur: ${findOneAnimal?.supplier}`,
+          alignment: 'center',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Souche: ${findOneAnimal?.strain}`,
+          alignment: 'center',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: `Code de la bande: ${findOneAnimal?.code}, Type: ${findOneAnimal?.animalType?.name}`,
+          alignment: 'center',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Effectif initial: ${findOneAnimal?.quantity}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Aliment consommé: ${formatWeight(findOneAnimal?.feedingsCount)}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Indice de consommation: ${feedIndex.toFixed(1)}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Poids à la vente: ${formatWeight(findOneAnimal?.weight)}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Poids à la vente: ${formatWeight(findOneAnimal?.weight)}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Durée de la production: ${duration} jours`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Morts: ${findOneAnimal?.deathsCount}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Pourcentage de morts: ${deathPercentage.toFixed(1)} %`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Morts: ${findOneAnimal?.deathsCount}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Oeufs ramassés: ${findOneAnimal?.totalEggsHarvested}`,
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          table: {
+            body: [
+              ['Poulets vendus', 'Montant'],
+              [
+                findOneAnimal?.chickenSaleCount,
+                `${findOneAnimal?.chickenSaleAmount.toLocaleString('en-US')}${findUniqueUser?.profile?.currency?.symbol}`,
+              ],
+            ],
+          },
+        },
+        '\n',
+        {
+          table: {
+            body: [
+              ['Oeufs vendus', 'Montant'],
+              [
+                findOneAnimal?.eggSaleCount,
+                `${findOneAnimal?.eggSaleAmount.toLocaleString('en-US')}${findUniqueUser?.profile?.currency?.symbol}`,
+              ],
+            ],
+          },
+        },
+        '\n',
+        {
+          table: {
+            body: [
+              ['Poussins vendus', 'Montant'],
+              [
+                findOneAnimal?.chickSaleCount,
+                `${findOneAnimal?.chickSaleAmount.toLocaleString('en-US')}${findUniqueUser?.profile?.currency?.symbol}`,
+              ],
+            ],
+          },
+        },
+        '\n',
+        {
+          text: `Dépenses total: ${Number(String(findOneAnimal?.totalExpenses).slice(1)).toLocaleString('en-US')}${findUniqueUser?.profile?.currency?.symbol}`,
+          bold: true,
+          alignment: 'right',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
+        {
+          text: `Revenu net: ${revenu.toLocaleString('en-US')} ${findUniqueUser?.profile?.currency?.symbol}`,
+          bold: true,
+          alignment: 'right',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+      ],
+      defaultStyle: {
+        font: 'Helvetica',
+      },
+    } as TDocumentDefinitions;
+
+    const nameFile = `${formatNowDateYYMMDD(new Date())}-${generateUUID()}`;
+    const fileName = `${nameFile}.pdf`;
+    const pdfDoc = printer.createPdfKitDocument(docDefinition);
+    pdfDoc.compress = true;
+    const chunks = [] as any;
+    await new Promise((resolve, reject) => {
+      const stream = new Writable({
+        write: (chunk, _, next) => {
+          chunks.push(chunk);
+          next();
+        },
+      });
+      stream.once('error', (err) => reject(err));
+      stream.once('close', () => resolve('ok'));
+      pdfDoc.pipe(stream);
+      pdfDoc.end();
+    });
+
+    const awsPdf = await awsS3ServiceAdapter({
+      fileName: fileName,
+      mimeType: 'application/pdf',
+      folder: 'sales-pdf',
+      file: Buffer.concat(chunks),
+    });
+
+    await this.animalsService.updateOne(
+      { animalId: findOneAnimal?.id },
+      { report: awsPdf?.Location },
+    );
+    await reportPDFAttachment({
+      animal: findOneAnimal,
+      email: findOneUser?.email,
+      filename: fileName,
+      content: Buffer.concat(chunks),
+    });
+
+    return reply({ res, results: 'Status changed successfully' });
+  }
+
+  /** Pdf report download */
+  @Get(`/:animalId/download`)
+  async getOneUploadedPDF(
+    @Res() res,
+    @Req() req,
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+  ) {
+    const { user } = req;
+
+    const findOneAnimal = await this.animalsService.findOneBy({
+      animalId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `AnimalId: ${animalId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    try {
+      const pdfResponse = await axios.get(findOneAnimal?.report, {
+        responseType: 'arraybuffer', // Ensures the PDF is handled as a binary
+      });
+      const fileName = `document_${findOneAnimal?.id}.pdf`;
+      res.status(200);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.send(pdfResponse.data);
+      await this.activitylogsService.createOne({
+        userId: user?.id,
+        organizationId: user?.organizationId,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} downloaded a pdf report`,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error during file recovering.');
+    }
   }
 
   /** Get one animal by animalType */

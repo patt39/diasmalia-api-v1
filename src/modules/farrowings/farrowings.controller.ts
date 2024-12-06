@@ -12,10 +12,13 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -24,7 +27,9 @@ import {
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
+import { BreedingsService } from '../breedings/breedings.service';
 import { GestationsService } from '../gestation/gestations.service';
+import { UploadsUtil } from '../integrations/integration.utils';
 import { LocationsService } from '../locations/locations.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
@@ -37,10 +42,12 @@ import { FarrowingsService } from './farrowings.service';
 @Controller('farrowings')
 export class FarrowingsController {
   constructor(
+    private readonly uploadsUtil: UploadsUtil,
     private readonly farrowingsService: FarrowingsService,
     private readonly animalsService: AnimalsService,
     private readonly gestationsService: GestationsService,
     private readonly locationsService: LocationsService,
+    private readonly breedingsService: BreedingsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -105,11 +112,22 @@ export class FarrowingsController {
 
     const findOneGestation = await this.gestationsService.findOneBy({
       animalId: findOneFemale?.id,
-      organizationId: user?.organization,
+      organizationId: user?.organizationId,
     });
     if (!findOneGestation) {
       throw new HttpException(
         `Gestation doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const findOneBreeding = await this.breedingsService.findOneBy({
+      animalFemaleId: findOneFemale?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneBreeding) {
+      throw new HttpException(
+        `Breeding doesn't exists please change`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -120,6 +138,7 @@ export class FarrowingsController {
       litter,
       weight,
       animalId: findOneFemale?.id,
+      breedingId: findOneBreeding?.id,
       farrowingDate: new Date(farrowingDate),
       animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,
@@ -160,11 +179,13 @@ export class FarrowingsController {
 
   /** Update one farrowing */
   @Put(`/:farrowingId/edit`)
+  @UseInterceptors(FileInterceptor('image'))
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
     @Body() body: UpdateFarrowingsDto,
+    @UploadedFile() file: Express.Multer.File,
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
@@ -180,9 +201,21 @@ export class FarrowingsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'photos',
+    });
+
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing?.id },
-      { dead, note, litter, weight, userCreatedId: user?.id },
+      {
+        dead,
+        note,
+        litter,
+        weight,
+        image: urlAWS?.Location,
+      },
     );
 
     await this.activitylogsService.createOne({

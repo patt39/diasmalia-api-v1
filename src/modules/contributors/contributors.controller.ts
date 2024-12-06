@@ -29,7 +29,6 @@ import {
   CreateOrUpdateContributorDto,
   GetContributorsDto,
 } from '../contributors/contributors.dto';
-import { UploadsUtil } from '../integrations/integration.utils';
 import { ProfilesService } from '../profiles/profiles.service';
 import { contributorInvitationMail } from '../users/mails/contribution-invitation-mail';
 import { contributorCreateUserMail } from '../users/mails/contributor-create-user-mail';
@@ -53,7 +52,6 @@ export class ContributorsController {
     private readonly usersService: UsersService,
     private readonly profilesService: ProfilesService,
     private readonly contributorsService: ContributorsService,
-    private readonly uploadsUtil: UploadsUtil,
     private readonly organizationsService: OrganizationsService,
     private readonly activitylogsService: ActivityLogsService,
     private readonly checkUserService: CheckUserService,

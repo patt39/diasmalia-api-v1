@@ -72,13 +72,12 @@ export class OrganizationsService {
 
   /** Create one Organization in database. */
   async createOne(options: CreateOrganizationsOptions): Promise<Organization> {
-    const { name, logo, image, description, userId } = options;
+    const { name, logo, description, userId } = options;
 
     const organization = this.client.organization.create({
       data: {
         name,
         logo,
-        image,
         userId,
         description,
       },
@@ -93,14 +92,13 @@ export class OrganizationsService {
     options: UpdateOrganizationsOptions,
   ): Promise<Organization> {
     const { organizationId } = selections;
-    const { name, logo, image, description, deletedAt } = options;
+    const { name, logo, description, deletedAt } = options;
 
     const organization = this.client.organization.update({
       where: { id: organizationId },
       data: {
         name,
         logo,
-        image,
         description,
         deletedAt,
       },

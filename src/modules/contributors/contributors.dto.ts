@@ -59,6 +59,10 @@ export class CreateOneContributorUserDto {
 
   @IsOptional()
   @IsString()
+  testimonial: string;
+
+  @IsOptional()
+  @IsString()
   lastName: string;
 
   @IsOptional()

@@ -3,6 +3,7 @@ import { reply } from '../../app/utils/reply';
 
 import { DeathsService } from '../death/deaths.service';
 import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
+import { FarrowingsService } from '../farrowings/farrowings.service';
 import { FeedingsService } from '../feeding/feedings.service';
 import { FinancesService } from '../finances/finances.service';
 import { IncubationsService } from '../incubation/incubation.service';
@@ -10,7 +11,11 @@ import { MilkingsService } from '../milking /milkings.service';
 import { SalesService } from '../sales/sales.service';
 import { UserAuthGuard } from '../users/middleware';
 import { WeaningsService } from '../weaning/weaning.service';
-import { GetAnalyticsQuery, GetFinanceAnalyticsQuery } from './analytics.dto';
+import {
+  GetAnalyticsQuery,
+  GetAnimalFarrowingsQuery,
+  GetFinanceAnalyticsQuery,
+} from './analytics.dto';
 @Controller('analytics')
 export class AnalyticsController {
   constructor(
@@ -19,6 +24,7 @@ export class AnalyticsController {
     private readonly incubationsService: IncubationsService,
     private readonly deathsService: DeathsService,
     private readonly salesService: SalesService,
+    private readonly farrowingsService: FarrowingsService,
     private readonly weaningsService: WeaningsService,
     private readonly milkingsService: MilkingsService,
     private readonly financesService: FinancesService,
@@ -212,6 +218,54 @@ export class AnalyticsController {
     });
 
     return reply({ res, results: animalsAnalytics });
+  }
+
+  /** Get sales analytics. */
+  @Get(`/sales`)
+  @UseGuards(UserAuthGuard)
+  async getSalesAnalysis(
+    @Res() res,
+    @Req() req,
+    @Query() queryAnalytics: GetAnalyticsQuery,
+  ) {
+    const { days, months, year, animalTypeId, periode } = queryAnalytics;
+    const { user } = req;
+
+    const salesAnalytics = await this.salesService.getSalesAnalytics({
+      days,
+      year,
+      months,
+      animalTypeId,
+      periode: Number(periode),
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: salesAnalytics });
+  }
+
+  /** Get Animal Farrowing analytics. */
+  @Get(`/farrowings`)
+  @UseGuards(UserAuthGuard)
+  async getAnimalsFarrowingsAnalysis(
+    @Res() res,
+    @Req() req,
+    @Query() queryFarrowingsAnalytics: GetAnimalFarrowingsQuery,
+  ) {
+    const { days, months, year, animalTypeId, animalId } =
+      queryFarrowingsAnalytics;
+    const { user } = req;
+
+    const farrowingsAnalytics =
+      await this.farrowingsService.getAnimalFarrowingsAnalytics({
+        days,
+        year,
+        months,
+        animalId,
+        animalTypeId,
+        organizationId: user?.organizationId,
+      });
+
+    return reply({ res, results: farrowingsAnalytics });
   }
 
   /** Get weanings analytics. */

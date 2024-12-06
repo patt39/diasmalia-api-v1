@@ -66,7 +66,7 @@ export class HealthsService {
   /** Find one health in database. */
   async findOneBy(selections: GetOneHealthSelections) {
     const prismaWhere = {} as Prisma.HealthWhereInput;
-    const { healthId, name, animalTypeId, status, organizationId } = selections;
+    const { healthId, name, status, organizationId } = selections;
 
     if (healthId) {
       Object.assign(prismaWhere, { id: healthId });
@@ -87,10 +87,6 @@ export class HealthsService {
       Object.assign(prismaWhere, { name });
     }
 
-    if (animalTypeId) {
-      Object.assign(prismaWhere, { animalTypeId });
-    }
-
     const health = await this.client.health.findFirst({
       where: { ...prismaWhere, deletedAt: null },
       select: HealthSelect,
@@ -101,25 +97,15 @@ export class HealthsService {
 
   /** Create one health in database. */
   async createOne(options: CreateHealthsOptions): Promise<Health> {
-    const {
-      name,
-      image,
-      status,
-      category,
-      description,
-      animalTypeId,
-      organizationId,
-      userCreatedId,
-    } = options;
+    const { name, image, status, description, organizationId, userCreatedId } =
+      options;
 
     const health = this.client.health.create({
       data: {
         name,
         image,
         status,
-        category,
         description,
-        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -134,16 +120,8 @@ export class HealthsService {
     options: UpdateHealthsOptions,
   ): Promise<Health> {
     const { healthId } = selections;
-    const {
-      name,
-      image,
-      status,
-      category,
-      description,
-      userCreatedId,
-      animalTypeId,
-      deletedAt,
-    } = options;
+    const { name, image, status, description, userCreatedId, deletedAt } =
+      options;
 
     const health = this.client.health.update({
       where: { id: healthId },
@@ -151,9 +129,7 @@ export class HealthsService {
         name,
         image,
         status,
-        category,
         description,
-        animalTypeId,
         userCreatedId,
         deletedAt,
       },

@@ -107,14 +107,6 @@ export class IncubationsController {
       userCreatedId: user?.id,
     });
 
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      {
-        eggHarvestedCount:
-          findOneAnimal?.eggHarvestedCount - incubation?.quantityStart,
-      },
-    );
-
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
@@ -136,12 +128,6 @@ export class IncubationsController {
     const { user } = req;
     const { quantityEnd, quantityStart, dueDate } = body;
 
-    if (quantityEnd > quantityStart)
-      throw new HttpException(
-        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
-        HttpStatus.AMBIGUOUS,
-      );
-
     const findOneIncubation = await this.incubationsService.findOneBy({
       incubationId,
       organizationId: user?.organizationId,
@@ -150,6 +136,12 @@ export class IncubationsController {
       throw new HttpException(
         `IncubationId: ${incubationId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
+      );
+
+    if (quantityEnd > quantityStart)
+      throw new HttpException(
+        `QuantityEnd: ${quantityEnd} can't be greater than quantityStart: ${quantityStart}`,
+        HttpStatus.AMBIGUOUS,
       );
 
     const incubation = await this.incubationsService.updateOne(

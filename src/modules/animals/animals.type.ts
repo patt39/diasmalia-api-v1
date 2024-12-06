@@ -20,6 +20,7 @@ export type GetOneAnimalsSelections = {
   animalId?: Animal['id'];
   code?: Animal['code'];
   codeMother?: Animal['codeMother'];
+  codeFather?: Animal['codeFather'];
   gender?: Animal['gender'];
   quantity?: Animal['quantity'];
   locationId?: Animal['locationId'];
@@ -47,6 +48,7 @@ export const AnimalSelect = {
   createdAt: true,
   deletedAt: true,
   id: true,
+  report: true,
   code: true,
   gender: true,
   weight: true,
@@ -61,14 +63,12 @@ export const AnimalSelect = {
   codeMother: true,
   isIsolated: true,
   isCastrated: true,
-  eggHarvestedCount: true,
   productionPhase: true,
   organizationId: true,
   organization: {
     select: {
       logo: true,
       name: true,
-      image: true,
     },
   },
   locationId: true,

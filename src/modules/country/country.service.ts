@@ -21,7 +21,7 @@ export class CountriesService {
     selections: GetCountriesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.CountryWhereInput;
-    const { search, pagination } = selections;
+    const { search, pagination, status } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -33,6 +33,13 @@ export class CountriesService {
           },
         ],
       });
+    }
+
+    if (status) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      status === 'true'
+        ? Object.assign(prismaWhere, { status: true })
+        : Object.assign(prismaWhere, { status: false });
     }
 
     const countries = await this.client.country.findMany({

@@ -117,6 +117,14 @@ export class WeaningsController {
         HttpStatus.AMBIGUOUS,
       );
 
+    if (
+      animals?.length !== Number(findOneFemale?.location?._count?.animals - 1)
+    )
+      throw new HttpException(
+        `Impossible to create you have to wean all offsprings at once`,
+        HttpStatus.AMBIGUOUS,
+      );
+
     for (const animal of animals) {
       const findOneAnimal = await this.animalsService.findOneBy({
         code: animal,
@@ -151,6 +159,7 @@ export class WeaningsController {
       litter: animals.length,
       animalId: findOneFemale?.id,
       farrowingId: findOneFarrowing?.id,
+      breedingId: findOneFarrowing?.breedingId,
       farrowingLitter: findOneFarrowing?.litter,
       animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,

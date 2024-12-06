@@ -39,7 +39,6 @@ export class BlogController {
 
   /** Get all blogs */
   @Get(`/`)
-  @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,

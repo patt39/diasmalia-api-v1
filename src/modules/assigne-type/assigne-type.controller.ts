@@ -81,6 +81,9 @@ export class AssignTypesController {
     const { user } = req;
     const { animalTypeIds } = body;
 
+    if (animalTypeIds.lenght === 0)
+      throw new HttpException(`Please select a type`, HttpStatus.NOT_FOUND);
+
     for (const animalTypeId of animalTypeIds) {
       const findOneType = await this.animalTypesService.findOneBy({
         animalTypeId,

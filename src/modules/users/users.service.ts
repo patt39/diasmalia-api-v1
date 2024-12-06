@@ -85,9 +85,7 @@ export class UsersService {
         profile: true,
         organization: {
           select: {
-            logo: true,
             name: true,
-            image: true,
             description: true,
           },
         },

@@ -8,6 +8,7 @@ import { FatteningsService } from '../fattenings/fattening.service';
 import { GestationsService } from '../gestation/gestations.service';
 import { IsolationsService } from '../isolations/isolations.service';
 import { LocationsService } from '../locations/locations.service';
+import { UsersService } from '../users/users.service';
 import { AnimalsController } from './animals.controller';
 import { AnimalsService } from './animals.service';
 
@@ -17,6 +18,7 @@ import { AnimalsService } from './animals.service';
     AnimalsService,
     LocationsService,
     BreedsService,
+    UsersService,
     GestationsService,
     FatteningsService,
     ActivityLogsService,

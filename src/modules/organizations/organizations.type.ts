@@ -24,11 +24,14 @@ export type UpdateOrganizationsOptions = Partial<Organization>;
 export const OrganizationSelect = {
   createdAt: true,
   id: true,
-  logo: true,
   name: true,
-  image: true,
   description: true,
   userId: true,
+  _count: {
+    select: {
+      images: true,
+    },
+  },
   user: {
     select: {
       email: true,

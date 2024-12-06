@@ -45,6 +45,7 @@ export const TaskSelect = {
             select: {
               firstName: true,
               lastName: true,
+              photo: true,
             },
           },
         },

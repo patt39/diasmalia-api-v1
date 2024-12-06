@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Farrowing, Prisma } from '@prisma/client';
 import {
   dateTimeNowUtc,
+  lastDayMonth,
   substrateDaysToTimeNowUtcDate,
 } from 'src/app/utils/commons';
 import { DatabaseService } from '../../app/database/database.service';
@@ -9,6 +10,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { groupCountAnimalFarrowingsAnalyticsByDateAndReturnArray } from './farrowings.analytics.utils';
 import {
   CreateFarrowingsOptions,
   FarrowingSelect,
@@ -81,7 +83,8 @@ export class FarrowingsService {
   /** Find one farrowing in database. */
   async findOneBy(selections: GetOneFarrowingsSelections) {
     const prismaWhere = {} as Prisma.FarrowingWhereInput;
-    const { farrowingId, animalTypeId, animalId, createdAt } = selections;
+    const { farrowingId, animalTypeId, animalId, breedingId, createdAt } =
+      selections;
 
     if (farrowingId) {
       Object.assign(prismaWhere, { id: farrowingId });
@@ -89,6 +92,10 @@ export class FarrowingsService {
 
     if (animalId) {
       Object.assign(prismaWhere, { animalId });
+    }
+
+    if (breedingId) {
+      Object.assign(prismaWhere, { breedingId });
     }
 
     if (createdAt) {
@@ -113,10 +120,10 @@ export class FarrowingsService {
     const {
       note,
       dead,
-      image,
       litter,
       weight,
       animalId,
+      breedingId,
       animalTypeId,
       userCreatedId,
       farrowingDate,
@@ -127,10 +134,10 @@ export class FarrowingsService {
       data: {
         note,
         dead,
-        image,
         litter,
         weight,
         animalId,
+        breedingId,
         farrowingDate,
         animalTypeId,
         userCreatedId,
@@ -175,5 +182,65 @@ export class FarrowingsService {
     });
 
     return farrowing;
+  }
+
+  /** Get animal farrowings analytics. */
+  async getAnimalFarrowingsAnalytics(selections: GetFarrowingsSelections) {
+    const prismaWhere = {} as Prisma.FarrowingWhereInput;
+    const { animalTypeId, animalId, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupFarrowingsAnalytics = await this.client.farrowing.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId', 'animalId'],
+      where: {
+        ...prismaWhere,
+        animal: { status: 'ACTIVE', deletedAt: null },
+        deletedAt: null,
+      },
+      _sum: {
+        litter: true,
+      },
+      _count: true,
+    });
+
+    const farrowingsAnalytics =
+      groupCountAnimalFarrowingsAnalyticsByDateAndReturnArray({
+        data: groupFarrowingsAnalytics,
+        year: year,
+        month: months,
+      });
+
+    return farrowingsAnalytics;
   }
 }

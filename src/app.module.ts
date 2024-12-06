@@ -27,6 +27,7 @@ import { FeedingsModule } from './modules/feeding/feedings.module';
 import { FinanceModule } from './modules/finances/finances.module';
 import { GestationsModule } from './modules/gestation/gestations.module';
 import { HealthModule } from './modules/health/health.module';
+import { ImagesModule } from './modules/images/images.module';
 import { IncubationsModule } from './modules/incubation/incubation.module';
 import { IsolationsModule } from './modules/isolations/isolations.module';
 import { LocationsModule } from './modules/locations/locations.module';
@@ -63,6 +64,7 @@ import { WeaningsModule } from './modules/weaning/weaning.module';
     HealthModule,
     FaqsModule,
     CagesModule,
+    ImagesModule,
     MaterialsModule,
     CountriesModule,
     FeedStockModule,

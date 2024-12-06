@@ -109,25 +109,6 @@ export class EggHavestingsController {
       userCreatedId: user?.id,
     });
 
-    if (
-      [
-        'Dinde',
-        'Canard',
-        'Pintarde',
-        'Pondeuses',
-        'Poulets Brahma',
-        'Poulets Goliaths',
-      ].includes(findOneAnimal?.animalType?.name)
-    ) {
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        {
-          eggHarvestedCount:
-            findOneAnimal?.eggHarvestedCount + eggHarvesting?.quantity,
-        },
-      );
-    }
-
     await this.animalsService.updateOne(
       { animalId: findOneAnimal.id },
       { productionPhase: 'LAYING' },

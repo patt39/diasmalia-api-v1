@@ -148,7 +148,8 @@ export class WeaningsService {
   /** Find one weaning in database. */
   async findOneBy(selections: GetOneWeaningSelections) {
     const prismaWhere = {} as Prisma.WeaningWhereInput;
-    const { weaningId, farrowingId, animalId, organizationId } = selections;
+    const { weaningId, farrowingId, animalId, breedingId, organizationId } =
+      selections;
 
     if (weaningId) {
       Object.assign(prismaWhere, { id: weaningId });
@@ -162,11 +163,16 @@ export class WeaningsService {
       Object.assign(prismaWhere, { animalId });
     }
 
+    if (breedingId) {
+      Object.assign(prismaWhere, { breedingId });
+    }
+
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
     }
 
     const weaning = await this.client.weaning.findFirst({
+      orderBy: { createdAt: 'desc' },
       where: { ...prismaWhere, deletedAt: null },
       select: WeaningSelect,
     });
@@ -180,6 +186,7 @@ export class WeaningsService {
       litter,
       weight,
       animalId,
+      breedingId,
       farrowingId,
       farrowingLitter,
       animalTypeId,
@@ -192,6 +199,7 @@ export class WeaningsService {
         litter,
         weight,
         animalId,
+        breedingId,
         farrowingId,
         farrowingLitter,
         animalTypeId,

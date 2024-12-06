@@ -27,10 +27,19 @@ export const UserProfileSelect = {
   address: true,
   phone: true,
   photo: true,
+  city: true,
   description: true,
   currency: {
     select: {
+      name: true,
+      code: true,
       symbol: true,
+    },
+  },
+  country: {
+    select: {
+      name: true,
+      code: true,
     },
   },
 };

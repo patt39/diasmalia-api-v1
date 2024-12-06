@@ -16,6 +16,7 @@ export type GetOneWeaningSelections = {
   weaningId?: Weaning['id'];
   animalId?: Weaning['animalId'];
   organizationId?: Weaning['id'];
+  breedingId?: Weaning['breedingId'];
   farrowingId?: Weaning['farrowingId'];
   animalTypeId?: Weaning['animalTypeId'];
 };

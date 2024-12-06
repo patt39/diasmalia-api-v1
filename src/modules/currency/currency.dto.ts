@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateCurrenciesDto {
   @IsOptional()
@@ -15,5 +15,12 @@ export class CreateOrUpdateCurrenciesDto {
 
   @IsOptional()
   @IsString()
+  status: string;
+}
+
+export class GetCurrenciesQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsIn(['true', 'false'])
   status: string;
 }

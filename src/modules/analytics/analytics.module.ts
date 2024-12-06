@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { DeathsService } from '../death/deaths.service';
 import { EggHavestingsService } from '../egg-havesting/egg-havesting.service';
+import { FarrowingsService } from '../farrowings/farrowings.service';
 import { FeedingsService } from '../feeding/feedings.service';
 import { FinancesService } from '../finances/finances.service';
 import { IncubationsService } from '../incubation/incubation.service';
@@ -19,6 +21,8 @@ import { AnalyticsController } from './analytics.controller';
     IncubationsService,
     DeathsService,
     SalesService,
+    AnimalsService,
+    FarrowingsService,
     WeaningsService,
     MilkingsService,
     FinancesService,

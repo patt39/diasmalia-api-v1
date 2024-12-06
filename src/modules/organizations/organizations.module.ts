@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CurrenciesService } from '../currency/currency.service';
-import { UploadsUtil } from '../integrations/integration.utils';
+import { ImagesService } from '../images/images.service';
 import { UsersService } from '../users/users.service';
 import { OrganizationsController } from './organizations.controller';
 import { OrganizationsService } from './organizations.service';
@@ -9,9 +9,9 @@ import { OrganizationsService } from './organizations.service';
   controllers: [OrganizationsController],
   providers: [
     OrganizationsService,
-    UploadsUtil,
     CurrenciesService,
     UsersService,
+    ImagesService,
   ],
 })
 export class OrganizationsModule {}

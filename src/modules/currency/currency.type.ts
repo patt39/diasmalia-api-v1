@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetCurrencySelections = {
   search?: string;
+  status?: string;
   pagination?: PaginationType;
 };
 
@@ -28,5 +29,4 @@ export const currenciesSelect = {
   code: true,
   symbol: true,
   status: true,
-  //userCreatedId: true,
 };

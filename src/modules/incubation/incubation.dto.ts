@@ -25,11 +25,11 @@ export class UpdateIncubationsDto {
   @IsNumber()
   quantityEnd: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   quantityStart: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   dueDate: Date;
 

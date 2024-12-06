@@ -9,6 +9,7 @@ import {
   WithPaginationResponse,
   withPagination,
 } from '../../app/utils/pagination';
+import { FarrowingsService } from '../farrowings/farrowings.service';
 import { WeaningsService } from '../weaning/weaning.service';
 import {
   BreedingSelect,
@@ -23,6 +24,7 @@ import {
 export class BreedingsService {
   constructor(
     private readonly client: DatabaseService,
+    private readonly farrowingsService: FarrowingsService,
     private readonly weaningsService: WeaningsService,
   ) {}
 
@@ -136,11 +138,16 @@ export class BreedingsService {
 
     const newBreedingArray: any = [];
     for (const breeding of breedings) {
+      const findOneAnimalFarrowing = await this.farrowingsService.findOneBy({
+        breedingId: breeding?.id,
+      });
       const findOneAnimalWeaning = await this.weaningsService.findOneBy({
-        animalId: breeding?.animalFemaleId,
+        //breedingId: breeding?.id,
+        farrowingId: findOneAnimalFarrowing?.id,
       });
       newBreedingArray.push({
         ...breeding,
+        farrowing: findOneAnimalFarrowing,
         weaning: findOneAnimalWeaning,
       });
     }

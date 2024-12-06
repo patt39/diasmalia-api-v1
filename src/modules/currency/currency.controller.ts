@@ -22,7 +22,10 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrUpdateCurrenciesDto } from './currency.dto';
+import {
+  CreateOrUpdateCurrenciesDto,
+  GetCurrenciesQueryDto,
+} from './currency.dto';
 import { CurrenciesService } from './currency.service';
 
 @Controller('currencies')
@@ -36,8 +39,10 @@ export class CurrenciesController {
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() searchQuery: SearchQueryDto,
+    @Query() currenciesQuery: GetCurrenciesQueryDto,
   ) {
     const { search } = searchQuery;
+    const { status } = currenciesQuery;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -48,6 +53,7 @@ export class CurrenciesController {
     });
 
     const currencies = await this.currenciesService.findAll({
+      status,
       search,
       pagination,
     });

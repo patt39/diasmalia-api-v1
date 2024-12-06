@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ContributorsService } from '../contributors/contributors.service';
+import { CountriesService } from '../country/country.service';
 import { CurrenciesService } from '../currency/currency.service';
+import { ImagesService } from '../images/images.service';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { ProfilesService } from '../profiles/profiles.service';
@@ -15,10 +17,12 @@ import { UsersService } from './users.service';
   providers: [
     UsersService,
     UploadsUtil,
+    ImagesService,
     CurrenciesService,
     CheckUserService,
     UserAuthStrategy,
     ProfilesService,
+    CountriesService,
     ContributorsService,
     OrganizationsService,
     UserVerifyAuthStrategy,
