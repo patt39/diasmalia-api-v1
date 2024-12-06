@@ -19,15 +19,6 @@ export class CreateOrUpdateHealthsDto {
   @IsOptional()
   @IsString()
   description: string;
-
-  @IsOptional()
-  @IsString()
-  @IsUUID()
-  animalTypeId: string;
-
-  @IsOptional()
-  @IsString()
-  category: string;
 }
 
 export class SelectMedecinesDto {
@@ -40,16 +31,7 @@ export class GetHealthQueryDto {
   @IsOptional()
   @IsString()
   @IsUUID()
-  animalTypeId: string;
-
-  @IsOptional()
-  @IsString()
-  @IsUUID()
   organizationId: string;
-
-  @IsOptional()
-  @IsString()
-  category: string;
 
   @IsOptional()
   @IsString()

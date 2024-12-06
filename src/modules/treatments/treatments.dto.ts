@@ -1,8 +1,6 @@
 import {
   IsArray,
-  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -10,8 +8,8 @@ import {
 
 export class CreateOrUpdateTreatmentsDto {
   @IsOptional()
-  @IsNumber()
-  dose: number;
+  @IsString()
+  dose: string;
 
   @IsNotEmpty()
   @IsString()
@@ -49,8 +47,8 @@ export class BulkTreatmentsDto {
   diagnosis: string;
 
   @IsOptional()
-  @IsInt()
-  dose: number;
+  @IsString()
+  dose: string;
 
   @IsOptional()
   @IsString()

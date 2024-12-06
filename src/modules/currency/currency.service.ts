@@ -22,7 +22,7 @@ export class CurrenciesService {
     selections: GetCurrencySelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.CurrencyWhereInput;
-    const { search, pagination } = selections;
+    const { search, pagination, status } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
@@ -34,6 +34,13 @@ export class CurrenciesService {
           },
         ],
       });
+    }
+
+    if (status) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      status === 'true'
+        ? Object.assign(prismaWhere, { status: true })
+        : Object.assign(prismaWhere, { status: false });
     }
 
     const currencies = await this.client.currency.findMany({

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -70,10 +69,11 @@ export class ProfilesController {
       address,
       lastName,
       firstName,
-      countryId,
       occupation,
-      currencyId,
       description,
+      testimonial,
+      countryId,
+      currencyId,
     } = body;
 
     const findCurrency = await this.currenciesService.findOneBy({
@@ -115,6 +115,7 @@ export class ProfilesController {
         firstName,
         occupation,
         description,
+        testimonial,
         userId: user?.id,
         photo: urlAWS?.Location,
         countryId: findCountry?.id,
@@ -123,20 +124,5 @@ export class ProfilesController {
     );
 
     return reply({ res, results: 'Profile updated successfully' });
-  }
-
-  /** Delete one Profiles */
-  @Delete(`/delete/:profileId`)
-  @UseGuards(UserAuthGuard)
-  async deleteOne(
-    @Res() res,
-    @Param('profileId', ParseUUIDPipe) profileId: string,
-  ) {
-    const profile = await this.profilesService.updateOne(
-      { profileId },
-      { deletedAt: new Date() },
-    );
-
-    return reply({ res, results: profile });
   }
 }

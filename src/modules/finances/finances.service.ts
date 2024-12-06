@@ -6,7 +6,6 @@ import {
   lastDayMonth,
   substrateDaysToTimeNowUtcDate,
 } from '../../app/utils/commons';
-import { Slug, generateNumber } from '../../app/utils/commons/generate-random';
 import {
   WithPaginationResponse,
   withPagination,
@@ -29,12 +28,28 @@ export class FinancesService {
     selections: GetFinancesSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.FinanceWhereInput;
-    const { search, type, periode, organizationId, pagination } = selections;
+    const {
+      search,
+      type,
+      periode,
+      organizationId,
+      pagination,
+      animalId,
+      animalTypeId,
+    } = selections;
 
     if (search) {
       Object.assign(prismaWhere, {
         OR: [{ detail: { contains: search, mode: 'insensitive' } }],
       });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
+    }
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
     }
 
     if (organizationId) {
@@ -171,14 +186,23 @@ export class FinancesService {
 
   /** Create one finance in database. */
   async createOne(options: CreateFinanceOptions): Promise<Finance> {
-    const { type, amount, detail, organizationId, userCreatedId } = options;
+    const {
+      type,
+      amount,
+      detail,
+      animalId,
+      animalTypeId,
+      organizationId,
+      userCreatedId,
+    } = options;
 
     const financialMgt = this.client.finance.create({
       data: {
         type,
         detail,
         amount,
-        slug: `${Slug(detail)}-${generateNumber(4)}`,
+        animalId,
+        animalTypeId,
         organizationId,
         userCreatedId,
       },
@@ -193,7 +217,8 @@ export class FinancesService {
     options: UpdateFinancesOptions,
   ): Promise<Finance> {
     const { financeId } = selections;
-    const { type, amount, detail, userCreatedId, deletedAt } = options;
+    const { type, amount, detail, animalId, userCreatedId, deletedAt } =
+      options;
 
     const finance = this.client.finance.update({
       where: { id: financeId },
@@ -201,6 +226,7 @@ export class FinancesService {
         type,
         amount,
         detail,
+        animalId,
         userCreatedId,
         deletedAt,
       },

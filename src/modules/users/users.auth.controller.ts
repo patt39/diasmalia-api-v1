@@ -21,6 +21,7 @@ import {
 } from '../../app/utils/cookies';
 import { reply } from '../../app/utils/reply';
 import { ContributorsService } from '../contributors/contributors.service';
+import { CountriesService } from '../country/country.service';
 import { CurrenciesService } from '../currency/currency.service';
 import { getOneLocationIpApi } from '../integrations/taux-live';
 import { OrganizationsService } from '../organizations/organizations.service';
@@ -48,6 +49,7 @@ export class UsersAuthController {
     private readonly profilesService: ProfilesService,
     private readonly checkUserService: CheckUserService,
     private readonly currenciesService: CurrenciesService,
+    private readonly countriesService: CountriesService,
     private readonly contributorsService: ContributorsService,
     private readonly organizationsService: OrganizationsService,
   ) {}
@@ -74,12 +76,18 @@ export class UsersAuthController {
       status: true,
     });
 
+    const findCountry = await this.countriesService.findOneBy({
+      code: 'CM',
+      status: true,
+    });
+
     await this.profilesService.createOne({
       lastName,
       firstName,
       userId: user.id,
       occupation: 'OWNER',
       currencyId: findCurrency?.id,
+      countryId: findCountry?.id,
     });
 
     const organization = await this.organizationsService.createOne({

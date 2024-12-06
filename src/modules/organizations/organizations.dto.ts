@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class CreateOrUpdateOrganizationsDto {
+export class UpdateOrganizationsDto {
   @IsOptional()
   @IsString()
   name: string;
@@ -8,14 +8,6 @@ export class CreateOrUpdateOrganizationsDto {
   @IsOptional()
   @IsString()
   description: string;
-
-  @IsOptional()
-  @IsString()
-  logo: string;
-
-  @IsOptional()
-  @IsString()
-  image: string;
 }
 
 export class GetOneUploadsDto {
@@ -32,4 +24,11 @@ export class GetOrganizationQueryDto {
   @IsOptional()
   @IsString()
   userId: string;
+}
+
+export class GetImagesQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  userCreatedId: string;
 }

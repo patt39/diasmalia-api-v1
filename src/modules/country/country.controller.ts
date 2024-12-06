@@ -19,6 +19,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { UserAuthGuard } from '../users/middleware';
+import { GetCountriesQueryDto } from './country.dto';
 import { CountriesService } from './country.service';
 
 @Controller('countries')
@@ -32,8 +33,10 @@ export class CountriesController {
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() searchQuery: SearchQueryDto,
+    @Query() countriesQuery: GetCountriesQueryDto,
   ) {
     const { search } = searchQuery;
+    const { status } = countriesQuery;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -44,6 +47,7 @@ export class CountriesController {
     });
 
     const countries = await this.contriesService.findAll({
+      status,
       search,
       pagination,
     });

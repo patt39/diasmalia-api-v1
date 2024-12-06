@@ -237,8 +237,30 @@ export class UsersController {
     return reply({ res, results: 'Email updated successfully' });
   }
 
+  /** Get one user */
+  @Get(`/:userId/show`)
+  async findUserById(
+    @Res() res,
+    @Req() req,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
+    const { user } = req;
+
+    const findOneUser = await this.usersService.findOneBy({
+      userId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneUser)
+      throw new HttpException(
+        `userId: ${userId} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return reply({ res, results: findOneUser });
+  }
+
   /** Delete user */
-  @Delete(`/:userId`)
+  @Delete(`/:userId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOneUser(
     @Res() res,
@@ -248,6 +270,7 @@ export class UsersController {
     const { user } = req;
     const findOneUser = await this.usersService.findOneBy({
       userId,
+      organizationId: user?.organizationId,
     });
 
     if (!findOneUser && userId !== user?.id)

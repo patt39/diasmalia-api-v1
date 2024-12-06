@@ -14,7 +14,6 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { config } from '../../app/config/index';
 import { reply } from '../../app/utils/reply';
 
 import { generateNumber } from 'src/app/utils/commons';
@@ -101,8 +100,8 @@ export class LocationsController {
       manger,
       through,
       addCages,
-      buildingCode,
       squareMeter,
+      buildingCode,
       productionPhase,
     } = body;
 
@@ -116,18 +115,14 @@ export class LocationsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const appInitials = config.datasite.name.substring(0, 1);
     const orgInitials = user.organization.name.substring(0, 1).toUpperCase();
-    const codeGenerated = `${orgInitials}${generateNumber(2)}${appInitials}`;
+    const codeGenerated = `${orgInitials}${generateNumber(3)}`;
 
     const findOneLocation = await this.locationsService.findOneBy({
       code,
       organizationId: user?.organizationId,
     });
-    if (
-      code?.toLowerCase() == findOneLocation?.code ||
-      codeGenerated.toLowerCase() == findOneLocation?.code
-    )
+    if (code == findOneLocation?.code)
       throw new HttpException(
         `Location code: ${findOneLocation?.code} already exists please change`,
         HttpStatus.NOT_FOUND,
@@ -147,7 +142,7 @@ export class LocationsController {
       squareMeter,
       productionPhase,
       buildingId: buildingCode ? findOneBuilding?.id : null,
-      code: code ? code.toLowerCase() : codeGenerated.toLowerCase(),
+      code: code ? code.toUpperCase() : codeGenerated.toLowerCase(),
       animalTypeId: findOneAssignType?.animalTypeId,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -283,6 +278,11 @@ export class LocationsController {
       await this.animalsService.updateOne(
         { animalId: findOneAnimal?.id },
         { locationId: findOneLocation?.id },
+      );
+
+      await this.locationsService.updateOne(
+        { locationId: findOneLocation?.id },
+        { productionPhase: findOneAnimal?.productionPhase },
       );
 
       await this.activitylogsService.createOne({

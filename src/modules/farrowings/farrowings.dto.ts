@@ -37,15 +37,15 @@ export class UpdateFarrowingsDto {
   @IsNumber()
   litter: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   weight: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   note: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   dead: number;
 }

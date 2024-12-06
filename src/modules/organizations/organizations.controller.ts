@@ -11,11 +11,8 @@ import {
   Query,
   Req,
   Res,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -23,14 +20,11 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
-import { getFileFromAws } from '../integrations/aws/aws-s3-service-adapter';
-import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
 import {
-  CreateOrUpdateOrganizationsDto,
-  GetOneUploadsDto,
   GetOrganizationQueryDto,
+  UpdateOrganizationsDto,
 } from './organizations.dto';
 import { OrganizationsService } from './organizations.service';
 
@@ -38,7 +32,6 @@ import { OrganizationsService } from './organizations.service';
 export class OrganizationsController {
   constructor(
     private readonly organizationsService: OrganizationsService,
-    private readonly uploadsUtil: UploadsUtil,
     private readonly usersService: UsersService,
   ) {}
 
@@ -97,6 +90,37 @@ export class OrganizationsController {
     return reply({ res, results: findUser });
   }
 
+  /** Update organization */
+  @Put(`/:organizationId/edit`)
+  @UseGuards(UserAuthGuard)
+  async updateOne(
+    @Res() res,
+    @Req() req,
+    @Body() body: UpdateOrganizationsDto,
+  ) {
+    const { user } = req;
+    const { name, description } = body;
+
+    const findOrganization = await this.organizationsService.findOneBy({
+      organizationId: user?.organizationId,
+    });
+    if (!findOrganization)
+      throw new HttpException(
+        `Organization doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.organizationsService.updateOne(
+      { organizationId: findOrganization?.id },
+      {
+        name,
+        description: description.replace(/<\/?p>/g, ''),
+      },
+    );
+
+    return reply({ res, results: 'Organization Updated Successfully' });
+  }
+
   /** Get one Organization */
   @Get(`/:organizationId/view`)
   @UseGuards(UserAuthGuard)
@@ -120,102 +144,34 @@ export class OrganizationsController {
     return reply({ res, results: findUser });
   }
 
-  /** Update organization */
-  @Put(`/update`)
+  /** Get one Organization */
+  @Get(`/:userId/view/organization`)
   @UseGuards(UserAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
-  async updateImage(
+  async getOrganizationByUserId(
     @Res() res,
     @Req() req,
-    @Body() body: CreateOrUpdateOrganizationsDto,
-    @UploadedFile() file: Express.Multer.File,
+    @Param('userId', ParseUUIDPipe) userId: string,
   ) {
     const { user } = req;
-    const { name, description } = body;
+    const findOneUser = await this.usersService.findOneBy({
+      userId,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneUser)
+      throw new HttpException(
+        `User doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
-    const { fileName } = await this.uploadsUtil.uploadOneAWS({
-      file,
-      userId: user?.id,
-      folder: 'images',
+    const findOrganization = await this.organizationsService.findOneBy({
+      userId: findOneUser?.id,
     });
 
-    await this.organizationsService.updateOne(
-      { organizationId: user.organizationId },
-      {
-        name,
-        description,
-        image: fileName,
-      },
-    );
-
-    return reply({ res, results: 'Organization Updated Successfully' });
-  }
-
-  /** Update organization logo*/
-  @Put(`/update/logo`)
-  @UseGuards(UserAuthGuard)
-  @UseInterceptors(FileInterceptor('logo'))
-  async updateLogo(
-    @Res() res,
-    @Req() req,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    const { user } = req;
-
-    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
-      file,
-      userId: user?.id,
-      folder: 'logos',
-    });
-
-    await this.organizationsService.updateOne(
-      { organizationId: user?.organizationId },
-      { logo: urlAWS?.Location },
-    );
-
-    return reply({ res, results: 'Organization Updated Successfully' });
-  }
-
-  /** Get uploaded image */
-  @Get(`/image/:folder/:name`)
-  async getuploadedImage(@Res() res, @Param() params: GetOneUploadsDto) {
-    const { name, folder } = params;
-    try {
-      const { fileBuffer, contentType } = await getFileFromAws({
-        fileName: name,
-        folder,
-      });
-      res.status(200);
-      res.contentType(contentType);
-      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-      res.send(fileBuffer);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error during file recovering.');
-    }
-  }
-
-  /** Get uploaded logo */
-  @Get(`/logo/:folder/:name`)
-  async getUploadedLogo(@Res() res, @Param() params: GetOneUploadsDto) {
-    const { name, folder } = params;
-    try {
-      const { fileBuffer, contentType } = await getFileFromAws({
-        fileName: name,
-        folder,
-      });
-      res.status(200);
-      res.contentType(contentType);
-      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-      res.send(fileBuffer);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error during file recovering.');
-    }
+    return reply({ res, results: findOrganization });
   }
 
   /** Delete one Organization */
-  @Delete(`/delete/:organizationId`)
+  @Delete(`/:organizationId/delete`)
   @UseGuards(UserAuthGuard)
   async deleteOne(
     @Res() res,

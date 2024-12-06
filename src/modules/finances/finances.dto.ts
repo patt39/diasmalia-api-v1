@@ -1,9 +1,19 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateOrUpdateFinancesDto {
   @IsOptional()
   @IsString()
   detail: string;
+
+  @IsOptional()
+  @IsString()
+  code: string;
 
   @IsNotEmpty()
   @IsInt()
@@ -22,4 +32,14 @@ export class GetFinancesByType {
   @IsOptional()
   @IsString()
   periode: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalId: string;
 }

@@ -14,7 +14,6 @@ export type GetOneHealthSelections = {
   status?: string;
   name?: Health['name'];
   healthId?: Health['id'];
-  animalTypeId?: Health['animalTypeId'];
   organizationId?: Health['organizationId'];
 };
 
@@ -32,12 +31,5 @@ export const HealthSelect = {
   name: true,
   image: true,
   status: true,
-  category: true,
   description: true,
-  animalTypeId: true,
-  animalType: {
-    select: {
-      name: true,
-    },
-  },
 };

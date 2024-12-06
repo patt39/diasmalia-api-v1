@@ -115,8 +115,6 @@ export class DeathsController {
 
     const death = await this.deathsService.createOne({
       note,
-      male: male,
-      female: female,
       animalId: findOneAnimal?.id,
       number: number ? number : sumDeaths,
       animalTypeId: findOneAnimal?.animalTypeId,
@@ -291,13 +289,7 @@ export class DeathsController {
         HttpStatus.NOT_FOUND,
       );
 
-    await this.deathsService.updateOne(
-      { deathId: findOneDeath?.id },
-      {
-        note,
-        userCreatedId: user?.id,
-      },
-    );
+    await this.deathsService.updateOne({ deathId: findOneDeath?.id }, { note });
 
     await this.activitylogsService.createOne({
       userId: user?.id,
@@ -333,24 +325,10 @@ export class DeathsController {
       { deletedAt: new Date() },
     );
 
-    await this.animalsService.updateOne(
-      { animalId: findOneDead?.animalId },
-      { status: 'ACTIVE' },
-    );
-
-    await this.animalsService.updateOne(
-      { animalId: findOneDead?.animalId },
-      {
-        quantity: findOneDead?.animal?.quantity + findOneDead?.number,
-        female: findOneDead?.animal?.female + findOneDead?.female,
-        male: findOneDead?.animal?.male + findOneDead?.male,
-      },
-    );
-
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted dead in ${findOneDead?.animal?.code} for ${findOneDead?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a dead record in ${findOneDead?.animal?.code} for ${findOneDead?.animalType?.name}`,
     });
 
     return reply({ res, results: death });

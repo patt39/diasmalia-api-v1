@@ -23,6 +23,7 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { AnimalsService } from '../animals/animals.service';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateFinancesDto, GetFinancesByType } from './finances.dto';
 import { FinancesService } from './finances.service';
@@ -31,6 +32,7 @@ import { FinancesService } from './finances.service';
 export class FinanceController {
   constructor(
     private readonly financeService: FinancesService,
+    private readonly animalsService: AnimalsService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -46,7 +48,7 @@ export class FinanceController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { type, periode } = queryFinances;
+    const { type, periode, animalId, animalTypeId } = queryFinances;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -59,7 +61,9 @@ export class FinanceController {
     const finances = await this.financeService.findAll({
       type,
       search,
+      animalId,
       pagination,
+      animalTypeId,
       periode: Number(periode),
       organizationId: user?.organizationId,
     });
@@ -76,11 +80,23 @@ export class FinanceController {
     @Body() body: CreateOrUpdateFinancesDto,
   ) {
     const { user } = req;
-    const { amount, type, detail } = body;
+    const { amount, type, detail, code } = body;
+
+    const findOneAnimal = await this.animalsService.findOneByCode({
+      code,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneAnimal)
+      throw new HttpException(
+        `Code: ${code} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
 
     const finance = await this.financeService.createOne({
       type,
       detail,
+      animalId: findOneAnimal.id,
+      animalTypeId: findOneAnimal.animalTypeId,
       amount: type === 'EXPENSE' ? Number(-amount) : Number(amount),
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
@@ -121,9 +137,8 @@ export class FinanceController {
       { financeId: findOneFinance?.id },
       {
         type,
-        amount,
         detail,
-        userCreatedId: user?.id,
+        amount: type === 'EXPENSE' ? Number(-amount) : Number(amount),
       },
     );
 

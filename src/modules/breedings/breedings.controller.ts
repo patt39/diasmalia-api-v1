@@ -109,7 +109,6 @@ export class BreedingsController {
     const animals = await this.breedingsService.findBreedingHistory({
       search,
       pagination,
-      gender: findOneAnimal?.gender,
       animalId: findOneAnimal?.id,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,

@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
+import { formatDateDifference } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -25,6 +26,7 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { HealthsService } from '../health/health.service';
+import { SuggestionService } from '../suggestions/suggestions.service';
 import { UserAuthGuard } from '../users/middleware';
 import {
   BulkTreatmentsDto,
@@ -39,6 +41,7 @@ export class TreatmentsController {
     private readonly treatmentsService: TreatmentsService,
     private readonly animalsService: AnimalsService,
     private readonly healthsService: HealthsService,
+    private readonly suggestionsService: SuggestionService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 
@@ -101,7 +104,6 @@ export class TreatmentsController {
     const findMedication = await this.healthsService.findOneBy({
       healthId,
       status: 'true',
-      animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findMedication)
@@ -128,6 +130,152 @@ export class TreatmentsController {
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '1 days' &&
+      ['Pondeuses', 'Poulets de chair'].includes(
+        findOneAnimal?.animalType?.name,
+      )
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les vaccins pour la Maladie de Marek : Injection. Newcastle (HB1) et Bronchite infectieuse : Gouttes oculaires pour développer une bonne immunité et favoriser une croissance saine.`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '7 days' &&
+      ['Pondeuses', 'Poulets de chair'].includes(
+        findOneAnimal?.animalType?.name,
+      )
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer le vaccin pour le Gumboro (IBD) : Gouttes oculaires ou eau de boisson une bonne immunité et favoriser une croissance saine.`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '21 days' &&
+      ['Pondeuses', 'Poulets de chair'].includes(
+        findOneAnimal?.animalType?.name,
+      )
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les rappels de vaccins contre les maladies de Newcastle et Gumboro et preparer le rappel pour la coccidiose si necessaire selon la localité`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '14 days' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer la deuxième dose de vaccin contre la maladie de newcastle pour développer une bonne immunité et favoriser une croissance saine`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '14 days' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer le vaccin contre Bronchite Infectieuse : Eau de boisson ou pulvérisation et la deuxième dose de vaccin contre le Gumboro. Gumboro : Deuxième dose.`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '1 mths' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les vaccins Variole aviaire : Injection sous-cutanée. Coryza infectieuse : Injection intramusculaire si la maladie est présente dans la région.`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '3 mths' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les vaccins contre le Newcastle (Lasota) : Renforcement par eau de boisson. Bronchite infectieuse : Renforcement.`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'GROWTH' &&
+      formatDateDifference(findOneAnimal?.birthday) === '4 mths' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les vaccins contre Newcastle (Clone 30) et Bronchite infectieuse : Dernier rappel pour préparer les poules à une production optimale d'œufs`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'LAYING' &&
+      formatDateDifference(findOneAnimal?.birthday) === '5 mths' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les vaccins contre Salmonellose : Vaccin si requis localement pour assurer une production constante et prévenir les maladies.`,
+      });
+    }
+
+    if (
+      findOneAnimal?.productionPhase === 'LAYING' &&
+      formatDateDifference(findOneAnimal?.birthday) === '8 mths' &&
+      ['Pondeuses'].includes(findOneAnimal?.animalType?.name)
+    ) {
+      await this.suggestionsService.createOne({
+        userId: user?.id,
+        animalId: findOneAnimal?.id,
+        organizationId: user?.organizationId,
+        title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
+        message: `Administer les vaccins contre Newcastle et Bronchite infectieuse : Rappel pour assurer une production constante et prévenir les maladies.`,
+      });
+    }
 
     await this.activitylogsService.createOne({
       userId: user?.id,
@@ -166,7 +314,6 @@ export class TreatmentsController {
       const findMedication = await this.healthsService.findOneBy({
         healthId,
         status: 'true',
-        animalTypeId: findOneAnimal?.animalTypeId,
         organizationId: user?.organizationId,
       });
       if (!findMedication)
@@ -233,7 +380,6 @@ export class TreatmentsController {
 
     const findMedication = await this.healthsService.findOneBy({
       healthId,
-      animalTypeId: findOneTreatement?.animalTypeId,
       organizationId: user?.organizationId,
     });
     if (!findMedication)

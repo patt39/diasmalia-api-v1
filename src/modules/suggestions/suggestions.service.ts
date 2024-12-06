@@ -22,7 +22,15 @@ export class SuggestionService {
     selections: GetSuggestionsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.SuggestionWhereInput;
-    const { pagination } = selections;
+    const { pagination, userId, organizationId } = selections;
+
+    if (userId) {
+      Object.assign(prismaWhere, { userId });
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
 
     const suggestions = await this.client.suggestion.findMany({
       where: { ...prismaWhere, deletedAt: null },

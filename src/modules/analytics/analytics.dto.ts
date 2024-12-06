@@ -23,6 +23,30 @@ export class GetAnalyticsQuery {
   animalTypeId: string;
 }
 
+export class GetAnimalFarrowingsQuery {
+  @IsOptional()
+  @IsString()
+  days: string;
+
+  @IsOptional()
+  @IsString()
+  months: string;
+
+  @IsOptional()
+  @IsString()
+  year: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalTypeId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  animalId: string;
+}
+
 export class GetFinanceAnalyticsQuery {
   @IsOptional()
   @IsString()

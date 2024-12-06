@@ -49,10 +49,4 @@ export const BreedingSelect = {
       name: true,
     },
   },
-  organizationId: true,
-  organization: {
-    select: {
-      name: true,
-    },
-  },
 };

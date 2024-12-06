@@ -127,6 +127,7 @@ export class ProfilesService {
       currencyId,
       description,
       deletedAt,
+      testimonial,
     } = options;
 
     const profile = this.client.profile.update({
@@ -143,6 +144,7 @@ export class ProfilesService {
         currencyId,
         description,
         deletedAt,
+        testimonial,
       },
     });
 

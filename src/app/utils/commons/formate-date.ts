@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { DateTime, DurationLike } from 'luxon';
 
 export const subtractYears = (numOfYears: number, date: Date) => {
@@ -15,6 +16,10 @@ export const formatDDMMYYDate = (date: Date) =>
 
 export const formatHHmmDate = (date: Date) =>
   DateTime.fromJSDate(date).toFormat('HH:mm');
+
+export const getDayOfMonth = (date: Date) => {
+  return dayjs(date).date();
+};
 
 export const formatNowDateYYMMDD = (date: Date) =>
   DateTime.fromJSDate(date).toFormat('yyyyLLdd');

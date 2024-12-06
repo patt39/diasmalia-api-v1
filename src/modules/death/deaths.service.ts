@@ -167,9 +167,7 @@ export class DeathsService {
   async createOne(options: CreateDeathsOptions): Promise<Death> {
     const {
       note,
-      male,
       number,
-      female,
       animalId,
       animalTypeId,
       organizationId,
@@ -179,9 +177,7 @@ export class DeathsService {
     const death = this.client.death.create({
       data: {
         note,
-        male,
         number,
-        female,
         animalId,
         animalTypeId,
         organizationId,
@@ -198,15 +194,13 @@ export class DeathsService {
     options: UpdateDeathsOptions,
   ): Promise<Death> {
     const { deathId } = selections;
-    const { note, male, number, female, userCreatedId, deletedAt } = options;
+    const { note, number, userCreatedId, deletedAt } = options;
 
     const death = this.client.death.update({
       where: { id: deathId },
       data: {
         note,
-        male,
         number,
-        female,
         userCreatedId,
         deletedAt,
       },

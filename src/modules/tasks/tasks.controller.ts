@@ -25,8 +25,10 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { ContributorsService } from '../contributors/contributors.service';
+import { taskConfirmationNotification } from '../users/mails/task-confirmation-mail';
 import { taskNotification } from '../users/mails/task-notification-mail';
 import { UserAuthGuard } from '../users/middleware';
+import { UsersService } from '../users/users.service';
 import { CreateOrUpdateTasksDto, TaskQueryDto } from './tasks.dto';
 import { TasksService } from './tasks.service';
 
@@ -34,6 +36,7 @@ import { TasksService } from './tasks.service';
 export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
+    private readonly usersService: UsersService,
     private readonly activitylogsService: ActivityLogsService,
     private readonly contributorsService: ContributorsService,
     private readonly assignTypesService: AssignTypesService,
@@ -174,6 +177,16 @@ export class TasksController {
       );
     }
 
+    const findOneUser = await this.usersService.findOneBy({
+      userId: findOneTask?.userCreatedId,
+    });
+    if (!findOneUser) {
+      throw new HttpException(
+        `${findOneUser?.email} doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const findOneContributor = await this.contributorsService.findOneBy({
       contributorId,
       organizationId: user?.organizationId,
@@ -210,10 +223,12 @@ export class TasksController {
       },
     );
 
-    await taskNotification({
-      user,
-      email: findOneContributor?.user?.email,
-    });
+    if (status == 'DONE') {
+      await taskConfirmationNotification({
+        user,
+        email: findOneUser?.email,
+      });
+    }
 
     await this.activitylogsService.createOne({
       userId: user?.id,

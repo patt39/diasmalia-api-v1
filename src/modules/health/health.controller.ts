@@ -12,8 +12,11 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -22,6 +25,7 @@ import {
 import { reply } from '../../app/utils/reply';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
+import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateHealthsDto, GetHealthQueryDto } from './health.dto';
 import { HealthsService } from './health.service';
@@ -29,6 +33,7 @@ import { HealthsService } from './health.service';
 @Controller('health')
 export class HealthsController {
   constructor(
+    private readonly uploadsUtil: UploadsUtil,
     private readonly healthsService: HealthsService,
     private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
@@ -44,7 +49,7 @@ export class HealthsController {
     @Query() queryFeeding: GetHealthQueryDto,
   ) {
     const { user } = req;
-    const { animalTypeId, category, status } = queryFeeding;
+    const { status } = queryFeeding;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -56,9 +61,7 @@ export class HealthsController {
 
     const health = await this.healthsService.findAll({
       status,
-      category,
       pagination,
-      animalTypeId,
       organizationId: user?.organizationId,
     });
 
@@ -67,29 +70,20 @@ export class HealthsController {
 
   /** Post one health */
   @Post(`/create`)
+  @UseInterceptors(FileInterceptor('image'))
   @UseGuards(UserAuthGuard)
   async createOne(
     @Res() res,
     @Req() req,
+    @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateOrUpdateHealthsDto,
   ) {
     const { user } = req;
-    const { name, category, animalTypeId, description } = body;
-
-    const findOneAssignType = await this.assignTypesService.findOneBy({
-      animalTypeId,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAssignType)
-      throw new HttpException(
-        `Animal Type not assigned please change`,
-        HttpStatus.NOT_FOUND,
-      );
+    const { name, description } = body;
 
     const findOneHealth = await this.healthsService.findOneBy({
       name,
       organizationId: user?.organizationId,
-      animalTypeId: findOneAssignType?.animalTypeId,
     });
     if (findOneHealth)
       throw new HttpException(
@@ -97,18 +91,23 @@ export class HealthsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'photos',
+    });
+
     const health = await this.healthsService.createOne({
       name,
-      category,
       description,
-      animalTypeId: findOneAssignType?.animalTypeId,
+      image: urlAWS?.Location,
       organizationId: user?.organizationId,
       userCreatedId: user?.id,
     });
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${name} in health box for ${findOneAssignType?.animalType?.name} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${name} in health box `,
       organizationId: user?.organizationId,
     });
 
@@ -152,15 +151,17 @@ export class HealthsController {
 
   /** Update one health */
   @Put(`/:healthId/edit`)
+  @UseInterceptors(FileInterceptor('image'))
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
     @Body() body: CreateOrUpdateHealthsDto,
+    @UploadedFile() file: Express.Multer.File,
     @Param('healthId', ParseUUIDPipe) healthId: string,
   ) {
     const { user } = req;
-    const { image, description, name } = body;
+    const { description, name } = body;
 
     const findOneHealth = await this.healthsService.findOneBy({
       healthId,
@@ -172,20 +173,25 @@ export class HealthsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
+      file,
+      userId: user?.id,
+      folder: 'photos',
+    });
+
     const gestation = await this.healthsService.updateOne(
       { healthId: findOneHealth?.id },
       {
-        image,
         name,
         description,
-        userCreatedId: user?.id,
+        image: urlAWS?.Location,
       },
     );
 
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a gestation, in ${findOneHealth?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated medication`,
     });
 
     return reply({
@@ -249,7 +255,7 @@ export class HealthsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a medication for ${findOneHealth?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a medication`,
     });
 
     return reply({ res, results: 'Medication deleted successfully' });

@@ -67,7 +67,6 @@ export class TreatmentsService {
         ...prismaWhereTreatment,
         deletedAt: null,
         animal: {
-          status: 'ACTIVE',
           deletedAt: null,
         },
       },

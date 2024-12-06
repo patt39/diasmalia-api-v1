@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Delete,
   Get,
@@ -7,7 +6,6 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Post,
   Query,
   Req,
   Res,
@@ -20,26 +18,26 @@ import {
   addPagination,
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
-import { AnimalsService } from '../animals/animals.service';
 import { UserAuthGuard } from '../users/middleware';
-import { CreateOrSuggestionDto } from './suggestions.dto';
+import { GetSuggestionsQueryDto } from './suggestions.dto';
 import { SuggestionService } from './suggestions.service';
 
-@Controller('suggestion')
+@Controller('suggestions')
 export class SuggestionController {
-  constructor(
-    private readonly suggestionsService: SuggestionService,
-    private readonly animalsService: AnimalsService,
-  ) {}
+  constructor(private readonly suggestionsService: SuggestionService) {}
 
   /** Get all suggestions */
   @Get(`/`)
   @UseGuards(UserAuthGuard)
   async findAll(
     @Res() res,
+    @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
+    @Query() suggestionQueryDto: GetSuggestionsQueryDto,
   ) {
     const { take, page, sort, sortBy } = requestPaginationDto;
+    const { user } = req;
+    const { userId } = suggestionQueryDto;
     const pagination: PaginationType = addPagination({
       page,
       take,
@@ -48,33 +46,8 @@ export class SuggestionController {
     });
 
     const suggestion = await this.suggestionsService.findAll({
+      userId,
       pagination,
-    });
-
-    return reply({ res, results: suggestion });
-  }
-
-  /** Post one suggestion */
-  @Post(`/create`)
-  @UseGuards(UserAuthGuard)
-  async createOne(@Res() res, @Req() req, @Body() body: CreateOrSuggestionDto) {
-    const { user } = req;
-    const { message, code } = body;
-
-    const findOneAnimal = await this.animalsService.findOneByCode({
-      code,
-      organizationId: user?.organizationId,
-    });
-    if (!findOneAnimal)
-      throw new HttpException(
-        `AnimalId: ${findOneAnimal?.id} doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-
-    const suggestion = await this.suggestionsService.createOne({
-      message,
-      userId: user?.id,
-      animalId: findOneAnimal?.id,
       organizationId: user?.organizationId,
     });
 
@@ -87,7 +60,7 @@ export class SuggestionController {
   async deleteOne(
     @Res() res,
     @Req() req,
-    @Param('materialId', ParseUUIDPipe) suggestionId: string,
+    @Param('suggestionId', ParseUUIDPipe) suggestionId: string,
   ) {
     const { user } = req;
     const findOneSuggestion = await this.suggestionsService.findOneBy({

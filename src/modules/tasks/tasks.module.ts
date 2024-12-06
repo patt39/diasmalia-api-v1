@@ -3,6 +3,7 @@ import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AnimalsService } from '../animals/animals.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { ContributorsService } from '../contributors/contributors.service';
+import { UsersService } from '../users/users.service';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 
@@ -10,6 +11,7 @@ import { TasksService } from './tasks.service';
   controllers: [TasksController],
   providers: [
     TasksService,
+    UsersService,
     ContributorsService,
     ActivityLogsService,
     AssignTypesService,

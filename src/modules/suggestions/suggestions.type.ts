@@ -3,6 +3,8 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetSuggestionsSelections = {
   pagination?: PaginationType;
+  userId: string;
+  organizationId: string;
 };
 
 export type GetOneSuggestionSelections = {

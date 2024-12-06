@@ -146,6 +146,13 @@ export class CheckPregnanciesController {
         { productionPhase: 'GESTATION' },
       );
 
+      if (findOneFemale?.location?._count?.animals === 1) {
+        await this.locationsService.updateOne(
+          { locationId: findOneFemale?.locationId },
+          { productionPhase: 'GESTATION' },
+        );
+      }
+
       await this.breedingsService.updateOne(
         { breedingId: findOneBreeding?.id },
         { result: result },

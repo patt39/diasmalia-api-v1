@@ -8,6 +8,8 @@ export type GetFinancesSelections = {
   days?: string;
   months?: string;
   year?: string;
+  animalId?: string;
+  animalTypeId?: string;
   organizationId?: string;
   pagination?: PaginationType;
 };
@@ -29,8 +31,19 @@ export type UpdateFinancesOptions = Partial<Finance>;
 export const FinancesSelect = {
   createdAt: true,
   id: true,
-  slug: true,
   amount: true,
   type: true,
   detail: true,
+  animalId: true,
+  animal: {
+    select: {
+      code: true,
+    },
+  },
+  animalTypeId: true,
+  animalType: {
+    select: {
+      name: true,
+    },
+  },
 };

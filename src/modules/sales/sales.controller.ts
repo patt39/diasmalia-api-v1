@@ -259,31 +259,17 @@ export class SalesController {
       await this.animalsService.updateOne(
         { animalId: findOneAnimal?.id },
         {
-          female: findOneAnimal?.female - female,
           male: findOneAnimal?.male - male,
+          female: findOneAnimal?.female - female,
           quantity: findOneAnimal?.quantity - sale?.number,
         },
       );
     }
 
     if (
-      detail === 'CHICKENS' &&
-      sale?.type === 'Pisciculture' &&
-      ['LAYING', 'FATTENING'].includes(findOneAnimal?.productionPhase)
-    ) {
-      await this.animalsService.updateOne(
-        { animalId: findOneAnimal?.id },
-        {
-          female: findOneAnimal?.female - female,
-          male: findOneAnimal?.male - male,
-          quantity: findOneAnimal?.quantity - sale?.number,
-        },
-      );
-    }
-
-    if (
-      detail === 'CHICKENS' &&
-      sale?.type === 'Pisciculture' &&
+      ['Poulet de chair', 'Pisciculture'].includes(
+        findOneAnimal?.animalType?.name,
+      ) &&
       ['GROWTH', 'FATTENING'].includes(findOneAnimal?.productionPhase)
     ) {
       await this.animalsService.updateOne(
@@ -292,10 +278,20 @@ export class SalesController {
       );
     }
 
-    await this.animalsService.updateOne(
-      { animalId: findOneAnimal?.id },
-      { quantity: findOneAnimal?.quantity - sale?.number },
-    );
+    if (
+      detail === 'CHICKENS' &&
+      !['Pondeuses'].includes(findOneAnimal?.animalType?.name) &&
+      findOneAnimal?.productionPhase === 'LAYING'
+    ) {
+      await this.animalsService.updateOne(
+        { animalId: findOneAnimal?.id },
+        {
+          male: findOneAnimal?.male - male,
+          female: findOneAnimal?.female - female,
+          quantity: findOneAnimal?.quantity - sale?.number,
+        },
+      );
+    }
 
     if (findOneAnimal?.quantity - sale?.number === 0) {
       await this.animalsService.updateOne(
@@ -310,7 +306,7 @@ export class SalesController {
 
     await this.financesService.createOne({
       type: 'INCOME',
-      detail: `Sale`,
+      detail: `Sale of ${detail} for ${findOneAnimal?.animalType?.name}`,
       organizationId: user.organizationId,
       userCreatedId: user.id,
       amount: price,
@@ -422,21 +418,21 @@ export class SalesController {
         },
         '\n',
         {
-          text: `Price:  ${price.toLocaleString('en-US')} ${findUniqueUser?.profile?.currency?.symbol}`,
+          text: `Price: ${price.toLocaleString('en-US')} ${findUniqueUser?.profile?.currency?.symbol}`,
           style: { fontSize: 20 },
           bold: true,
           margin: [0, 0, 0, 20],
         },
         '\n',
         {
-          qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/animal/${findOneAnimal?.id}`,
+          qr: `${config.datasite.url}/${config.api.prefix}/${config.api.version}/entreprise/${user?.organizationId}/show`,
           fit: 200,
           alignment: 'center',
           eccLevel: 'H',
         },
         '\n',
         {
-          text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues thanks`,
+          text: `It's been a pleasure working with you. Please don't hesitate to call or email us if you have any issues and visit our store for by scanning the QRCode above for new products thanks`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 20],
         },
@@ -699,7 +695,7 @@ export class SalesController {
                   {
                     table: {
                       body: [
-                        ['Codes', 'Weight(g)', 'Gender', 'Type'],
+                        ['Codes', 'Weight', 'Gender', 'Type'],
                         [
                           animalArrayPdfCodes,
                           animalArrayPdfWeights,

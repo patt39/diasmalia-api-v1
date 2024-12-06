@@ -3,6 +3,7 @@ import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type GetCountriesSelections = {
   search?: string;
+  status?: string;
   pagination?: PaginationType;
 };
 

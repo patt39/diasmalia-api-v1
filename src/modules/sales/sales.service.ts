@@ -99,9 +99,14 @@ export class SalesService {
       where: { ...prismaWhere, deletedAt: null },
     });
 
+    const salesContract = await this.client.sale.count({
+      where: { ...prismaWhere, method: 'CONTRACT', deletedAt: null },
+    });
+
     return withPagination({
       pagination,
       rowCount,
+      salesContract,
       value: sales,
     });
   }
@@ -349,6 +354,69 @@ export class SalesService {
         ...prismaWhere,
         deletedAt: null,
         detail: null,
+      },
+      _sum: {
+        price: true,
+      },
+      _count: true,
+    });
+
+    const salesAnalytics = groupCountSalesAnalyticsByDateAndReturnArray({
+      data: groupSalesAnalytics,
+      year: year,
+      month: months,
+    });
+
+    return salesAnalytics;
+  }
+
+  /** Get sales analytics. */
+  async getSalesAnalytics(selections: GetSalesSelections) {
+    const prismaWhere = {} as Prisma.SaleWhereInput;
+    const { animalTypeId, periode, months, year, organizationId } = selections;
+
+    if (animalTypeId) {
+      Object.assign(prismaWhere, { animalTypeId });
+    }
+
+    if (periode) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: substrateDaysToTimeNowUtcDate(Number(periode)),
+          lte: dateTimeNowUtc(),
+        },
+      });
+    }
+
+    if (year) {
+      Object.assign(prismaWhere, {
+        createdAt: {
+          gte: new Date(`${Number(year)}-01-01`),
+          lte: new Date(`${Number(year) + 1}-01-01`),
+        },
+      });
+      if (months) {
+        Object.assign(prismaWhere, {
+          createdAt: {
+            gte: new Date(`${year}-${months}-01`),
+            lte: lastDayMonth({
+              year: Number(year),
+              month: Number(months),
+            }),
+          },
+        });
+      }
+    }
+
+    if (organizationId) {
+      Object.assign(prismaWhere, { organizationId });
+    }
+
+    const groupSalesAnalytics = await this.client.sale.groupBy({
+      by: ['createdAt', 'organizationId', 'animalTypeId'],
+      where: {
+        ...prismaWhere,
+        deletedAt: null,
       },
       _sum: {
         price: true,
