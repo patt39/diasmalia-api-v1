@@ -25,7 +25,7 @@ export class CreateFarrowingsDto {
 
   @IsOptional()
   @IsString()
-  codeFemale: string;
+  code: string;
 
   @IsNotEmpty()
   @IsString()

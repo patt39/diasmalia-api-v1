@@ -22,6 +22,7 @@ model User {
   password       String?
   token          String?
   provider       String?
+  member         Boolean?       @default(false)
   isConfirmed    Boolean        @default(false)
   confirmedAt    DateTime?
   profile        Profile?
@@ -71,12 +72,12 @@ model Profile {
   phone       String?
   photo       String?
   occupation  String?
-  member      Boolean?  @default(false)
+  profession  String?
   description String?   @db.Text
   testimonial String?   @db.Text
   city        String?
-  currencyId  String?   @unique
-  countryId   String?   @unique
+  currencyId  String?
+  countryId   String?
   country     Country?  @relation(fields: [countryId], references: [id], onDelete: Cascade)
   currency    Currency? @relation(fields: [currencyId], references: [id], onDelete: Cascade)
   userId      String    @unique
@@ -92,7 +93,7 @@ model Currency {
   code      String
   symbol    String
   status    Boolean   @default(false)
-  profile   Profile?
+  Profile   Profile[]
 }
 
 model Image {
@@ -114,7 +115,7 @@ model Country {
   name      String
   code      String
   status    Boolean   @default(false)
-  profile   Profile?
+  Profile   Profile[]
 }
 
 model Organization {
@@ -148,9 +149,9 @@ model Organization {
   eggHavestings    EggHavesting[]
   incubations      Incubation[]
   subscriptions    Subscription[]
-  Fattenings       Fattening[]
+  fattenings       Fattening[]
   activityLogs     ActivityLog[]
-  FeedStock        FeedStock[]
+  feedStocks       FeedStock[]
   healths          Health[]
   cages            Cage[]
   suggestions      Suggestion[]
@@ -381,7 +382,7 @@ model AnimalType {
   slug             String?
   habitat          String?
   tab              String?
-  status           AnimalTypeStatus @default(ACTIVE)
+  status           Boolean          @default(true)
   description      String           @db.Text
   locations        Location[]
   breeds           Breed[]
@@ -419,11 +420,6 @@ enum AnimalStatus {
   ACTIVE
   STOPPED
   ARCHIVED
-}
-
-enum AnimalTypeStatus {
-  ACTIVE
-  DISACTIVE
 }
 
 enum CastratedStatus {
@@ -540,7 +536,6 @@ model Farrowing {
   litter         Int?
   weight         Int?
   dead           Int?
-  image          String?
   farrowingDate  DateTime?
   animalTypeId   String
   animalType     AnimalType   @relation(fields: [animalTypeId], references: [id], onDelete: Cascade)
@@ -792,19 +787,18 @@ model ActivityLog {
 }
 
 model Suggestion {
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
-  id             String    @id @default(uuid())
-  userId         String
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String        @id @default(uuid())
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   message        String
   title          String
-  organizationId String
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  animalId     String?
-  animal       Animal?      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  animalId       String?
+  animal         Animal?       @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {

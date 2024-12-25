@@ -27,6 +27,7 @@ import { UserAuthGuard } from './middleware';
 import { CheckUserService } from './middleware/check-user.service';
 import {
   ContributorConfirmDto,
+  GetAdmins,
   UpdateOneEmailUserDto,
   UpdateUserPasswordDto,
 } from './users.dto';
@@ -69,25 +70,52 @@ export class UsersController {
     });
   }
 
-  /** Get user organizations */
+  /** Get users */
   @Get(`/`)
   @UseGuards(UserAuthGuard)
   async getUserOrganizations(
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
+    @Query() queryAdmins: GetAdmins,
   ) {
     const { search } = query;
+    const { member } = queryAdmins;
 
     const { take, page, sort } = requestPaginationDto;
     const pagination: PaginationType = addPagination({ page, take, sort });
 
     const users = await this.usersService.findAll({
+      member,
       search,
       pagination,
     });
 
     return reply({ res, results: users });
+  }
+
+  /** Change status */
+  @Put(`/:userId/change-status`)
+  @UseGuards(UserAuthGuard)
+  async changeStatus(
+    @Res() res,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
+    const findOneUser = await this.usersService.findOneBy({
+      userId,
+    });
+    if (!findOneUser)
+      throw new HttpException(
+        `UserId: ${findOneUser?.id} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.usersService.updateOne(
+      { userId: findOneUser?.id },
+      { member: !findOneUser?.member },
+    );
+
+    return reply({ res, results: 'Status changed successfully' });
   }
 
   /** Change connected user password */
@@ -284,5 +312,14 @@ export class UsersController {
     res.clearCookie(config.cookie_access.user.nameLogin);
 
     return reply({ res, results: 'User deleted successfully' });
+  }
+
+  /** Get users statistics */
+  @Get(`/statistics`)
+  @UseGuards(UserAuthGuard)
+  async getAnimalStatistics(@Res() res) {
+    const userStatistics = await this.usersService.getUsersTransactions();
+
+    return reply({ res, results: userStatistics });
   }
 }

@@ -101,7 +101,7 @@ export const formatDateJsToUtc = (date: Date) => {
 };
 
 export const formatDateDifference = (date: Date) => {
-  const birthDate = DateTime.fromISO(String(date).split('T')[0]);
+  const birthDate = DateTime.fromJSDate(date);
   const now = DateTime.now();
   const days = Math.floor(now.diff(birthDate, 'days').days);
   const years = Math.floor(now.diff(birthDate, 'years').years);
@@ -187,9 +187,4 @@ export const formatWeight = (weight: number) => {
   if (weight >= 1000) {
     return `${(weight / 1000).toFixed(1)}kg`;
   }
-};
-
-export const formatPrice = (price: number, req: any) => {
-  const { user } = req;
-  return `${price.toFixed(1)}${user?.currency?.symbol}`;
 };

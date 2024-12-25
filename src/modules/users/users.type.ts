@@ -9,6 +9,12 @@ export type JwtPayloadType = {
 
 export type GetUsersSelections = {
   search?: string;
+  periode?: number;
+  days?: string;
+  months?: string;
+  year?: string;
+  member?: string;
+  organizationId?: string;
   pagination?: PaginationType;
 };
 
@@ -48,6 +54,7 @@ export const UserSelect = {
   createdAt: true,
   id: true,
   email: true,
+  member: true,
   confirmedAt: true,
   profile: {
     select: {
@@ -61,7 +68,13 @@ export const UserSelect = {
       description: true,
       currency: {
         select: {
+          name: true,
           symbol: true,
+        },
+      },
+      country: {
+        select: {
+          name: true,
         },
       },
     },

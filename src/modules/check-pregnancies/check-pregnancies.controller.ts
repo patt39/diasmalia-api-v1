@@ -121,7 +121,7 @@ export class CheckPregnanciesController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} checked a pregnancy for ${findOneBreeding?.femaleCode} in ${findOneBreeding?.animalTypeId}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} checked a pregnancy for ${findOneBreeding?.femaleCode} in ${findOneBreeding?.animalType?.name}`,
     });
 
     await this.breedingsService.updateOne(
@@ -169,7 +169,7 @@ export class CheckPregnanciesController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a gestation for ${findOneBreeding?.femaleCode}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a gestation for ${findOneBreeding?.femaleCode} in ${findOneBreeding?.animalType?.name}`,
     });
 
     return reply({ res, results: 'Breeding checked Successfully' });
@@ -237,7 +237,7 @@ export class CheckPregnanciesController {
     await this.activitylogsService.createOne({
       userId: user.id,
       organizationId: user.organizationId,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} rechecked breeding for ${findOneGestation?.animal?.code}`,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} rechecked a breeding for ${findOneGestation?.animal?.code} in ${findOneGestation?.animalType?.name}`,
     });
 
     return reply({ res, results: 'CheckPregnancy updated successfully' });

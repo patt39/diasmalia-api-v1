@@ -23,6 +23,7 @@ export type UpdateSuggestionsOptions = Partial<Suggestion>;
 export const SuggestionSelect = {
   createdAt: true,
   id: true,
+  title: true,
   message: true,
   animalId: true,
   animal: { select: { code: true } },

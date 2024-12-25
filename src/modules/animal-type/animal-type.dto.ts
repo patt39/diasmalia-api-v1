@@ -1,5 +1,4 @@
-import { AnimalTypeStatus } from '@prisma/client';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrUpdateAnimalTypesDto {
   @IsOptional()
@@ -17,16 +16,11 @@ export class CreateOrUpdateAnimalTypesDto {
   @IsOptional()
   @IsString()
   habitat: string;
-
-  @IsOptional()
-  @IsString()
-  @IsEnum(AnimalTypeStatus)
-  status: AnimalTypeStatus;
 }
 
 export class GetAnimalTypesByStatusQuery {
   @IsOptional()
   @IsString()
-  @IsEnum(AnimalTypeStatus)
-  status: AnimalTypeStatus;
+  @IsIn(['true', 'false'])
+  status: string;
 }

@@ -160,6 +160,8 @@ export class ContributorsController {
       firstName,
       occupation,
       userId: newUser?.id,
+      countryId: user?.profile?.country?.name,
+      currencyId: user?.profile?.currency?.name,
     });
 
     const contributor = await this.contributorsService.createOne({
@@ -259,7 +261,7 @@ export class ContributorsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} invited ${findOneContributor?.user?.profile?.firstName} ${findOneContributor?.user.profile?.lastName}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} invited ${findOneUser?.profile?.firstName} ${findOneUser.profile?.lastName}`,
     });
 
     res.cookie(
@@ -435,9 +437,9 @@ export class ContributorsController {
   }
 
   /** Get one contributor */
-  @Get(`/show/:contributorId`)
+  @Get(`/:contributorId/show`)
   @UseGuards(UserAuthGuard)
-  async getOneByIdUser(
+  async getOneById(
     @Res() res,
     @Req() req,
     @Param('contributorId', ParseUUIDPipe) contributorId: string,

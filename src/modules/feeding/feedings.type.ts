@@ -15,6 +15,7 @@ export type GetFeedingsSelections = {
 
 export type GetOneFeedingSelections = {
   feedingId?: Feeding['id'];
+  animalId?: Feeding['animalId'];
   animalTypeId?: Feeding['animalTypeId'];
   organizationId?: Feeding['organizationId'];
 };

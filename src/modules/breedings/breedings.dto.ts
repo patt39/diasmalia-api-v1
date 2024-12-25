@@ -39,7 +39,8 @@ export class UpdateBreedingsDto {
 export class GetAnimalBreedingsDto {
   @IsOptional()
   @IsString()
-  animalId: string;
+  @IsUUID()
+  animalFemaleId: string;
 }
 
 export class GetAnimalBreedingsQueryDto {
@@ -55,4 +56,9 @@ export class GetAnimalBreedingsQueryDto {
   @IsString()
   @IsUUID()
   animalTypeId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  animalFemaleId: string;
 }

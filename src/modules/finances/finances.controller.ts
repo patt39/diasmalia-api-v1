@@ -105,7 +105,7 @@ export class FinanceController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a transaction in your organization`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a ${finance?.type} transaction in your organization`,
     });
 
     return reply({ res, results: finance });

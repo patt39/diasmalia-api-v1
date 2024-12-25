@@ -133,7 +133,7 @@ export class TreatmentsController {
 
     if (
       findOneAnimal?.productionPhase === 'GROWTH' &&
-      formatDateDifference(findOneAnimal?.birthday) === '1 days' &&
+      formatDateDifference(findOneAnimal?.birthday) === '0 days' &&
       ['Pondeuses', 'Poulets de chair'].includes(
         findOneAnimal?.animalType?.name,
       )
@@ -143,7 +143,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer les vaccins pour la Maladie de Marek : Injection. Newcastle (HB1) et Bronchite infectieuse : Gouttes oculaires pour développer une bonne immunité et favoriser une croissance saine.`,
+        message: `Administer les vaccins pour la Maladie de Marek: Injection, Newcastle (HB1) et Bronchite infectieuse: Par gouttes oculaires. Pour développer une bonne immunité et favoriser une croissance saine.`,
       });
     }
 
@@ -159,7 +159,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer le vaccin pour le Gumboro (IBD) : Gouttes oculaires ou eau de boisson une bonne immunité et favoriser une croissance saine.`,
+        message: `Administer le vaccin pour le Gumboro(IBD): Par gouttes oculaires ou dans de l'eau de boisson pour une bonne immunité et favoriser une croissance saine.`,
       });
     }
 
@@ -175,7 +175,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer les rappels de vaccins contre les maladies de Newcastle et Gumboro et preparer le rappel pour la coccidiose si necessaire selon la localité`,
+        message: `Administer les rappels de vaccins contre les maladies de Newcastle et Gumboro et preparer le rappel pour la coccidiose si necessaire selon votre localité`,
       });
     }
 
@@ -203,7 +203,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer le vaccin contre Bronchite Infectieuse : Eau de boisson ou pulvérisation et la deuxième dose de vaccin contre le Gumboro. Gumboro : Deuxième dose.`,
+        message: `Administer le vaccin contre la Bronchite Infectieuse: Dans de l'eau de boisson ou pulvérisation et la deuxième dose de vaccin contre le Gumboro.`,
       });
     }
 
@@ -217,7 +217,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer les vaccins Variole aviaire : Injection sous-cutanée. Coryza infectieuse : Injection intramusculaire si la maladie est présente dans la région.`,
+        message: `Administer les vaccins; Variole aviaire: Par injection sous-cutanée, Coryza infectieuse: Injection intramusculaire si la maladie est présente dans la région.`,
       });
     }
 
@@ -231,7 +231,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer les vaccins contre le Newcastle (Lasota) : Renforcement par eau de boisson. Bronchite infectieuse : Renforcement.`,
+        message: `Administer les vaccins contre le Newcastle (Lasota): Renforcement par eau de boisson, Bronchite infectieuse: Renforcement.`,
       });
     }
 
@@ -259,7 +259,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer les vaccins contre Salmonellose : Vaccin si requis localement pour assurer une production constante et prévenir les maladies.`,
+        message: `Administer le vaccin contre la Salmonellose: Vaccin si requis localement pour assurer une production constante et prévenir les maladies.`,
       });
     }
 
@@ -273,7 +273,7 @@ export class TreatmentsController {
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
         title: `Soins pour la bande ${findOneAnimal?.code} de ${findOneAnimal?.animalType?.name}`,
-        message: `Administer les vaccins contre Newcastle et Bronchite infectieuse : Rappel pour assurer une production constante et prévenir les maladies.`,
+        message: `Administer les vaccins contre le Newcastle et la Bronchite infectieuse: Rappel pour assurer une production constante et prévenir les maladies.`,
       });
     }
 

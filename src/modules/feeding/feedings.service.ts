@@ -147,10 +147,14 @@ export class FeedingsService {
   /** Find one feeding in database. */
   async findOneBy(selections: GetOneFeedingSelections) {
     const prismaWhere = {} as Prisma.FeedingWhereInput;
-    const { feedingId, animalTypeId, organizationId } = selections;
+    const { feedingId, animalId, animalTypeId, organizationId } = selections;
 
     if (feedingId) {
       Object.assign(prismaWhere, { id: feedingId });
+    }
+
+    if (animalId) {
+      Object.assign(prismaWhere, { animalId });
     }
 
     if (organizationId) {
@@ -162,6 +166,7 @@ export class FeedingsService {
     }
 
     const feeding = await this.client.feeding.findFirst({
+      orderBy: { createdAt: 'desc' },
       where: { ...prismaWhere, deletedAt: null },
       select: FeedingSelect,
     });

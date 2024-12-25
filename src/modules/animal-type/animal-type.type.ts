@@ -1,9 +1,9 @@
-import { AnimalStatus, AnimalType, AnimalTypeStatus } from '@prisma/client';
+import { AnimalStatus, AnimalType } from '@prisma/client';
 import { PaginationType } from '../../app/utils/pagination/with-pagination';
 
 export type AnimalTypesSelections = {
   search?: string;
-  status?: AnimalTypeStatus;
+  status?: string;
   pagination?: PaginationType;
 };
 

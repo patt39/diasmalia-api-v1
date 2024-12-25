@@ -21,6 +21,7 @@ export type UpdateProfilesOptions = Partial<Profile>;
 export const UserProfileSelect = {
   createdAt: true,
   id: true,
+  profession: true,
   firstName: true,
   lastName: true,
   occupation: true,

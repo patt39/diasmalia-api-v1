@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -130,4 +131,11 @@ export class GetUsers {
   @IsOptional()
   @IsString()
   email: string;
+}
+
+export class GetAdmins {
+  @IsOptional()
+  @IsString()
+  @IsIn(['true', 'false'])
+  member: string;
 }

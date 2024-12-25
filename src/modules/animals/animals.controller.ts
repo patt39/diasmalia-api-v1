@@ -20,12 +20,12 @@ import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Writable } from 'stream';
 import { config } from '../../app/config/index';
 import {
+  formatDateDifference,
   formatDDMMYYDate,
   formatNowDateYYMMDD,
   formatWeight,
   generateNumber,
   generateUUID,
-  getDayOfMonth,
 } from '../../app/utils/commons';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import { addPagination } from '../../app/utils/pagination/with-pagination';
@@ -34,11 +34,14 @@ import { SearchQueryDto } from '../../app/utils/search-query/search-query.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { BreedsService } from '../breeds/breeds.service';
+import { DeathsService } from '../death/deaths.service';
 import { FarrowingsService } from '../farrowings/farrowings.service';
 import { FatteningsService } from '../fattenings/fattening.service';
+import { FeedingsService } from '../feeding/feedings.service';
 import { GestationsService } from '../gestation/gestations.service';
 import { awsS3ServiceAdapter } from '../integrations/aws/aws-s3-service-adapter';
 import { LocationsService } from '../locations/locations.service';
+import { TreatmentsService } from '../treatments/treatments.service';
 import { reportPDFAttachment } from '../users/mails/report-pdf-attachment';
 import { UserAuthGuard } from '../users/middleware';
 import { UsersService } from '../users/users.service';
@@ -58,6 +61,9 @@ export class AnimalsController {
     private readonly breedsService: BreedsService,
     private readonly animalsService: AnimalsService,
     private readonly usersService: UsersService,
+    private readonly deathsService: DeathsService,
+    private readonly treatmentsService: TreatmentsService,
+    private readonly feedingsService: FeedingsService,
     private readonly locationsService: LocationsService,
     private readonly fatteningsService: FatteningsService,
     private readonly gestationsService: GestationsService,
@@ -500,6 +506,11 @@ export class AnimalsController {
         });
       }
 
+      await this.locationsService.updateOne(
+        { locationId: findOneLocation?.id },
+        { productionPhase: productionPhase },
+      );
+
       await this.activitylogsService.createOne({
         userId: user?.id,
         message: `${user?.profile?.firstName} ${user?.profile?.lastName} created an animal with code ${animal?.code} in ${findOneLocation?.animalType?.name}`,
@@ -549,7 +560,6 @@ export class AnimalsController {
     const findOneAnimal = await this.animalsService.findOneBy({
       code: codeMother,
       organizationId: user?.organizationId,
-      //animalTypeId: findOneBreed?.animalTypeId,
     });
     if (!findOneAnimal)
       throw new HttpException(
@@ -790,6 +800,36 @@ export class AnimalsController {
         HttpStatus.NOT_FOUND,
       );
 
+    const findOneFeeding = await this.feedingsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFeeding)
+      throw new HttpException(
+        `Feeding doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneTreatment = await this.treatmentsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFeeding)
+      throw new HttpException(
+        `Treatment doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    const findOneDead = await this.deathsService.findOneBy({
+      animalId: findOneAnimal?.id,
+      organizationId: user?.organizationId,
+    });
+    if (!findOneFeeding)
+      throw new HttpException(
+        `Treatment doesn't exists please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const findOneUser = await this.usersService.findOneBy({
       organizationId: user?.organizationId,
     });
@@ -803,12 +843,17 @@ export class AnimalsController {
       throw new HttpException(`User not authenticated`, HttpStatus.NOT_FOUND);
 
     const feedIndex = Number(
-      findOneAnimal?.feedingsCount / findOneAnimal?.weight,
+      findOneAnimal?.feedingsCount.toFixed(1) /
+        (findOneAnimal?.weight).toFixed(1),
     );
 
-    const duration = Number(
-      getDayOfMonth(findOneAnimal?.birthday) - new Date().getDate(),
+    const initialNumber = Number(
+      findOneAnimal?.chickenSaleCount +
+        findOneAnimal?.deathsCount +
+        findOneAnimal?.quantity,
     );
+
+    const duration = formatDateDifference(findOneAnimal?.birthday);
 
     const deathPercentage =
       Number(findOneAnimal?.deathsCount / findOneAnimal?.quantity) * 100;
@@ -878,57 +923,52 @@ export class AnimalsController {
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
+        {
+          text: `Dans le batiment: ${findOneAnimal?.location?.code}`,
+          alignment: 'center',
+          style: { fontSize: 12 },
+          margin: [0, 0, 0, 10],
+        },
+        '\n',
         '\n',
         {
-          text: `Effectif initial: ${findOneAnimal?.quantity}`,
+          text: `Nombre de poulets lancés: ${initialNumber}`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
         '\n',
         {
-          text: `Aliment consommé: ${formatWeight(findOneAnimal?.feedingsCount)}`,
+          text: `Type d'aliment consommé en fin de production: ${findOneFeeding?.feedStock?.feedCategory.toLowerCase()}.`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
         '\n',
         {
-          text: `Indice de consommation: ${feedIndex.toFixed(1)}`,
+          text: `Quantité total d'aliment consommé: ${findOneAnimal?.feedingsCount}kg, Indice de consommation: ${feedIndex.toFixed(1)}`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
         '\n',
         {
-          text: `Poids à la vente: ${formatWeight(findOneAnimal?.weight)}`,
+          text: `Dernier vaccin administré: ${findOneTreatment?.name} le ${formatDDMMYYDate(findOneTreatment?.createdAt)}.`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
         '\n',
         {
-          text: `Poids à la vente: ${formatWeight(findOneAnimal?.weight)}`,
+          text: `La production a duré ${duration} et les poulets ont atteint un poids de ${formatWeight(findOneAnimal?.weight)} à la fin.`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
         '\n',
         {
-          text: `Durée de la production: ${duration} jours`,
+          text: `Nombre total de morts ${findOneAnimal?.deathsCount}, avec un pourcentage de ${deathPercentage.toFixed(1)}%`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
         '\n',
         {
-          text: `Morts: ${findOneAnimal?.deathsCount}`,
-          style: { fontSize: 12 },
-          margin: [0, 0, 0, 10],
-        },
-        '\n',
-        {
-          text: `Pourcentage de morts: ${deathPercentage.toFixed(1)} %`,
-          style: { fontSize: 12 },
-          margin: [0, 0, 0, 10],
-        },
-        '\n',
-        {
-          text: `Morts: ${findOneAnimal?.deathsCount}`,
+          text: `Cause des derniers mortalités: ${findOneDead?.note}`,
           style: { fontSize: 12 },
           margin: [0, 0, 0, 10],
         },
@@ -974,6 +1014,7 @@ export class AnimalsController {
             ],
           },
         },
+        '\n',
         '\n',
         {
           text: `Dépenses total: ${Number(String(findOneAnimal?.totalExpenses).slice(1)).toLocaleString('en-US')}${findUniqueUser?.profile?.currency?.symbol}`,
@@ -1025,6 +1066,12 @@ export class AnimalsController {
       { animalId: findOneAnimal?.id },
       { report: awsPdf?.Location },
     );
+
+    await this.locationsService.updateOne(
+      { locationId: findOneAnimal?.locationId },
+      { status: !findOneAnimal?.location?.status },
+    );
+
     await reportPDFAttachment({
       animal: findOneAnimal,
       email: findOneUser?.email,

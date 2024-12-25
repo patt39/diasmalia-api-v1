@@ -46,10 +46,10 @@ export class AnimalTypesController {
     @Res() res,
     @Query() requestPaginationDto: RequestPaginationDto,
     @Query() query: SearchQueryDto,
-    @Query() animalTypeQuery: GetAnimalTypesByStatusQuery,
+    @Query() queryStatus: GetAnimalTypesByStatusQuery,
   ) {
     const { search } = query;
-    const { status } = animalTypeQuery;
+    const { status } = queryStatus;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -79,7 +79,7 @@ export class AnimalTypesController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const { user } = req;
-    const { name, slug, habitat, description, status } = body;
+    const { name, slug, habitat, description } = body;
 
     const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
       file,
@@ -90,7 +90,6 @@ export class AnimalTypesController {
     await this.animalTypesService.createOne({
       name,
       slug,
-      status,
       habitat,
       photo: urlAWS?.Location,
       description,
@@ -112,7 +111,7 @@ export class AnimalTypesController {
   ) {
     const { user } = req;
 
-    const { name, slug, habitat, description, status } = body;
+    const { name, slug, habitat, description } = body;
 
     const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
       file,
@@ -134,7 +133,6 @@ export class AnimalTypesController {
       {
         name,
         slug,
-        status,
         habitat,
         photo: urlAWS?.Location,
         description,
@@ -142,6 +140,30 @@ export class AnimalTypesController {
     );
 
     return reply({ res, results: animalType });
+  }
+
+  /** Change status */
+  @Put(`/:animalTypeId/change-status`)
+  @UseGuards(UserAuthGuard)
+  async changeStatus(
+    @Res() res,
+    @Param('animalTypeId', ParseUUIDPipe) animalTypeId: string,
+  ) {
+    const findOneType = await this.animalTypesService.findOneBy({
+      animalTypeId,
+    });
+    if (!findOneType)
+      throw new HttpException(
+        `AnimalTypeId: ${animalTypeId} doesn't exists, please change`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.animalTypesService.updateOne(
+      { animalTypeId: findOneType?.id },
+      { status: !findOneType?.status },
+    );
+
+    return reply({ res, results: 'Status changed successfully' });
   }
 
   /** Get one animalType */

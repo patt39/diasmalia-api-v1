@@ -10,6 +10,7 @@ import { IncubationsService } from '../incubation/incubation.service';
 import { MilkingsService } from '../milking /milkings.service';
 import { SalesService } from '../sales/sales.service';
 import { UserAuthGuard } from '../users/middleware';
+import { UsersService } from '../users/users.service';
 import { WeaningsService } from '../weaning/weaning.service';
 import {
   GetAnalyticsQuery,
@@ -24,6 +25,7 @@ export class AnalyticsController {
     private readonly incubationsService: IncubationsService,
     private readonly deathsService: DeathsService,
     private readonly salesService: SalesService,
+    private readonly usersService: UsersService,
     private readonly farrowingsService: FarrowingsService,
     private readonly weaningsService: WeaningsService,
     private readonly milkingsService: MilkingsService,
@@ -327,6 +329,28 @@ export class AnalyticsController {
     const { user } = req;
 
     const financesAnalytics = await this.financesService.getFinanceAnalytics({
+      days,
+      year,
+      months,
+      periode: Number(periode),
+      organizationId: user?.organizationId,
+    });
+
+    return reply({ res, results: financesAnalytics });
+  }
+
+  /** Get users analytics. */
+  @Get(`/users`)
+  @UseGuards(UserAuthGuard)
+  async getUsersAnalysis(
+    @Res() res,
+    @Req() req,
+    @Query() queryAnalytics: GetFinanceAnalyticsQuery,
+  ) {
+    const { days, months, year, periode } = queryAnalytics;
+    const { user } = req;
+
+    const financesAnalytics = await this.usersService.getUsersAnalytics({
       days,
       year,
       months,

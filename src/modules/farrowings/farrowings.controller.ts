@@ -12,13 +12,10 @@ import {
   Query,
   Req,
   Res,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { reply } from '../../app/utils/reply';
 
-import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestPaginationDto } from '../../app/utils/pagination/request-pagination.dto';
 import {
   addPagination,
@@ -89,15 +86,16 @@ export class FarrowingsController {
   @UseGuards(UserAuthGuard)
   async createOne(@Res() res, @Req() req, @Body() body: CreateFarrowingsDto) {
     const { user } = req;
-    const { dead, litter, note, codeFemale, weight, farrowingDate } = body;
+    const { dead, litter, note, code, weight, farrowingDate } = body;
 
-    const findOneFemale = await this.animalsService.findOneBy({
-      code: codeFemale,
+    const findOneFemale = await this.animalsService.findOneByCode({
+      code,
       gender: 'FEMALE',
       status: 'ACTIVE',
       isIsolated: 'NO',
       productionPhase: 'GESTATION',
     });
+
     if (!findOneFemale)
       throw new HttpException(
         `Animal ${findOneFemale?.code} doesn't exists, isn't in GESTATION phase  or isn't ACTIVE please change`,
@@ -125,12 +123,6 @@ export class FarrowingsController {
       animalFemaleId: findOneFemale?.id,
       organizationId: user?.organizationId,
     });
-    if (!findOneBreeding) {
-      throw new HttpException(
-        `Breeding doesn't exists please change`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
 
     const farrowing = await this.farrowingsService.createOne({
       dead,
@@ -138,7 +130,7 @@ export class FarrowingsController {
       litter,
       weight,
       animalId: findOneFemale?.id,
-      breedingId: findOneBreeding?.id,
+      breedingId: findOneBreeding ? findOneBreeding?.id : null,
       farrowingDate: new Date(farrowingDate),
       animalTypeId: findOneFemale?.animalTypeId,
       organizationId: user?.organizationId,
@@ -163,7 +155,7 @@ export class FarrowingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} created a farrowing in ${findOneFemale?.animalType?.name} for ${findOneFemale?.code}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a farrowing in ${findOneFemale?.animalType?.name} for ${findOneFemale?.code}`,
     });
 
     return reply({
@@ -179,13 +171,11 @@ export class FarrowingsController {
 
   /** Update one farrowing */
   @Put(`/:farrowingId/edit`)
-  @UseInterceptors(FileInterceptor('image'))
   @UseGuards(UserAuthGuard)
   async updateOne(
     @Res() res,
     @Req() req,
     @Body() body: UpdateFarrowingsDto,
-    @UploadedFile() file: Express.Multer.File,
     @Param('farrowingId', ParseUUIDPipe) farrowingId: string,
   ) {
     const { user } = req;
@@ -201,12 +191,6 @@ export class FarrowingsController {
         HttpStatus.NOT_FOUND,
       );
 
-    const { urlAWS } = await this.uploadsUtil.uploadOneAWS({
-      file,
-      userId: user?.id,
-      folder: 'photos',
-    });
-
     const farrowing = await this.farrowingsService.updateOne(
       { farrowingId: findOneFarrowing?.id },
       {
@@ -214,7 +198,6 @@ export class FarrowingsController {
         note,
         litter,
         weight,
-        image: urlAWS?.Location,
       },
     );
 

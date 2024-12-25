@@ -5,6 +5,7 @@ import {
   withPagination,
   WithPaginationResponse,
 } from '../../app/utils/pagination';
+import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import {
   CreateSuggestionsOptions,
   GetOneSuggestionSelections,
@@ -16,7 +17,10 @@ import {
 
 @Injectable()
 export class SuggestionService {
-  constructor(private readonly client: DatabaseService) {}
+  constructor(
+    private readonly client: DatabaseService,
+    private readonly assignedTypesService: AssignTypesService,
+  ) {}
 
   async findAll(
     selections: GetSuggestionsSelections,
@@ -87,6 +91,39 @@ export class SuggestionService {
     });
 
     return suggestion;
+  }
+
+  /** Suggestions job service. */
+  async jobService(options: CreateSuggestionsOptions): Promise<void> {
+    const { userId, organizationId } = options;
+
+    const assigneTypes = await this.client.assignType.findMany({
+      where: {
+        userId: userId,
+        organizationId: organizationId,
+      },
+    });
+
+    for (const type of assigneTypes) {
+      const findOneType = await this.assignedTypesService.findOneBy({
+        animalTypeId: type.animalTypeId,
+      });
+      if (
+        ['Porciculture', 'Cuniculture', 'Caprins', 'Ovins', 'Bovins'].includes(
+          findOneType?.animalType?.name,
+        )
+      ) {
+        await this.createOne({
+          title: `Caractéristiques d'un bon élevage de mammifère`,
+          message: `Les poules vont bientot entrer en ponte  passer à l'aliment ponte exclussivement avec Calcium élevé (3,5-4%) : Indispensable pour des coquilles solides. Protéines (16-17%) : Maintenir un bon développement corporel et la production d'œufs. Phosphore et oligo-éléments : Soutenir la santé osseuse et la ponte. Fournir des grains concassés ou des granulés pour éviter les pertes. Veiller à une hydratation constante avec de l'eau propre. 
+          Maintenir 16 heures de lumière par jour pour stimuler la ponte.Assurer une lumière homogène et sans fluctuations tout en maintenant la temperature idéalement entre 18 et 24°C pour éviter le stress thermique`,
+          userId: userId,
+          organizationId: organizationId,
+        });
+      }
+    }
+
+    console.log('Job completed!');
   }
 
   /** Update one suggestion in database. */
