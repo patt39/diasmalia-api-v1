@@ -11,6 +11,14 @@ export type GetBreedingsSelections = {
   gender?: Animal['gender'];
   method?: Breeding['method'];
   checkStatus?: Breeding['checkStatus'];
+  animalFemaleId?: Breeding['animalFemaleId'];
+};
+
+export type GetBreedingHistorySelections = {
+  organizationId?: string;
+  pagination?: PaginationType;
+  animalTypeId?: string;
+  animalFemaleId?: Breeding['animalFemaleId'];
 };
 
 export type GetOneBreedingsSelections = {
@@ -36,12 +44,12 @@ export const BreedingSelect = {
   createdAt: true,
   id: true,
   note: true,
+  method: true,
   result: true,
   maleCode: true,
   femaleCode: true,
   animalFemaleId: true,
   animalMaleId: true,
-  method: true,
   checkStatus: true,
   animalTypeId: true,
   animalType: {

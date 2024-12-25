@@ -14,6 +14,7 @@ import { WeaningsService } from '../weaning/weaning.service';
 import {
   BreedingSelect,
   CreateBreedingsOptions,
+  GetBreedingHistorySelections,
   GetBreedingsSelections,
   GetOneBreedingsSelections,
   UpdateBreedingsOptions,
@@ -38,9 +39,10 @@ export class BreedingsService {
       method,
       periode,
       animalId,
-      checkStatus,
       pagination,
+      checkStatus,
       animalTypeId,
+      animalFemaleId,
       organizationId,
     } = selections;
 
@@ -68,6 +70,10 @@ export class BreedingsService {
 
     if (animalTypeId) {
       Object.assign(prismaWhereBreeding, { animalTypeId });
+    }
+
+    if (animalFemaleId) {
+      Object.assign(prismaWhereBreeding, { animalFemaleId });
     }
 
     if (checkStatus) {
@@ -106,10 +112,10 @@ export class BreedingsService {
   }
 
   async findBreedingHistory(
-    selections: GetBreedingsSelections,
+    selections: GetBreedingHistorySelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhereBreeding = {} as Prisma.BreedingWhereInput;
-    const { gender, animalId, pagination, animalTypeId, organizationId } =
+    const { animalFemaleId, pagination, animalTypeId, organizationId } =
       selections;
 
     if (organizationId) {
@@ -120,8 +126,8 @@ export class BreedingsService {
       Object.assign(prismaWhereBreeding, { animalTypeId });
     }
 
-    if (animalId && gender === 'FEMALE') {
-      Object.assign(prismaWhereBreeding, { animalFemaleId: animalId });
+    if (animalFemaleId) {
+      Object.assign(prismaWhereBreeding, { animalFemaleId });
     }
 
     const breedings = await this.client.breeding.findMany({
@@ -142,7 +148,6 @@ export class BreedingsService {
         breedingId: breeding?.id,
       });
       const findOneAnimalWeaning = await this.weaningsService.findOneBy({
-        //breedingId: breeding?.id,
         farrowingId: findOneAnimalFarrowing?.id,
       });
       newBreedingArray.push({
@@ -218,6 +223,7 @@ export class BreedingsService {
     const breeding = await this.client.breeding.findFirst({
       orderBy: { createdAt: 'desc' },
       where: { ...prismaWhere, deletedAt: null },
+      select: BreedingSelect,
     });
 
     return breeding;

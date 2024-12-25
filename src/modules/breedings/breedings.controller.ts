@@ -53,7 +53,7 @@ export class BreedingsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { method, animalTypeId, periode } = queryBreedings;
+    const { method, animalTypeId, periode, animalFemaleId } = queryBreedings;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -68,6 +68,7 @@ export class BreedingsController {
       search,
       pagination,
       animalTypeId,
+      animalFemaleId,
       periode: Number(periode),
       organizationId: user?.organizationId,
     });
@@ -82,12 +83,10 @@ export class BreedingsController {
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
-    @Query() query: SearchQueryDto,
     @Query() queryBreeding: GetAnimalBreedingsDto,
   ) {
-    const { animalId } = queryBreeding;
+    const { animalFemaleId } = queryBreeding;
     const { user } = req;
-    const { search } = query;
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
       page,
@@ -97,19 +96,18 @@ export class BreedingsController {
     });
 
     const findOneAnimal = await this.animalsService.findOneBy({
-      animalId,
+      animalId: animalFemaleId,
       organizationId: user?.organizationId,
     });
     if (!findOneAnimal)
       throw new HttpException(
-        `Animal ${animalId} doesn't exists, please change`,
+        `Animal ${animalFemaleId} doesn't exists, please change`,
         HttpStatus.NOT_FOUND,
       );
 
     const animals = await this.breedingsService.findBreedingHistory({
-      search,
       pagination,
-      animalId: findOneAnimal?.id,
+      animalFemaleId: findOneAnimal?.id,
       animalTypeId: findOneAnimal?.animalTypeId,
       organizationId: user?.organizationId,
     });

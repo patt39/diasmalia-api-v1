@@ -157,7 +157,6 @@ export class FarrowingsService {
     const {
       note,
       dead,
-      image,
       weight,
       litter,
       animalId,
@@ -171,7 +170,6 @@ export class FarrowingsService {
       data: {
         dead,
         note,
-        image,
         weight,
         litter,
         animalId,

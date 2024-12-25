@@ -160,36 +160,34 @@ export class FeedingsController {
 
     if (
       findOneAnimal?.productionPhase === 'GROWTH' &&
-      formatDateDifference(findOneAnimal?.birthday) === '1 days'
+      formatDateDifference(findOneAnimal?.birthday) === '0 days'
     ) {
       await this.suggestionsService.createOne({
-        title: `Alimentation de la bande ${findOneAnimal.code}`,
-        message: `Donner de alimentent croissance où pre-démarrage si possible riche en protéines (20-22%) et energie modéré en maintenant la temperature entre 32-34°C pour la croissances rapid des poussins jusquà la 6eme semaine de production`,
         userId: user?.id,
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
+        title: `Alimentation de la bande ${findOneAnimal.code}`,
+        message: `Donner de l'alimentent croissance où pre-démarrage si possible riche en protéines (20-22%) et energie modéré en maintenant la temperature entre 32-34°C pour la croissances rapid des poussins jusqu'à la 6eme semaine de production`,
       });
     }
 
     if (formatDateDifference(findOneAnimal?.birthday) === '2 mnths') {
       await this.suggestionsService.createOne({
-        title: `Alimentation de la bande ${findOneAnimal.code}`,
-        message: `Donner uniquement alimentent croissance et réduire les protéines (16-18%) tout en maintenant un bon équilibre énergétique à une temperature entre 20-22°C maintenant eclairage entre 20-22 heures par jour pour stimuler la prise alimentaire`,
         userId: user?.id,
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
+        title: `Alimentation de la bande ${findOneAnimal.code}`,
+        message: `Donner uniquement de l'alimentent croissance et réduire les protéines (16-18%) tout en maintenant un bon équilibre énergétique à une temperature entre 20-22°C maintenant eclairage entre 20-22 heures par jour pour stimuler la prise alimentaire`,
       });
     }
 
-    console.log(formatDateDifference(findOneAnimal?.birthday));
-
     if (formatDateDifference(findOneAnimal?.birthday) === '4 mnths') {
       await this.suggestionsService.createOne({
-        title: `Alimentation de la bande ${findOneAnimal.code}`,
-        message: `Commencer a donner de aliment pre-ponte riche en calcium et protéines pour la production des coquilles et preparer la ponte et reduisez eclairage à 8h par jour pour diminuer alimentation et eviter la prise de poids execissive qui pourra retarder la ponte`,
         userId: user?.id,
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
+        title: `Alimentation de la bande ${findOneAnimal.code}`,
+        message: `Commencer a donner de aliment pre-ponte riche en calcium et protéines pour la production des coquilles et preparer la ponte. Reduisez l'éclairage à 8h par jour pour diminuer alimentation et eviter la prise de poids execissive qui pourra retarder la ponte`,
       });
     }
 
@@ -200,18 +198,18 @@ export class FeedingsController {
       formatDateDifference(findOneAnimal?.birthday) === '5 mnths'
     ) {
       await this.suggestionsService.createOne({
-        title: `Alimentation de la bande ${findOneAnimal.code}`,
-        message: `Les poules vont bientot entrer en ponte  passer à l'aliment ponte exclussivement avec Calcium élevé (3,5-4%) : Indispensable pour des coquilles solides. Protéines (16-17%) : Maintenir un bon développement corporel et la production d'œufs. Phosphore et oligo-éléments : Soutenir la santé osseuse et la ponte. Fournir des grains concassés ou des granulés pour éviter les pertes. Veiller à une hydratation constante avec de l'eau propre. 
-        Maintenir 16 heures de lumière par jour pour stimuler la ponte.Assurer une lumière homogène et sans fluctuations tout en maintenant la temperature idéalement entre 18 et 24°C pour éviter le stress thermique`,
         userId: user?.id,
         animalId: findOneAnimal?.id,
         organizationId: user?.organizationId,
+        title: `Alimentation de la bande ${findOneAnimal.code}`,
+        message: `Bonne nouvelle les poules vont bientot entrer en ponte  passer à l'aliment ponte exclussivement avec Calcium élevé (3,5-4%): Indispensable pour des coquilles solides. Protéines (16-17%): Maintenir un bon développement corporel et la production d'œufs. Phosphore et oligo-éléments: Soutenir la santé osseuse et la ponte. Fournir des grains concassés ou des granulés pour éviter les pertes. Veiller à une hydratation constante avec de l'eau propre. 
+        Maintenir 16 heures de lumière par jour pour stimuler la ponte. Assurer une lumière homogène et sans fluctuations tout en maintenant la temperature idéalement entre 18 et 24°C pour éviter le stress thermique`,
       });
     }
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added a feeding in ${findOneAnimal?.animalType?.name} for ${findOneAnimal?.code} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${quantity}kg of feed in ${findOneAnimal?.animalType?.name} for ${findOneAnimal?.code} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
       organizationId: user?.organizationId,
     });
 
@@ -309,7 +307,7 @@ export class FeedingsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${animals?.lenght} in ${findFeedStock?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} feeded ${quantity}kg of feed for ${animals?.length} in ${findFeedStock?.animalType?.name} with ${findFeedStock?.feedCategory.toLocaleLowerCase()}`,
     });
 
     return reply({ res, results: 'Saved' });

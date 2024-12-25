@@ -66,9 +66,6 @@ export class TreatmentsService {
       where: {
         ...prismaWhereTreatment,
         deletedAt: null,
-        animal: {
-          deletedAt: null,
-        },
       },
       take: pagination.take,
       skip: pagination.skip,

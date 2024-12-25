@@ -231,7 +231,7 @@ export class FeedStocksController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated a feed stock in ${findOneAssignType?.animalType.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} updated feed stock for ${findOneAssignType?.animalType.name}`,
     });
 
     return reply({ res, results: 'Feed stock updated successfully' });
@@ -265,7 +265,7 @@ export class FeedStocksController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a feed stock for ${findOneFeedStock?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted feed stock for ${findOneFeedStock?.animalType?.name}`,
     });
 
     return reply({ res, results: feedStock });

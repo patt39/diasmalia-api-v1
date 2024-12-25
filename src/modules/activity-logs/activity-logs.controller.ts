@@ -26,7 +26,7 @@ export class ActivityLogsController {
   ) {
     const { user } = req;
     const { search } = query;
-    const { periode } = queryPeriod;
+    const { periode, userId } = queryPeriod;
 
     const { take, page, sort, sortBy } = requestPaginationDto;
     const pagination: PaginationType = addPagination({
@@ -37,6 +37,7 @@ export class ActivityLogsController {
     });
 
     const activityLog = await this.activitylogsService.findAll({
+      userId,
       search,
       pagination,
       periode: Number(periode),

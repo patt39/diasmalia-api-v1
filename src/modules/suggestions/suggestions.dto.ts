@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrSuggestionDto {
   @IsNotEmpty()
@@ -8,11 +8,4 @@ export class CreateOrSuggestionDto {
   @IsOptional()
   @IsString()
   code: string;
-}
-
-export class GetSuggestionsQueryDto {
-  @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  userId: string;
 }

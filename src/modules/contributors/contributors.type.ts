@@ -59,9 +59,17 @@ export const ContributorSelect = {
   organizationId: true,
   organization: {
     select: {
-      logo: true,
       name: true,
       description: true,
+      _count: {
+        select: {
+          suggestions: {
+            where: {
+              deletedAt: null,
+            },
+          },
+        },
+      },
     },
   },
   userCreatedId: true,

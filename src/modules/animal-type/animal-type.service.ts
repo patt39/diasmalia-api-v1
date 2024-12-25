@@ -31,7 +31,10 @@ export class AnimalTypesService {
     }
 
     if (status) {
-      Object.assign(prismaWhere, { status });
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      status === 'true'
+        ? Object.assign(prismaWhere, { status: true })
+        : Object.assign(prismaWhere, { status: false });
     }
 
     const animalType = await this.client.animalType.findMany({

@@ -89,6 +89,7 @@ export class ProfilesService {
       occupation,
       currencyId,
       description,
+      profession,
     } = options;
 
     const profile = this.client.profile.create({
@@ -102,6 +103,7 @@ export class ProfilesService {
         firstName,
         occupation,
         currencyId,
+        profession,
         description,
       },
     });
@@ -128,6 +130,7 @@ export class ProfilesService {
       description,
       deletedAt,
       testimonial,
+      profession,
     } = options;
 
     const profile = this.client.profile.update({
@@ -144,6 +147,7 @@ export class ProfilesService {
         currencyId,
         description,
         deletedAt,
+        profession,
         testimonial,
       },
     });

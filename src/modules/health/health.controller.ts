@@ -24,7 +24,6 @@ import {
 } from '../../app/utils/pagination/with-pagination';
 import { reply } from '../../app/utils/reply';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { AssignTypesService } from '../assigne-type/assigne-type.service';
 import { UploadsUtil } from '../integrations/integration.utils';
 import { UserAuthGuard } from '../users/middleware';
 import { CreateOrUpdateHealthsDto, GetHealthQueryDto } from './health.dto';
@@ -35,7 +34,6 @@ export class HealthsController {
   constructor(
     private readonly uploadsUtil: UploadsUtil,
     private readonly healthsService: HealthsService,
-    private readonly assignTypesService: AssignTypesService,
     private readonly activitylogsService: ActivityLogsService,
   ) {}
 

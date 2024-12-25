@@ -105,7 +105,7 @@ export class UpdateSalesDto {
 }
 
 export class BulkSalesDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   note: string;
 

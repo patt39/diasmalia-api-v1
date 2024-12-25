@@ -172,7 +172,7 @@ export class DeathsController {
 
     await this.activitylogsService.createOne({
       userId: user?.id,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added dead animals in ${findOneAnimal?.animalType.name} for ${findOneAnimal?.code} `,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${death?.number} dead animals in ${findOneAnimal?.animalType.name} for ${findOneAnimal?.code} `,
       organizationId: user?.organizationId,
     });
 
@@ -214,7 +214,7 @@ export class DeathsController {
       await this.activitylogsService.createOne({
         userId: user?.id,
         organizationId: user?.organizationId,
-        message: `${user?.profile?.firstName} ${user?.profile?.lastName} added dead animals for ${findOneAnimal?.code} in ${findOneAnimal?.animalType?.name}`,
+        message: `${user?.profile?.firstName} ${user?.profile?.lastName} added ${findOneAnimal?.code} in dead for ${findOneAnimal?.animalType?.name}`,
       });
     }
 
@@ -328,7 +328,7 @@ export class DeathsController {
     await this.activitylogsService.createOne({
       userId: user?.id,
       organizationId: user?.organizationId,
-      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a dead record in ${findOneDead?.animal?.code} for ${findOneDead?.animalType?.name}`,
+      message: `${user?.profile?.firstName} ${user?.profile?.lastName} deleted a dead record for ${findOneDead?.animal?.code} in ${findOneDead?.animalType?.name}`,
     });
 
     return reply({ res, results: death });

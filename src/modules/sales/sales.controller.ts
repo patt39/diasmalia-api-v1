@@ -236,6 +236,12 @@ export class SalesController {
         HttpStatus.NOT_FOUND,
       );
 
+    if (findOneAnimal?.quantity < number)
+      throw new HttpException(
+        `Impossible to sell insuficient animals available`,
+        HttpStatus.NOT_FOUND,
+      );
+
     const sale = await this.salesService.createOne({
       code,
       male,
@@ -314,7 +320,7 @@ export class SalesController {
 
     await this.activitylogsService.createOne({
       userId: user.id,
-      message: `${user.profile?.firstName} ${user.profile?.lastName} added a sale in ${findOneAnimal.animalType.name} for ${findOneAnimal?.code} `,
+      message: `${user.profile?.firstName} ${user.profile?.lastName} sold ${sale?.detail} in ${findOneAnimal.animalType.name} for ${findOneAnimal?.code} `,
       organizationId: user.organizationId,
     });
 

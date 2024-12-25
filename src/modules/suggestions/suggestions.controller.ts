@@ -19,7 +19,6 @@ import {
   PaginationType,
 } from '../../app/utils/pagination/with-pagination';
 import { UserAuthGuard } from '../users/middleware';
-import { GetSuggestionsQueryDto } from './suggestions.dto';
 import { SuggestionService } from './suggestions.service';
 
 @Controller('suggestions')
@@ -33,11 +32,9 @@ export class SuggestionController {
     @Res() res,
     @Req() req,
     @Query() requestPaginationDto: RequestPaginationDto,
-    @Query() suggestionQueryDto: GetSuggestionsQueryDto,
   ) {
     const { take, page, sort, sortBy } = requestPaginationDto;
     const { user } = req;
-    const { userId } = suggestionQueryDto;
     const pagination: PaginationType = addPagination({
       page,
       take,
@@ -46,8 +43,8 @@ export class SuggestionController {
     });
 
     const suggestion = await this.suggestionsService.findAll({
-      userId,
       pagination,
+      userId: user?.id,
       organizationId: user?.organizationId,
     });
 

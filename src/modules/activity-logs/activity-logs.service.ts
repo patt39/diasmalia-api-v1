@@ -22,7 +22,11 @@ export class ActivityLogsService {
     selections: ActivityLogsSelections,
   ): Promise<WithPaginationResponse | null> {
     const prismaWhere = {} as Prisma.ActivityLogWhereInput;
-    const { periode, pagination, organizationId } = selections;
+    const { periode, pagination, userId, organizationId } = selections;
+
+    if (userId) {
+      Object.assign(prismaWhere, { userId });
+    }
 
     if (organizationId) {
       Object.assign(prismaWhere, { organizationId });
